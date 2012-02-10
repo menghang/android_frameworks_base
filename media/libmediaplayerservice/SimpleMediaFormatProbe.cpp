@@ -39,7 +39,7 @@ namespace android {
 
 #define FFMAX(a,b) ((a) > (b) ? (a) : (b))
 
-
+#define MKTAG(a,b,c,d) (a | (b << 8) | (c << 16) | (d << 24))
 
 //---------------------------- Audio stream format probe -----------------------------------
 #define ID3v2_HEADER_SIZE 10
@@ -445,13 +445,58 @@ static int aac_probe(media_probe_data_t *p)
 {
 	unsigned char *ptr = p->buf;
 
-	if(((ptr[0]&0xff==0xff)&&(ptr[1]&0xf0==0xf0))
-		||((ptr[0]&0xff==0x56)&&(ptr[1]&0xe0==0xe0)))
+	if((((ptr[0]&0xff)==0xff)&&((ptr[1]&0xf0)==0xf0))
+		||(((ptr[0]&0xff)==0x56)&&((ptr[1]&0xe0)==0xe0)))
 	{
 		return AVPROBE_SCORE_MAX;
 	}
 
 	return 0;
+}
+
+static int mp4_probe(media_probe_data_t *p) {
+	unsigned int offset;
+	unsigned int tag;
+	int score = 0;
+
+	/* check file header */
+	offset = 0;
+	for (;;) {
+		/* ignore invalid offset */
+		if ((offset + 8) > (unsigned int) p->buf_size)
+			return score;
+		tag = AV_RL32(p->buf + offset + 4);
+		switch (tag) {
+		/* check for obvious tags */
+		case MKTAG('j','P',' ',' '): /* jpeg 2000 signature */
+		case MKTAG('m','o','o','v'):
+		case MKTAG('m','d','a','t'):
+		case MKTAG('p','n','o','t'): /* detect movs with preview pics like ew.mov and april.mov */
+		case MKTAG('u','d','t','a'): /* Packet Video PVAuthor adds this and a lot of more junk */
+			return AVPROBE_SCORE_MAX;
+			/* those are more common words, so rate then a bit less */
+		case MKTAG('e','d','i','w'): /* xdcam files have reverted first tags */
+		case MKTAG('w','i','d','e'):
+		case MKTAG('f','r','e','e'):
+		case MKTAG('j','u','n','k'):
+		case MKTAG('p','i','c','t'):
+			return AVPROBE_SCORE_MAX - 5;
+		case MKTAG(0x82,0x82,0x7f,0x7d ):
+		case MKTAG('f','t','y','p'):
+		case MKTAG('s','k','i','p'):
+		case MKTAG('u','u','i','d'):
+		case MKTAG('p','r','f','l'):
+			offset = AV_RB32(p->buf+offset) + offset;
+			/* if we only find those cause probedata is too small at least rate them */
+			score = AVPROBE_SCORE_MAX - 50;
+			break;
+		default:
+			/* unrecognized tag */
+			return score;
+		}
+	}
+
+	return score;
 }
 
 int audio_format_detect(unsigned char *buf, int buf_size)
@@ -498,6 +543,10 @@ int audio_format_detect(unsigned char *buf, int buf_size)
 		else {
 			return MEDIA_FORMAT_WAV;
 		}
+	}
+
+	if(mp4_probe(&prob) > 0) {
+		return MEDIA_FORMAT_MP4;
 	}
 
 	if(wma_probe(&prob) > 0){

@@ -133,8 +133,6 @@ public class EthernetService extends IEthernetManager.Stub {
 	 * @return ethernet interface configuration on success, {@code null} on failure
 	 */
 	public synchronized EthernetDevInfo getSavedConfig() {
-		if (!isConfigured())
-			return null;
 
 		final ContentResolver cr = mContext.getContentResolver();
 		EthernetDevInfo info = new EthernetDevInfo();
@@ -143,6 +141,9 @@ public class EthernetService extends IEthernetManager.Stub {
 		} catch (Settings.SettingNotFoundException e) {
 		}
 		info.setIfName(ETH_USED);
+		if (!isConfigured())
+			return info;
+
 		info.setBootName(Settings.Secure.getString(cr, Settings.Secure.ETHERNET_IFNAME));
 		info.setIpAddress(Settings.Secure.getString(cr, Settings.Secure.ETHERNET_IP));
 		info.setDnsAddr(Settings.Secure.getString(cr, Settings.Secure.ETHERNET_DNS));

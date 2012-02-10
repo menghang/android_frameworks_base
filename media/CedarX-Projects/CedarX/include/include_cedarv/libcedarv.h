@@ -128,6 +128,7 @@ extern "C" {
         u32 flags;
         u32 lengh;
         u64 pts;
+        u32	type;
     }cedarv_stream_data_info_t;
     
     

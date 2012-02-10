@@ -47,6 +47,7 @@ LOCAL_STATIC_LIBRARIES += \
 	libcedarxplayer \
 	libcedarxcomponents \
 	libcedarxdemuxers \
+	libcedarxsftdemux \
 	libcedarxstream \
 	libcedarxrender \
 	libdemux_cedarm \
@@ -66,6 +67,7 @@ LOCAL_LDFLAGS += \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarxplayer.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarxcomponents.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarxdemuxers.a \
+	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarxsftdemux.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarxstream.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarxrender.a	\
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libdemux_cedarm.a \
@@ -111,16 +113,18 @@ endif
 	
 ifeq ($(CEDARX_DEBUG_FRAMEWORK),Y)
 LOCAL_SHARED_LIBRARIES += libcedarxbase libswdrm 
-ifeq ($(CEDARX_USE_SFTDEMUX),Y)
-LOCAL_SHARED_LIBRARIES += libcedarxsftdemux
-endif
 else
 LOCAL_LDFLAGS += \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarxbase.so \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libswdrm.so
+endif
+
 ifeq ($(CEDARX_USE_SFTDEMUX),Y)
-LOCAL_LDFLAGS += $(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarxsftdemux.so
-endif	
+ifeq ($(CEDARX_DEBUG_ENABLE), Y)
+LOCAL_STATIC_LIBRARIES += libstagefright_rtsp
+else
+LOCAL_LDFLAGS += $(OUT)/obj/STATIC_LIBRARIES/libstagefright_rtsp_intermediates/libstagefright_rtsp.a
+endif
 endif
 
 ifeq ($(CEDARX_DEBUG_CEDARV),Y)

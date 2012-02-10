@@ -232,7 +232,8 @@ extmap FILE_EXTS [] =  {
 		{".amr", STAGEFRIGHT_PLAYER},
 		{".flac", STAGEFRIGHT_PLAYER},
 		{".m4a", STAGEFRIGHT_PLAYER},
-
+		{".mp3?nolength", STAGEFRIGHT_PLAYER},
+		{".ogg?nolength", STAGEFRIGHT_PLAYER},
 		//{".3gp", STAGEFRIGHT_PLAYER},
 
 		//{".aac", STAGEFRIGHT_PLAYER},
@@ -680,7 +681,7 @@ static player_type getDefaultPlayerType() {
     //return STAGEFRIGHT_PLAYER;
 }
 
-player_type getPlayerType(int fd, int64_t offset, int64_t length)
+player_type getPlayerType(int fd, int64_t offset, int64_t length, bool check_cedar)
 {
 	int r_size;
 	int file_format;
@@ -712,15 +713,22 @@ player_type getPlayerType(int fd, int64_t offset, int64_t length)
         EAS_Shutdown(easdata);
     }
 
-    file_format = audio_format_detect((unsigned char*)buf, r_size);
-    LOGV("getPlayerType: %d",file_format);
-    if(file_format < MEDIA_FORMAT_STAGEFRIGHT_MAX && file_format > MEDIA_FORMAT_STAGEFRIGHT_MIN){
-    	LOGV("use STAGEFRIGHT_PLAYER");
-    	return STAGEFRIGHT_PLAYER;
-    }
-    else if(file_format < MEDIA_FORMAT_CEDARA_MAX && file_format > MEDIA_FORMAT_CEDARA_MIN){
-    	LOGV("use CEDARA_PLAYER");
-    	return CEDARA_PLAYER;
+    if (check_cedar) {
+		file_format = audio_format_detect((unsigned char*)buf, r_size);
+		LOGV("getPlayerType: %d",file_format);
+
+		if(file_format < MEDIA_FORMAT_STAGEFRIGHT_MAX && file_format > MEDIA_FORMAT_STAGEFRIGHT_MIN){
+			LOGV("use STAGEFRIGHT_PLAYER");
+			return STAGEFRIGHT_PLAYER;
+		}
+		else if(file_format < MEDIA_FORMAT_CEDARA_MAX && file_format > MEDIA_FORMAT_CEDARA_MIN){
+			LOGV("use CEDARA_PLAYER");
+			return CEDARA_PLAYER;
+		}
+		else if(file_format < MEDIA_FORMAT_CEDARX_MAX && file_format > MEDIA_FORMAT_CEDARX_MIN){
+			LOGV("use CEDARX_PLAYER");
+			return CEDARX_PLAYER;
+		}
     }
 
     return STAGEFRIGHT_PLAYER; //getDefaultPlayerType();
@@ -944,7 +952,7 @@ status_t MediaPlayerService::Client::setDataSource(int fd, int64_t offset, int64
         LOGV("calculated length = %lld", length);
     }
 
-    player_type playerType = getPlayerType(fd, offset, length);
+    player_type playerType = getPlayerType(fd, offset, length, true);
     LOGV("player type = %d", playerType);
 
     // create the right type of player
@@ -2022,6 +2030,9 @@ sp<IMemory> MediaPlayerService::decode(const char* url, uint32_t *pSampleRate, i
     }
 
     player_type playerType = getPlayerType(url);
+    if (playerType == CEDARX_PLAYER || playerType == CEDARA_PLAYER) {
+    	playerType = STAGEFRIGHT_PLAYER;
+    }
     LOGV("player type = %d", playerType);
 
     // create the right type of player
@@ -2068,7 +2079,7 @@ sp<IMemory> MediaPlayerService::decode(int fd, int64_t offset, int64_t length, u
     sp<MemoryBase> mem;
     sp<MediaPlayerBase> player;
 
-    player_type playerType = getPlayerType(fd, offset, length);
+    player_type playerType = getPlayerType(fd, offset, length, false);
     LOGV("player type = %d", playerType);
 
     // create the right type of player

@@ -17,6 +17,7 @@ cp $SRCDIR0/libdemux_rmvb_intermediates/libdemux_rmvb.a ./
 cp $SRCDIR0/libdemux_pmp_intermediates/libdemux_pmp.a ./
 cp $SRCDIR0/libdemux_idxsub_intermediates/libdemux_idxsub.a ./
 cp $SRCDIR0/libcedarxdemuxers_intermediates/libcedarxdemuxers.a ./
+cp $SRCDIR0/libcedarxsftdemux_intermediates/libcedarxsftdemux.a ./
 cp $SRCDIR0/libcedarxstream_intermediates/libcedarxstream.a ./
 cp $SRCDIR0/libcedarxrender_intermediates/libcedarxrender.a ./
 cp $SRCDIR0/libcedarxcomponents_intermediates/libcedarxcomponents.a ./

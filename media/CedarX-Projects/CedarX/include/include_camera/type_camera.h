@@ -27,6 +27,10 @@ typedef struct VIDEOINFO_t
 	int bitRate;		// camcorder video bitrate
 	short profileIdc;
 	short levelIdc;
+
+	int geo_available;
+	int latitudex10000;
+	int longitudex10000;
 }VIDEOINFO_t;
 
 typedef struct AUDIOINFO_t
@@ -65,7 +69,8 @@ typedef struct JPEG_ENC_t
 	int colorFormat;
 	int quality;
 	int rotate;
-	
+
+	int			scale_factor;
 	double		focal_length;
 	
 	int			thumbWidth;

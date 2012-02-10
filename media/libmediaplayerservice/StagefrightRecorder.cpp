@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-//#define LOG_NDEBUG 0
+#define LOG_NDEBUG 0
 #define LOG_TAG "StagefrightRecorder"
 #include <utils/Log.h>
 
@@ -196,7 +196,7 @@ status_t StagefrightRecorder::setVideoEncoder(video_encoder ve) {
     }
 
     if (ve == VIDEO_ENCODER_DEFAULT) {
-        mVideoEncoder = VIDEO_ENCODER_H263;
+        mVideoEncoder = VIDEO_ENCODER_H264;
     } else {
         mVideoEncoder = ve;
     }
@@ -768,6 +768,8 @@ status_t StagefrightRecorder::prepare() {
 
 	if (mbHWEncoder)
 	{
+		mpCedarXRecorder->setPreviewSurface(mPreviewSurface);
+		
 		error = mpCedarXRecorder->setCamera(mCamera, mCameraProxy);
 		if (error != OK)
 		{
@@ -801,9 +803,11 @@ status_t StagefrightRecorder::prepare() {
 		mpCedarXRecorder->setParamMaxFileSizeBytes(mMaxFileSizeBytes);
 		mpCedarXRecorder->setOutputFile(mOutputFd);
 		mpCedarXRecorder->setOutputFormat(mOutputFormat);
-		
-		mpCedarXRecorder->setPreviewSurface(mPreviewSurface);
 
+		// location
+		mpCedarXRecorder->setParamGeoDataLatitude(mLatitudex10000);
+		mpCedarXRecorder->setParamGeoDataLongitude(mLongitudex10000);
+		
 		// lapse
 		mpCedarXRecorder->setParamTimeLapseEnable(mCaptureTimeLapse);
 		mpCedarXRecorder->setParamTimeBetweenTimeLapseFrameCapture(mTimeBetweenTimeLapseFrameCaptureUs);

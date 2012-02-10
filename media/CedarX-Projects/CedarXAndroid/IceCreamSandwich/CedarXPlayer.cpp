@@ -121,6 +121,7 @@ CedarXPlayer::CedarXPlayer() :
 	LOGV("Construction");
 
 	mExtendMember = (CedarXPlayerExtendMember *)malloc(sizeof(CedarXPlayerExtendMember));
+	memset(mExtendMember, 0, sizeof(CedarXPlayerExtendMember));
 
 	reset_l();
 	CDXPlayer_Create((void**)&mPlayer);
@@ -182,7 +183,7 @@ status_t CedarXPlayer::setDataSource(const char *uri, const KeyedVector<
 	    mUriHeaders = *headers;
 	}
 #if 0
-	const char* dbg_url = "http://192.168.1.147/tx5.mp4";
+	const char* dbg_url = "http://192.168.1.147/hb.mp4";
 	//const char* dbg_url = "/mnt/extsd/hb.mp4";
 	mPlayer->control(mPlayer, CDX_SET_DATASOURCE_URL, (unsigned int)dbg_url, 0);
 #else
@@ -272,7 +273,8 @@ void CedarXPlayer::notifyListener_l(int msg, int ext1, int ext2) {
 		sp<MediaPlayerBase> listener = mListener.promote();
 
 		if (listener != NULL) {
-			listener->sendEvent(msg, ext1, ext2);
+			if(msg != MEDIA_BUFFERING_UPDATE)
+				listener->sendEvent(msg, ext1, ext2);
 		}
 	}
 }
@@ -367,16 +369,16 @@ status_t CedarXPlayer::stop() {
 	}
 	stop_l();
 
-	if(this->display_3d_mode == CEDARX_DISPLAY_3D_MODE_3D)
+	if(display_3d_mode == CEDARX_DISPLAY_3D_MODE_3D)
 	{
 		set3DMode(CEDARV_3D_MODE_NONE, CEDARX_DISPLAY_3D_MODE_2D);
 	}
 
-	this->_3d_mode 							= CEDARV_3D_MODE_NONE;
-	this->display_3d_mode 					= CEDARX_DISPLAY_3D_MODE_2D;
-	this->anaglagh_en						= 0;
-	this->anaglagh_type						= 0;
-	this->wait_anaglagh_display_change 		= 0;
+	_3d_mode 							= CEDARV_3D_MODE_NONE;
+	display_3d_mode 					= CEDARX_DISPLAY_3D_MODE_2D;
+	anaglagh_en						= 0;
+	anaglagh_type						= 0;
+	wait_anaglagh_display_change 		= 0;
 
 	//* need to reset the display?
 	//* TODO.
@@ -556,7 +558,19 @@ status_t CedarXPlayer::getPosition(int64_t *positionUs) {
 		*positionUs = mSeekTimeUs; //temp to fix sohuvideo bug
 	}
 
-	//LOGV("getPosition: %lld",*positionUs / 1000);
+	struct timeval now;
+	int64_t nowUs;
+	gettimeofday(&now, NULL);
+	nowUs = now.tv_sec * 1000 + now.tv_usec / 1000; //ms
+	if((uint64_t)(nowUs - mExtendMember->mLastGetPositionTimeUs) < 10) {
+		*positionUs = mExtendMember->mLastPositionUs;
+		return OK;
+	}
+	mExtendMember->mLastGetPositionTimeUs = nowUs;
+
+	*positionUs = (*positionUs / 1000) * 1000; //to fix android 4.0 cts bug
+	mExtendMember->mLastPositionUs = *positionUs;
+	LOGV("getPosition: %lld nowUs:%lld lastUs:%lld",*positionUs / 1000,nowUs,mExtendMember->mLastGetPositionTimeUs);
 
 	return OK;
 }
@@ -691,11 +705,11 @@ status_t CedarXPlayer::prepare() {
 
 	Mutex::Autolock autoLock(mLock);
 	LOGV("prepare");
-	this->_3d_mode 							= CEDARV_3D_MODE_NONE;
-	this->display_3d_mode 					= CEDARX_DISPLAY_3D_MODE_2D;
-	this->anaglagh_en						= 0;
-	this->anaglagh_type						= 0;
-	this->wait_anaglagh_display_change 		= 0;
+	_3d_mode 							= CEDARV_3D_MODE_NONE;
+	display_3d_mode 					= CEDARX_DISPLAY_3D_MODE_2D;
+	anaglagh_en						= 0;
+	anaglagh_type						= 0;
+	wait_anaglagh_display_change 		= 0;
 
 	ret = prepare_l();
 	getInputDimensionType();
@@ -805,6 +819,7 @@ void CedarXPlayer::abortPrepare(status_t err) {
 
 status_t CedarXPlayer::setScreen(int screen) {
 	mScreenID = screen;
+	LOGV("CedarX will setScreen to:%d", screen);
 	if(mVideoRenderer != NULL && !(mFlags & SUSPENDING)){
 		LOGV("CedarX setScreen to:%d", screen);
 		return mVideoRenderer->control(VIDEORENDER_CMD_SETSCREEN, screen);
@@ -816,31 +831,31 @@ status_t CedarXPlayer::set3DMode(int source3dMode, int displayMode)
 {
 	video3Dinfo_t _3d_info;
 
-	_3d_info.width 	 			= this->mDisplayWidth;
-	_3d_info.height	 			= this->mDisplayHeight;
-	_3d_info.format	 			= (this->mDisplayFormat == CEDARV_PIXEL_FORMAT_AW_YUV422) ?  HWC_FORMAT_MBYUV422:HWC_FORMAT_MBYUV420; //* or HWC_FORMAT_RGBA_8888.
+	_3d_info.width 	 			= mDisplayWidth;
+	_3d_info.height	 			= mDisplayHeight;
+	_3d_info.format	 			= (mDisplayFormat == CEDARV_PIXEL_FORMAT_AW_YUV422) ?  HWC_FORMAT_MBYUV422:HWC_FORMAT_MBYUV420; //* or HWC_FORMAT_RGBA_8888.
 	_3d_info.is_mode_changed 	= 1;
 
 	//* set source 3d mode.
-	if(this->_3d_mode == CEDARV_3D_MODE_DOUBLE_STREAM)
+	if(_3d_mode == CEDARV_3D_MODE_DOUBLE_STREAM)
 		_3d_info._3d_mode = 1;		//* OVERLAY_3D_OUT_MODE_FP
-	else if(this->_3d_mode == CEDARV_3D_MODE_SIDE_BY_SIDE)
+	else if(_3d_mode == CEDARV_3D_MODE_SIDE_BY_SIDE)
 		_3d_info._3d_mode = 3;		//* OVERLAY_3D_OUT_MODE_SSH
-	else if(this->_3d_mode == CEDARV_3D_MODE_TOP_TO_BOTTOM)
+	else if(_3d_mode == CEDARV_3D_MODE_TOP_TO_BOTTOM)
 		_3d_info._3d_mode = 0;		//* OVERLAY_3D_OUT_MODE_TB
-	else if(this->_3d_mode == CEDARV_3D_MODE_LINE_INTERLEAVE)
+	else if(_3d_mode == CEDARV_3D_MODE_LINE_INTERLEAVE)
 		_3d_info._3d_mode = 4;		//* OVERLAY_3D_OUT_MODE_LI
-	else if(this->_3d_mode == CEDARV_3D_MODE_COLUME_INTERLEAVE)
+	else if(_3d_mode == CEDARV_3D_MODE_COLUME_INTERLEAVE)
 		_3d_info._3d_mode = 5;		//* OVERLAY_3D_OUT_MODE_CI_1
 	else
 		_3d_info._3d_mode = 0xff;	//* OVERLAY_3D_OUT_MODE_NORMAL
 
 	//* set display 3d mode.
-	if(this->display_3d_mode == CEDARX_DISPLAY_3D_MODE_ANAGLAGH)
+	if(display_3d_mode == CEDARX_DISPLAY_3D_MODE_ANAGLAGH)
 	{
-		if(this->_3d_mode == CEDARV_3D_MODE_SIDE_BY_SIDE)
+		if(_3d_mode == CEDARV_3D_MODE_SIDE_BY_SIDE)
 			_3d_info.width = mDisplayWidth/2;//frm_inf->width /=2;
-		else if(this->_3d_mode == CEDARV_3D_MODE_TOP_TO_BOTTOM)
+		else if(_3d_mode == CEDARV_3D_MODE_TOP_TO_BOTTOM)
 			_3d_info.height = mDisplayHeight/2;//frm_inf->height /=2;
 
 		if(_3d_info.format != HWC_FORMAT_RGBA_8888)
@@ -848,9 +863,9 @@ status_t CedarXPlayer::set3DMode(int source3dMode, int displayMode)
 
 		_3d_info.display_mode = 2;
 	}
-	else if(this->display_3d_mode == CEDARX_DISPLAY_3D_MODE_3D)
+	else if(display_3d_mode == CEDARX_DISPLAY_3D_MODE_3D)
 		_3d_info.display_mode = 1;
-	else if(this->display_3d_mode == CEDARX_DISPLAY_3D_MODE_2D)
+	else if(display_3d_mode == CEDARX_DISPLAY_3D_MODE_2D)
 		_3d_info.display_mode = 3;
 	else
 		_3d_info.display_mode = 0;
@@ -1121,14 +1136,14 @@ status_t CedarXPlayer::setInputDimensionType(int type)
 	if(mPlayer == NULL)
 		return -1;
 
-	this->_3d_mode = (cedarv_3d_mode_e)type;
-	if(mPlayer->control(mPlayer, CDX_CMD_SET_PICTURE_3D_MODE, this->_3d_mode, 0) != 0)
+	_3d_mode = (cedarv_3d_mode_e)type;
+	if(mPlayer->control(mPlayer, CDX_CMD_SET_PICTURE_3D_MODE, _3d_mode, 0) != 0)
 		return -1;
 
 	//* the 3d mode you set may be invalid, get the valid 3d mode from mPlayer.
-	mPlayer->control(mPlayer, CDX_CMD_GET_PICTURE_3D_MODE, (unsigned int)&this->_3d_mode, 0);
+	mPlayer->control(mPlayer, CDX_CMD_GET_PICTURE_3D_MODE, (unsigned int)&_3d_mode, 0);
 
-	LOGV("set 3d source mode to %d, current_3d_mode = %d", type, this->_3d_mode);
+	LOGV("set 3d source mode to %d, current_3d_mode = %d", type, _3d_mode);
 
 	return 0;
 }
@@ -1140,18 +1155,18 @@ int CedarXPlayer::getInputDimensionType()
 	if(mPlayer == NULL)
 		return -1;
 
-	this->pre_3d_mode = this->_3d_mode;
+	pre_3d_mode = _3d_mode;
 	mPlayer->control(mPlayer, CDX_CMD_GET_PICTURE_3D_MODE, (unsigned int)&tmp, 0);
 
-	if((unsigned int)tmp != this->_3d_mode)
+	if((unsigned int)tmp != _3d_mode)
 	{
-		this->_3d_mode = tmp;
-		LOGV("set _3d_mode to be %d when getting source mode", this->_3d_mode);
+		_3d_mode = tmp;
+		LOGV("set _3d_mode to be %d when getting source mode", _3d_mode);
 	}
 
-	LOGV("this->_3d_mode = %d", this->_3d_mode);
+	LOGV("_3d_mode = %d", _3d_mode);
 
-	return (int)this->_3d_mode;
+	return (int)_3d_mode;
 }
 
 status_t CedarXPlayer::setOutputDimensionType(int type)
@@ -1162,35 +1177,35 @@ status_t CedarXPlayer::setOutputDimensionType(int type)
 
 	ret = mPlayer->control(mPlayer, CDX_CMD_SET_DISPLAY_MODE, type, 0);
 
-	LOGV("set output display mode to be %d, current display mode = %d", type, this->display_3d_mode);
-	if(this->display_3d_mode != CEDARX_DISPLAY_3D_MODE_ANAGLAGH && type != CEDARX_DISPLAY_3D_MODE_ANAGLAGH)
+	LOGV("set output display mode to be %d, current display mode = %d", type, display_3d_mode);
+	if(display_3d_mode != CEDARX_DISPLAY_3D_MODE_ANAGLAGH && type != CEDARX_DISPLAY_3D_MODE_ANAGLAGH)
 	{
-		this->display_3d_mode = type;
+		display_3d_mode = type;
 
-		set3DMode(this->_3d_mode, this->display_3d_mode);
+		set3DMode(_3d_mode, display_3d_mode);
 	}
 	else
 	{
 		//* for switching on or off the anaglagh display, setting for display device(Overlay) will be
 		//* done when next picture be render.
-		if(type == CEDARX_DISPLAY_3D_MODE_ANAGLAGH && this->display_3d_mode != CEDARX_DISPLAY_3D_MODE_ANAGLAGH)
+		if(type == CEDARX_DISPLAY_3D_MODE_ANAGLAGH && display_3d_mode != CEDARX_DISPLAY_3D_MODE_ANAGLAGH)
 		{
 			//* switch on anaglagh display.
-			if(this->anaglagh_en)
-				this->wait_anaglagh_display_change = 1;
+			if(anaglagh_en)
+				wait_anaglagh_display_change = 1;
 		}
-		else if(type != CEDARX_DISPLAY_3D_MODE_ANAGLAGH && this->display_3d_mode == CEDARX_DISPLAY_3D_MODE_ANAGLAGH)
+		else if(type != CEDARX_DISPLAY_3D_MODE_ANAGLAGH && display_3d_mode == CEDARX_DISPLAY_3D_MODE_ANAGLAGH)
 		{
 			//* switch off anaglagh display.
-			this->display_type_tmp_save = type;
-			this->wait_anaglagh_display_change = 1;
+			display_type_tmp_save = type;
+			wait_anaglagh_display_change = 1;
 		}
 		else
 		{
-			if(this->_3d_mode != this->pre_3d_mode)
+			if(_3d_mode != pre_3d_mode)
 			{
-				this->display_type_tmp_save = type;
-				this->wait_anaglagh_display_change = 1;
+				display_type_tmp_save = type;
+				wait_anaglagh_display_change = 1;
 			}
 		}
 	}
@@ -1203,8 +1218,8 @@ int CedarXPlayer::getOutputDimensionType()
 	if(mPlayer == NULL)
 		return -1;
 
-	LOGV("current display 3d mode = %d", this->display_3d_mode);
-	return (int)this->display_3d_mode;
+	LOGV("current display 3d mode = %d", display_3d_mode);
+	return (int)display_3d_mode;
 }
 
 status_t CedarXPlayer::setAnaglaghType(int type)
@@ -1213,12 +1228,12 @@ status_t CedarXPlayer::setAnaglaghType(int type)
 	if(mPlayer == NULL)
 		return -1;
 
-	this->anaglagh_type = (cedarv_anaglath_trans_mode_e)type;
+	anaglagh_type = (cedarv_anaglath_trans_mode_e)type;
 	ret = mPlayer->control(mPlayer, CDX_CMD_SET_ANAGLAGH_TYPE, type, 0);
 	if(ret == 0)
-		this->anaglagh_en = 1;
+		anaglagh_en = 1;
 	else
-		this->anaglagh_en = 0;
+		anaglagh_en = 0;
 
 	return ret;
 }
@@ -1228,7 +1243,7 @@ int CedarXPlayer::getAnaglaghType()
 	if(mPlayer == NULL)
 		return -1;
 
-	return (int)this->anaglagh_type;
+	return (int)anaglagh_type;
 }
 
 status_t CedarXPlayer::getVideoEncode(char *encode)
@@ -1412,7 +1427,7 @@ int CedarXPlayer::StagefrightVideoRenderInit(int width, int height, int format, 
     {
     	mVideoRenderer = new CedarXDirectHwRenderer(mNativeWindow, meta);
 
-    	set3DMode(this->_3d_mode, this->display_3d_mode);
+    	set3DMode(_3d_mode, display_3d_mode);
     }
     else
     {
@@ -1442,25 +1457,25 @@ void CedarXPlayer::StagefrightVideoRenderData(void *frame_info, int frame_id)
 		if(mDisplayFormat != HAL_PIXEL_FORMAT_YV12) {
 			libhwclayerpara_t overlay_para;
 
-			if(this->wait_anaglagh_display_change)
+			if(wait_anaglagh_display_change)
 			{
-				LOGV("+++++++++++++ display 3d mode == %d", this->display_3d_mode);
-				if(this->display_3d_mode != CEDARX_DISPLAY_3D_MODE_ANAGLAGH)
+				LOGV("+++++++++++++ display 3d mode == %d", display_3d_mode);
+				if(display_3d_mode != CEDARX_DISPLAY_3D_MODE_ANAGLAGH)
 				{
 					//* switch on anaglagh display.
-					if(this->anaglagh_type == frm_inf->anaglath_transform_mode)
+					if(anaglagh_type == frm_inf->anaglath_transform_mode)
 					{
-						this->display_3d_mode = CEDARX_DISPLAY_3D_MODE_ANAGLAGH;
-						set3DMode(this->_3d_mode, this->display_3d_mode);
-						this->wait_anaglagh_display_change = 0;
+						display_3d_mode = CEDARX_DISPLAY_3D_MODE_ANAGLAGH;
+						set3DMode(_3d_mode, display_3d_mode);
+						wait_anaglagh_display_change = 0;
 					}
 				}
 				else
 				{
 					//* switch off anaglagh display.
-					this->display_3d_mode = this->display_type_tmp_save;
-					set3DMode(this->_3d_mode, this->display_3d_mode);
-					this->wait_anaglagh_display_change = 0;
+					display_3d_mode = display_type_tmp_save;
+					set3DMode(_3d_mode, display_3d_mode);
+					wait_anaglagh_display_change = 0;
 				}
 			}
 
@@ -1468,13 +1483,13 @@ void CedarXPlayer::StagefrightVideoRenderData(void *frame_info, int frame_id)
 			overlay_para.bTopFieldFirst = frm_inf->top_field_first;
 			overlay_para.pVideoInfo.frame_rate = frm_inf->frame_rate;
 
-			if(this->_3d_mode == CEDARV_3D_MODE_DOUBLE_STREAM && this->display_3d_mode == CEDARX_DISPLAY_3D_MODE_3D){
+			if(_3d_mode == CEDARV_3D_MODE_DOUBLE_STREAM && display_3d_mode == CEDARX_DISPLAY_3D_MODE_3D){
 				overlay_para.top_y 		= (unsigned int)frm_inf->y;
 				overlay_para.top_c 		= (unsigned int)frm_inf->u;
 				overlay_para.bottom_y	= (unsigned int)frm_inf->y2;
 				overlay_para.bottom_c	= (unsigned int)frm_inf->u2;
 			}
-			else if(this->display_3d_mode == CEDARX_DISPLAY_3D_MODE_ANAGLAGH){
+			else if(display_3d_mode == CEDARX_DISPLAY_3D_MODE_ANAGLAGH){
 				overlay_para.top_y 		= (unsigned int)frm_inf->u2;
 				overlay_para.top_c 		= (unsigned int)frm_inf->y2;
 				overlay_para.bottom_y 	= (unsigned int)frm_inf->v2;
@@ -1490,6 +1505,7 @@ void CedarXPlayer::StagefrightVideoRenderData(void *frame_info, int frame_id)
 			overlay_para.number = frame_id;
 			overlay_para.first_frame_flg = mFirstFrame;
 			mVideoRenderer->render(&overlay_para, 0);
+			LOGV("render frame id:%d",frame_id);
 			if(mFirstFrame) {
 				//mVideoRenderer->control(VIDEORENDER_CMD_SHOW, 1);
 				mFirstFrame = 0;
@@ -1509,7 +1525,7 @@ int CedarXPlayer::StagefrightVideoRenderGetFrameID()
 	if(mVideoRenderer != NULL){
 		if(mDisplayFormat != HAL_PIXEL_FORMAT_YV12) {
 			ret = mVideoRenderer->control(VIDEORENDER_CMD_GETCURFRAMEPARA, 0);
-			//LOGV("get disp frame id:%d",ret);
+			LOGV("get disp frame id:%d",ret);
 		}
 		else {
 			ret = mLocalRenderFrameIDCurr;

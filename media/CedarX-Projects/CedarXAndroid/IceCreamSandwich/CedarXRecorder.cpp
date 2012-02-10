@@ -193,12 +193,6 @@ status_t CedarXRecorder::setCamera(const sp<ICamera>& camera, const sp<ICameraRe
     LOGV("setCamera");
 
 	int err = UNKNOWN_ERROR;
-	
-    if (camera == 0) 
-	{
-        LOGE("camera is NULL");
-        return BAD_VALUE;
-    }
 
     int64_t token = IPCThreadState::self()->clearCallingIdentity();
 	
@@ -242,13 +236,16 @@ status_t CedarXRecorder::isCameraAvailable(
         // isBinderAlive needs linkToDeath to work.
         mCameraProxy->asBinder()->linkToDeath(mDeathNotifier);
     }
-	
+
+    // This CHECK is good, since we just passed the lock/unlock
+    // check earlier by calling mCamera->setParameters().
+    CHECK_EQ(OK, mCamera->setPreviewDisplay(mPreviewSurface));
+
 	// store metadata in video buffers
 	if (OK != mCamera->storeMetaDataInBuffers(true)) 
 	{
 		LOGW("storeMetaDataInBuffers failed");
 	}
-
 
     mCamera->lock();
 
@@ -260,9 +257,29 @@ status_t CedarXRecorder::setPreviewSurface(const sp<Surface>& surface)
 {
     LOGV("setPreviewSurface: %p", surface.get());
     mPreviewSurface = surface;
-	
-//	CHECK_EQ(OK, mCamera->setPreviewDisplay(mPreviewSurface));
 
+    return OK;
+}
+
+status_t CedarXRecorder::setParamGeoDataLongitude(int64_t longitudex10000) 
+{
+    LOGD("setParamGeoDataLongitude: %lld", longitudex10000);
+    if (longitudex10000 > 1800000 || longitudex10000 < -1800000) {
+        return BAD_VALUE;
+    }
+	mGeoAvailable = true;
+    mLongitudex10000 = longitudex10000;
+    return OK;
+}
+
+status_t CedarXRecorder::setParamGeoDataLatitude(int64_t latitudex10000) 
+{
+    LOGD("setParamGeoDataLatitude: %lld", latitudex10000);
+    if (latitudex10000 > 900000 || latitudex10000 < -900000) {
+        return BAD_VALUE;
+    }
+	mGeoAvailable = true;
+    mLatitudex10000 = latitudex10000;
     return OK;
 }
 
@@ -513,6 +530,9 @@ status_t CedarXRecorder::prepare()
 	vInfo.bitRate		= mVideoBitRate;
 	vInfo.profileIdc	= 66;
 	vInfo.levelIdc		= 31;
+	vInfo.geo_available	= mGeoAvailable;
+	vInfo.latitudex10000= mLatitudex10000;
+	vInfo.longitudex10000 = mLongitudex10000;
 #endif
 	if (mVideoWidth == 0
 		|| mVideoHeight == 0
@@ -731,6 +751,10 @@ status_t CedarXRecorder::reset()
 	mRecModeFlag = 0;
 	mRecord = NULL;
 	mLatencyStartUs = 0;
+
+	mGeoAvailable = 0;
+	mLatitudex10000 = -3600000;
+    mLongitudex10000 = -3600000;
 
     return OK;
 }

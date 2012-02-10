@@ -5526,6 +5526,10 @@ public class View implements Drawable.Callback, Drawable.Callback2, KeyEvent.Cal
      * @return True if the event was handled by the view, false otherwise.
      */
     public boolean dispatchTouchEvent(MotionEvent event) {
+        if(event == null)
+        {
+        	return false;
+        }
         if (mInputEventConsistencyVerifier != null) {
             mInputEventConsistencyVerifier.onTouchEvent(event, 0);
         }

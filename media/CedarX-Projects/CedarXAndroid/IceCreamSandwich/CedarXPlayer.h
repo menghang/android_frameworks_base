@@ -77,7 +77,8 @@ enum {
 };
 
 typedef struct CedarXPlayerExtendMember_{
-	int xxxx;
+	int64_t mLastGetPositionTimeUs;
+	int64_t mLastPositionUs;
 }CedarXPlayerExtendMember;
 
 struct CedarXPlayer { //don't touch this struct any more, you can extend members in CedarXPlayerExtendMember

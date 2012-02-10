@@ -58,6 +58,10 @@ public:
 	status_t setParamMaxFileSizeBytes(int64_t bytes);
     status_t setOutputFile(int fd);
 
+	// location
+	status_t setParamGeoDataLatitude(int64_t latitudex10000);
+	status_t setParamGeoDataLongitude(int64_t longitudex10000);
+
 	void CedarXReleaseFrame(int index);
 	void dataCallbackTimestamp(int64_t timestampUs, int32_t msgType, const sp<IMemory> &data);
 
@@ -130,6 +134,10 @@ private:
     int32_t mAudioBitRate;
     int32_t mAudioChannels;
 	int32_t mSampleRate;
+
+	int32_t mGeoAvailable;
+	int32_t mLatitudex10000;
+	int32_t mLongitudex10000;
 
 	bool mCaptureTimeLapse;
 	// Time between capture of two frames during time lapse recording

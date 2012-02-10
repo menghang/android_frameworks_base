@@ -125,7 +125,8 @@ enum {
 
     kKeyRequiresSecureBuffers = 'secu',  // bool (int32_t)
     
-    kKeyScreenID = 'scrn'
+    kKeyScreenID 		 = 'scrn',
+    kKeyOffset 			 = 'offs'
 };
 
 enum {

@@ -29,6 +29,7 @@
 #include <CDX_Resource_Manager.h>
 #include <tmessage.h>
 #include <tsemaphore.h>
+#include <CDX_UglyDef.h>
 
 #include "libcedarv.h"
 
@@ -67,7 +68,7 @@ typedef struct CedarXPlayerContext{
 	OMX_S32 fatal_error;
 	OMX_S32	disable_xxxx_track;
 	OMX_S32	audio_mute_mode; //0: none 1: mute left 2: mute right 3: mute all
-	audio_file_info_t audio_metadata;
+	CedarXMetaData cdx_metadata;
 	CEDARV_REQUEST_CONTEXT cedarv_req_ctx;
 
 	OMX_S32 sub_enable;
@@ -123,7 +124,7 @@ typedef struct CedarXPlayerContext{
 
 typedef struct CedarXMediaRetriverContext{
 	int bIsCaptureInit;
-	audio_file_info_t audio_metadata;
+	CedarXMetaData cdx_metadata;
 	CedarXDataSourceDesc data_source_desc;
 	CEDARV_REQUEST_CONTEXT cedarv_req_ctx;
 }CedarXMediaRetriverContext;
