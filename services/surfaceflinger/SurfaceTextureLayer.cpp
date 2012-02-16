@@ -108,7 +108,7 @@ status_t SurfaceTextureLayer::connect(int api,
                 // show the most recent frame at the cost of requiring an
                 // additional buffer.
 #ifndef NEVER_DEFAULT_TO_ASYNC_MODE
-                err = setSynchronousMode(false);
+                err = setSynchronousMode(true);
                 break;
 #endif
                 // fall through to set synchronous mode when not defaulting to
@@ -156,7 +156,7 @@ int SurfaceTextureLayer::setParameter(uint32_t cmd,uint32_t value)
     sp<Layer> layer(mLayer.promote());
     if (layer != NULL) 
     {
-    	if(usehwcomposer)
+    	if(1) //(usehwcomposer)
     	{
 	    	if(cmd == HWC_LAYER_SETINITPARA)
 	    	{

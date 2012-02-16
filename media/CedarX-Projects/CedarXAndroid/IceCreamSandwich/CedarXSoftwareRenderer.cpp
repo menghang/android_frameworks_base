@@ -123,9 +123,12 @@ void CedarXSoftwareRenderer::render(
     size_t dst_c_stride = ALIGN(buf->stride / 2, 16);
     size_t dst_c_size = dst_c_stride * buf->height / 2;
 
-    //LOGV("buf->stride:%d buf->height:%d", buf->stride, buf->height);
+#if 0
+    LOGV("buf->stride:%d buf->height:%d", buf->stride, buf->height);
     memcpy(dst, data, dst_y_size * 3 / 2); LOGV("render size error!");
-//    memcpy(dst, data, dst_y_size + dst_c_size*2);
+#else
+    memcpy(dst, data, dst_y_size + dst_c_size*2);
+#endif
 
 #if 0
 		{

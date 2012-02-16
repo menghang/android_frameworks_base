@@ -168,6 +168,9 @@ extern "C" {
 		ANAGLAGH_NONE,
 	}anaglath_trans_mode_e;
 
+#define CEDARV_PICT_PROP_NO_SYNC   0x1
+#define CEDARV_FLAG_DECODE_NO_DELAY     0x40000000
+
 	//*******************************************************//
 	//************ Define Video Frame Structure. ************//
 	//*******************************************************//
@@ -190,6 +193,7 @@ extern "C" {
         
         u32             		frame_rate;             //* frame_rate, multiplied by 1000;
         u32             		aspect_ratio;           //* pixel width to pixel height ratio, multiplied by 1000;
+        u32                     pict_prop;              //* picture property flags
         u8              		is_progressive;         //* progressive or interlace picture;
         u8              		top_field_first;        //* display top field first;
         u8              		repeat_top_field;       //* if interlace picture, whether repeat the top field when display;
@@ -243,6 +247,7 @@ extern "C" {
 		u8  					valid;      	//* whether this stream frame is valid;
 		u32						id;				//* stream frame identification.
 		cedarv_stream_type_e 	stream_type;	//* major or minor stream in MVC.
+		u32                     pict_prop;
 	}vstream_data_t;
 
 #ifdef __cplusplus

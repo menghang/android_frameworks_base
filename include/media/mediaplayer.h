@@ -324,7 +324,9 @@ private:
     int                         mSubDelay;
     int                         mSubFontSize;
     char                        mSubCharset[MEDIAPLAYER_NAME_LEN_MAX];
-    /* add by Gary. end   -----------------------------------}} */
+	int                         mSubIndex;
+    int                         mTrackIndex;
+   /* add by Gary. end   -----------------------------------}} */
 };
 
 }; // namespace android

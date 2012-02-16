@@ -136,7 +136,7 @@ public class InstrumentationTestCase extends TestCase {
             public void run() {
                 try {
                     r.run();
-					Thread.sleep(3);
+					Thread.sleep(6);
                 } catch (Throwable throwable) {
                     exceptions[0] = throwable;
                 }

@@ -16,17 +16,11 @@
 --                                                                            --
 *******************************************************************************/
 
+#ifndef CDX_SYSTEMBASE_H
+#define CDX_SYSTEMBASE_H
 
-usage of android version:
-	1. uppack tar package to framework/base/media/
-	2. check file CedarX-Projects/ProductorConfig "CEDARX_DEBUG_ENABLE := N"
-	3. when you partitial update any library of CedarX, you may touch any source 
-	   file under CedarXAndroid folder to guarantee the compile up to date.
-   
-usage of linux version:
-	1. goto the dir of CedarX-Projects, then run shell command "source env_setup.sh"
-	2. check file CedarX-Projects/ProductorConfig "CEDARX_DEBUG_ENABLE := N"
-	3. make clean && make
-	
+#include <CDX_Types.h>
 
+CDX_S64 CDX_GetNowUs();
 
+#endif

@@ -48,8 +48,8 @@ LiveSession::LiveSession(uint32_t flags, bool uidValid, uid_t uid)
       mHTTPDataSource(
               HTTPBase::Create(
                   (mFlags & kFlagIncognito)
-                    ? HTTPBase::kFlagIncognito
-                    : 0)),
+                    ? (HTTPBase::kFlagIncognito | HTTPBase::kFlagUAIPAD)
+                    : HTTPBase::kFlagUAIPAD)),
       mPrevBandwidthIndex(-1),
       mLastPlaylistFetchTimeUs(-1),
       mSeqNumber(-1),

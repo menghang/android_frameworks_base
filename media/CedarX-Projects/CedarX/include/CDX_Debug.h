@@ -5,7 +5,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#define CEDARX_VERSION 0x00010605
+#define CEDARX_VERSION 0x00010608
 
 #include<CDX_MemWatch.h>
 

@@ -39,6 +39,7 @@ ChromiumHTTPDataSource::ChromiumHTTPDataSource(uint32_t flags)
       mDecryptHandle(NULL),
       mDrmManagerClient(NULL) {
     mDelegate->setOwner(this);
+    mDelegate->setUA(!!(mFlags & kFlagUAIPAD));
 }
 
 ChromiumHTTPDataSource::~ChromiumHTTPDataSource() {

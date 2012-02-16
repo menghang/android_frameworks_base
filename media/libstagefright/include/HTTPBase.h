@@ -28,7 +28,8 @@ namespace android {
 struct HTTPBase : public DataSource {
     enum Flags {
         // Don't log any URLs.
-        kFlagIncognito = 1
+        kFlagIncognito = 1,
+        kFlagUAIPAD  = 256,
     };
 
     HTTPBase();

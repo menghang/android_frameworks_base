@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+ 
 #include <CDX_LogNDebug.h>
 #define LOG_TAG "CedarXPlayer"
 #include <utils/Log.h>
@@ -265,7 +265,7 @@ void CedarXPlayer::reset_l() {
 	mUriHeaders.clear();
 
 	memset(&mSubtitleParameter, 0, sizeof(struct SubtitleParameter));
-	mSubtitleParameter.mSubtitleGate = 1;
+	mSubtitleParameter.mSubtitleGate = 0;
 }
 
 void CedarXPlayer::notifyListener_l(int msg, int ext1, int ext2) {
@@ -338,7 +338,16 @@ status_t CedarXPlayer::play_l(int command) {
 			}
 
 			setSubGate(mSubtitleParameter.mSubtitleGate);
+
+			if(mSubtitleParameter.mSubtitleIndex){
+				mPlayer->control(mPlayer, CDX_CMD_SWITCHSUB, mSubtitleParameter.mSubtitleIndex, 0);
+			}
 		}
+
+		if(mAudioTrackIndex){
+			mPlayer->control(mPlayer, CDX_CMD_SWITCHTRACK, mAudioTrackIndex, 0);
+		}
+
 		mFlags &= ~RESTORE_CONTROL_PARA;
 	}
 
@@ -570,7 +579,7 @@ status_t CedarXPlayer::getPosition(int64_t *positionUs) {
 
 	*positionUs = (*positionUs / 1000) * 1000; //to fix android 4.0 cts bug
 	mExtendMember->mLastPositionUs = *positionUs;
-	LOGV("getPosition: %lld nowUs:%lld lastUs:%lld",*positionUs / 1000,nowUs,mExtendMember->mLastGetPositionTimeUs);
+	//LOGV("getPosition: %lld nowUs:%lld lastUs:%lld",*positionUs / 1000,nowUs,mExtendMember->mLastGetPositionTimeUs);
 
 	return OK;
 }
@@ -583,7 +592,7 @@ status_t CedarXPlayer::seekTo(int64_t timeUs) {
 	{
 		Mutex::Autolock autoLock(mLock);
 		mSeekNotificationSent = false;
-		LOGV("seek cmd0 to %lldms", timeUs);
+		LOGV("seek cmd to %llds start", timeUs/1000);
 
 		if (mFlags & CACHE_UNDERRUN) {
 			mFlags &= ~CACHE_UNDERRUN;
@@ -607,7 +616,7 @@ status_t CedarXPlayer::seekTo(int64_t timeUs) {
 	//mPlayer->control(mPlayer, CDX_CMD_SET_AUDIOCHANNEL_MUTE, 3, 0);
 	mPlayer->control(mPlayer, CDX_CMD_SEEK_ASYNC, (int)timeUs, (int)(currPositionUs/1000));
 
-	LOGV("--------- seek cmd1 to %lldms end -----------", timeUs);
+	LOGV("seek cmd to %llds end", timeUs/1000);
 
 	return OK;
 }
@@ -677,15 +686,30 @@ status_t CedarXPlayer::prepareAsync() {
 	//0: no rotate, 1: 90 degree (clock wise), 2: 180, 3: 270, 4: horizon flip, 5: vertical flig;
 	//mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_ROTATION, 2, 0);
 
-	//outputSetting |= CEDARX_OUTPUT_SETTING_MODE_PLANNER;
-	if(outputSetting & CEDARX_OUTPUT_SETTING_MODE_PLANNER) {
-		if(mScreenID != SLAVE_SCREEN){//TODO: we must consider hot-plugin
-			outputSetting |= CEDARX_OUTPUT_SETTING_HARDWARE_CONVERT;
-		}
-	}
-	mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_OUTPUT_SETTING, outputSetting, 0);
 
-	//mPlayer->control(mPlayer, CDX_CMD_SET_NETWORK_ENGINE, CEDARX_NETWORK_ENGINE_SFT, 0);
+	if(mIsUri) {
+		const char *uri = mUri.string();
+		const char *extension = strrchr(uri,'.');
+
+		if(!(!strcasecmp(extension, ".m3u8") || !strcasecmp(extension,".m3u") || strcasestr(uri,"m3u8")!=NULL)) {
+			mPlayer->control(mPlayer, CDX_CMD_SET_NETWORK_ENGINE, CEDARX_NETWORK_ENGINE_SFT, 0);
+		}
+
+		//if (!strncasecmp("http://", uri, 7) || !strncasecmp("rtsp://", uri, 7))
+		if (!strncasecmp("http://", uri, 7) && strcasestr(uri,"qq.com/")!=NULL)
+		{
+			outputSetting |= CEDARX_OUTPUT_SETTING_MODE_PLANNER;
+			//outputSetting |= CEDARX_OUTPUT_SETTING_HARDWARE_CONVERT; //use
+		}
+
+//		if(outputSetting & CEDARX_OUTPUT_SETTING_MODE_PLANNER) {
+//			if(mScreenID != SLAVE_SCREEN){//as no overlay support, we can use hardware convert
+//				outputSetting |= CEDARX_OUTPUT_SETTING_HARDWARE_CONVERT;
+//			}
+//		}
+	}
+
+	mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_OUTPUT_SETTING, outputSetting, 0);
 
 	//mMaxOutputWidth = 720;
 	//mMaxOutputHeight = 576;
@@ -1505,7 +1529,7 @@ void CedarXPlayer::StagefrightVideoRenderData(void *frame_info, int frame_id)
 			overlay_para.number = frame_id;
 			overlay_para.first_frame_flg = mFirstFrame;
 			mVideoRenderer->render(&overlay_para, 0);
-			LOGV("render frame id:%d",frame_id);
+			//LOGV("render frame id:%d",frame_id);
 			if(mFirstFrame) {
 				//mVideoRenderer->control(VIDEORENDER_CMD_SHOW, 1);
 				mFirstFrame = 0;
@@ -1525,7 +1549,7 @@ int CedarXPlayer::StagefrightVideoRenderGetFrameID()
 	if(mVideoRenderer != NULL){
 		if(mDisplayFormat != HAL_PIXEL_FORMAT_YV12) {
 			ret = mVideoRenderer->control(VIDEORENDER_CMD_GETCURFRAMEPARA, 0);
-			LOGV("get disp frame id:%d",ret);
+			//LOGV("get disp frame id:%d",ret);
 		}
 		else {
 			ret = mLocalRenderFrameIDCurr;

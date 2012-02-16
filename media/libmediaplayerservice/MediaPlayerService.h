@@ -433,6 +433,8 @@ private:
                     int                         mSubDelay;
                     int                         mSubFontSize;
                     char                        mSubCharset[MEDIAPLAYER_NAME_LEN_MAX];
+					int                         mSubIndex;
+				    int                         mTrackIndex;
                     /* add by Gary. end   -----------------------------------}} */
 
                     /* add by Gary. start {{----------------------------------- */

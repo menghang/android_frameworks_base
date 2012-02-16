@@ -135,15 +135,15 @@ public class EthernetService extends IEthernetManager.Stub {
 	public synchronized EthernetDevInfo getSavedConfig() {
 
 		final ContentResolver cr = mContext.getContentResolver();
+		if (!isConfigured())
+			return null;
+
 		EthernetDevInfo info = new EthernetDevInfo();
 		try{
 			info.setConnectMode(Settings.Secure.getInt(cr, Settings.Secure.ETHERNET_MODE));
 		} catch (Settings.SettingNotFoundException e) {
 		}
 		info.setIfName(ETH_USED);
-		if (!isConfigured())
-			return info;
-
 		info.setBootName(Settings.Secure.getString(cr, Settings.Secure.ETHERNET_IFNAME));
 		info.setIpAddress(Settings.Secure.getString(cr, Settings.Secure.ETHERNET_IP));
 		info.setDnsAddr(Settings.Secure.getString(cr, Settings.Secure.ETHERNET_DNS));

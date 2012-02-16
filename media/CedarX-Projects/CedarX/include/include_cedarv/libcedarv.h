@@ -121,6 +121,7 @@ extern "C" {
     #define CEDARV_FLAG_FIRST_PART  		0x8
     #define CEDARV_FLAG_LAST_PART   		0x10
 	#define CEDARV_FLAG_MPEG4_EMPTY_FRAME	0x20
+	#define CEDARV_FLAG_DECODE_NO_DELAY     0x40000000
     #define CEDARV_FLAG_DATA_INVALID 		0x80000000
     
     typedef struct CEDARV_STREAM_DATA_INFORMATION
@@ -155,6 +156,7 @@ extern "C" {
         CEDARV_PIXEL_FORMAT_AW_YUV411  = 0x12
     }cedarv_pixel_format_e;
     
+	#define CEDARV_PICT_PROP_NO_SYNC   0x1
         
     typedef struct CEDARV_PICTURE_INFORMATION
     {
@@ -174,6 +176,7 @@ extern "C" {
         u8                      vertical_scale_ratio;   //* what ratio this picture has been scaled down at vetical size, 0: 1/1, 1: 1/2, 2: 1/4, 3: 1/8;
         u32                     frame_rate;             //* frame_rate, multiplied by 1000;
         u32                     aspect_ratio;           //* pixel width to pixel height ratio, multiplied by 1000;
+        u32                     pict_prop;              //* picture property flags
         u8                      is_progressive;         //* progressive or interlace picture;
         u8                      top_field_first;        //* display top field first;
         u8                      repeat_top_field;       //* if interlace picture, whether repeat the top field when display;

@@ -232,6 +232,7 @@ extmap FILE_EXTS [] =  {
 		{".amr", STAGEFRIGHT_PLAYER},
 		{".flac", STAGEFRIGHT_PLAYER},
 		{".m4a", STAGEFRIGHT_PLAYER},
+		{".out", STAGEFRIGHT_PLAYER},
 		{".mp3?nolength", STAGEFRIGHT_PLAYER},
 		{".ogg?nolength", STAGEFRIGHT_PLAYER},
 		//{".3gp", STAGEFRIGHT_PLAYER},
@@ -621,6 +622,8 @@ MediaPlayerService::Client::Client(
     mSubDelay = 0;
     mSubFontSize = 24;
     strcpy(mSubCharset, CHARSET_GBK);
+	mSubIndex = 0;
+    mTrackIndex = 0;
     /* add by Gary. end   -----------------------------------}} */
 
     /* add by Gary. start {{----------------------------------- */
@@ -888,6 +891,8 @@ status_t MediaPlayerService::Client::setDataSource(
         p->setSubDelay(mSubDelay);
         p->setSubFontSize(mSubFontSize);
         p->setSubCharset(mSubCharset);
+		p->switchSub(mSubIndex);
+		p->switchTrack(mTrackIndex);
         /* add by Gary. end   -----------------------------------}} */
         
         /* add by Gary. start {{----------------------------------- */
@@ -994,6 +999,8 @@ status_t MediaPlayerService::Client::setDataSource(
     p->setSubDelay(mSubDelay);
     p->setSubFontSize(mSubFontSize);
     p->setSubCharset(mSubCharset);
+	p->switchSub(mSubIndex);
+	p->switchTrack(mTrackIndex);
     /* add by Gary. end   -----------------------------------}} */
 
     /* add by Gary. start {{----------------------------------- */
@@ -1424,6 +1431,7 @@ int MediaPlayerService::Client::getCurSub()
 
 status_t MediaPlayerService::Client::switchSub(int index)
 {
+    mSubIndex = index;
     sp<MediaPlayerBase> p = getPlayer();
     if (p == 0) 
         return UNKNOWN_ERROR;
@@ -1560,6 +1568,7 @@ int MediaPlayerService::Client::getTrackCount()
 int MediaPlayerService::Client::getTrackList(MediaPlayer_TrackInfo *infoList, int count)
 {
     sp<MediaPlayerBase> p = getPlayer();
+
     if (p == 0) 
         return -1;
     return p->getTrackList((MediaPlayer_TrackInfo *)infoList, count);
@@ -1575,6 +1584,7 @@ int MediaPlayerService::Client::getCurTrack()
 
 status_t MediaPlayerService::Client::switchTrack(int index)
 {
+    mTrackIndex = index;
     sp<MediaPlayerBase> p = getPlayer();
     if (p == 0) 
         return UNKNOWN_ERROR;

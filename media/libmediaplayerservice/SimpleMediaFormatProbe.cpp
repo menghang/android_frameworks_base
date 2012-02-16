@@ -454,10 +454,14 @@ static int aac_probe(media_probe_data_t *p)
 	return 0;
 }
 
+#define MAX_FTYPE_SIZE 64
+
 static int mp4_probe(media_probe_data_t *p) {
 	unsigned int offset;
 	unsigned int tag;
 	int score = 0;
+	int ftyp_size;
+	char ftype_data[MAX_FTYPE_SIZE];
 
 	/* check file header */
 	offset = 0;
@@ -481,8 +485,16 @@ static int mp4_probe(media_probe_data_t *p) {
 		case MKTAG('j','u','n','k'):
 		case MKTAG('p','i','c','t'):
 			return AVPROBE_SCORE_MAX - 5;
-		case MKTAG(0x82,0x82,0x7f,0x7d ):
 		case MKTAG('f','t','y','p'):
+			ftyp_size = AV_RB32(p->buf+offset) - 8;
+			ftyp_size = ftyp_size > MAX_FTYPE_SIZE ? MAX_FTYPE_SIZE-1 : ftyp_size;
+			memcpy(ftype_data, p->buf+offset+8, ftyp_size);
+			ftype_data[ftyp_size] = '\0';
+			if(strstr(ftype_data,"3gp") != NULL) {
+				return 77;
+			}
+			return AVPROBE_SCORE_MAX;
+		case MKTAG(0x82,0x82,0x7f,0x7d ):
 		case MKTAG('s','k','i','p'):
 		case MKTAG('u','u','i','d'):
 		case MKTAG('p','r','f','l'):
@@ -545,8 +557,13 @@ int audio_format_detect(unsigned char *buf, int buf_size)
 		}
 	}
 
-	if(mp4_probe(&prob) > 0) {
-		return MEDIA_FORMAT_MP4;
+	if((ret = mp4_probe(&prob)) > 0) {
+		if(ret == 77) {
+			return MEDIA_FORMAT_3GP;
+		}
+		else {
+			return MEDIA_FORMAT_M4A;
+		}
 	}
 
 	if(wma_probe(&prob) > 0){

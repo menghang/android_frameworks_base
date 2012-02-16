@@ -1963,6 +1963,7 @@ size_t MPEG4Source::parseNALSize(const uint8_t *data) const {
 status_t MPEG4Source::read(
         MediaBuffer **out, const ReadOptions *options) {
     Mutex::Autolock autoLock(mLock);
+    bool isSeekMode = false;
 
     CHECK(mStarted);
 
@@ -1979,6 +1980,7 @@ status_t MPEG4Source::read(
                 findFlags = SampleTable::kFlagBefore;
                 break;
             case ReadOptions::SEEK_NEXT_SYNC:
+            case ReadOptions::SEEK_VENDOR_OPT:
                 findFlags = SampleTable::kFlagAfter;
                 break;
             case ReadOptions::SEEK_CLOSEST_SYNC:
@@ -1989,6 +1991,8 @@ status_t MPEG4Source::read(
                 CHECK(!"Should not be here.");
                 break;
         }
+
+        isSeekMode = true;
 
         uint32_t sampleIndex;
         status_t err = mSampleTable->findSampleAtTime(
@@ -2006,6 +2010,33 @@ status_t MPEG4Source::read(
         if (err == OK) {
             err = mSampleTable->findSyncSampleNear(
                     sampleIndex, &syncSampleIndex, findFlags);
+        }
+
+        if (mode == ReadOptions::SEEK_VENDOR_OPT) {
+            off64_t offset;
+            size_t size;
+            uint32_t cts;
+			status_t err;
+			int currSampleIndex = syncSampleIndex;
+			int64_t offsetBefind;
+
+			offsetBefind = options->getLateBy();
+
+			for(; ;currSampleIndex++) {
+				err = mSampleTable->getMetaDataForSample(
+						currSampleIndex, &offset, &size, &cts);
+				if (err != OK) {
+					break; //fall through for error deal
+				}
+
+				LOGV("offset:%lld offsetBefind:%lld",offset,offsetBefind);
+
+				if(offset > offsetBefind) {
+					break;
+				}
+			}
+
+			syncSampleIndex = sampleIndex = currSampleIndex;
         }
 
         uint32_t sampleTime;
@@ -2092,6 +2123,9 @@ status_t MPEG4Source::read(
             mBuffer->meta_data()->clear();
             mBuffer->meta_data()->setInt64(
                     kKeyTime, ((int64_t)cts * 1000000) / mTimescale);
+            if (isSeekMode) { //set video offset
+            	mBuffer->meta_data()->setInt64(kKeyOffset, offset);
+            }
 
             if (targetSampleTimeUs >= 0) {
                 mBuffer->meta_data()->setInt64(
@@ -2214,6 +2248,9 @@ status_t MPEG4Source::read(
         mBuffer->meta_data()->clear();
         mBuffer->meta_data()->setInt64(
                 kKeyTime, ((int64_t)cts * 1000000) / mTimescale);
+        if (isSeekMode) { //set video offset
+        	mBuffer->meta_data()->setInt64(kKeyOffset, offset);
+        }
 
         if (targetSampleTimeUs >= 0) {
             mBuffer->meta_data()->setInt64(

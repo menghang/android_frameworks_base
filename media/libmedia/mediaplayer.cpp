@@ -73,6 +73,8 @@ MediaPlayer::MediaPlayer()
     mSubDelay = 0;
     mSubFontSize = 24;
     strcpy(mSubCharset, CHARSET_GBK);
+	mSubIndex = 0;
+    mTrackIndex = 0;
     /* add by Gary. end   -----------------------------------}} */
 }
 
@@ -171,6 +173,8 @@ status_t MediaPlayer::setDataSource(
             	player->setSubDelay(mSubDelay);
             	player->setSubFontSize(mSubFontSize);
             	player->setSubCharset(mSubCharset);
+            	player->switchSub(mSubIndex);
+            	player->switchTrack(mTrackIndex);
 	    }
             /* add by Gary. end   -----------------------------------}} */
             err = attachNewPlayer(player);
@@ -883,6 +887,7 @@ int MediaPlayer::getCurSub()
 status_t MediaPlayer::switchSub(int index)
 {
     Mutex::Autolock lock(mLock);
+    mSubIndex = index;
     if (mPlayer == NULL) {
         return NO_INIT;
     }
@@ -1070,6 +1075,7 @@ int MediaPlayer::getCurTrack()
 status_t MediaPlayer::switchTrack(int index)
 {
     Mutex::Autolock lock(mLock);
+    mTrackIndex = index;
     if (mPlayer == NULL) {
         return NO_INIT;
     }

@@ -513,26 +513,29 @@ status_t CedarXRecorder::prepare()
 	VIDEOINFO_t vInfo;
 	memset((void *)&vInfo, 0, sizeof(VIDEOINFO_t));
 #if 0
-	vInfo.src_width		= 176;
-	vInfo.src_height	= 144;
-	vInfo.width			= 160;			// mVideoWidth;
-	vInfo.height		= 120;			// mVideoHeight;
-	vInfo.frameRate		= 30*1000;		// mFrameRate;
-	vInfo.bitRate		= 200000;		// mVideoBitRate;
-	vInfo.profileIdc	= 66;
-	vInfo.levelIdc		= 31;
+	vInfo.src_width			= 176;
+	vInfo.src_height		= 144;
+	vInfo.width				= 160;			// mVideoWidth;
+	vInfo.height			= 120;			// mVideoHeight;
+	vInfo.frameRate			= 30*1000;		// mFrameRate;
+	vInfo.bitRate			= 200000;		// mVideoBitRate;
+	vInfo.profileIdc		= 66;
+	vInfo.levelIdc			= 31;
+	vInfo.geo_available		= mGeoAvailable;
+	vInfo.latitudex10000	= mLatitudex10000;
+	vInfo.longitudex10000	= mLongitudex10000;
 #else
-	vInfo.src_width		= srcWidth;
-	vInfo.src_height	= srcHeight;
-	vInfo.width			= mVideoWidth;
-	vInfo.height		= mVideoHeight;
-	vInfo.frameRate		= mFrameRate*1000;
-	vInfo.bitRate		= mVideoBitRate;
-	vInfo.profileIdc	= 66;
-	vInfo.levelIdc		= 31;
-	vInfo.geo_available	= mGeoAvailable;
-	vInfo.latitudex10000= mLatitudex10000;
-	vInfo.longitudex10000 = mLongitudex10000;
+	vInfo.src_width			= srcWidth;
+	vInfo.src_height		= srcHeight;
+	vInfo.width				= mVideoWidth;
+	vInfo.height			= mVideoHeight;
+	vInfo.frameRate			= mFrameRate*1000;
+	vInfo.bitRate			= mVideoBitRate;
+	vInfo.profileIdc		= 66;
+	vInfo.levelIdc			= 31;
+	vInfo.geo_available		= mGeoAvailable;
+	vInfo.latitudex10000	= mLatitudex10000;
+	vInfo.longitudex10000	= mLongitudex10000;
 #endif
 	if (mVideoWidth == 0
 		|| mVideoHeight == 0
