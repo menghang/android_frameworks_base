@@ -17,4 +17,5 @@
  */
 -->
 <resources>
+	<bool name="hasVolumeButton">false</bool>
 </resources>

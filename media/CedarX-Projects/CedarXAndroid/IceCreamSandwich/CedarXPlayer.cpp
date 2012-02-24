@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+  
 #include <CDX_LogNDebug.h>
 #define LOG_TAG "CedarXPlayer"
 #include <utils/Log.h>
@@ -178,12 +178,13 @@ status_t CedarXPlayer::setDataSource(const char *uri, const KeyedVector<
 	//Mutex::Autolock autoLock(mLock);
 	LOGV("CedarXPlayer::setDataSource (%s)", uri);
 	mUri = uri;
-	mIsUri = true;
+	mSourceType = SOURCETYPE_URL;
 	if (headers) {
 	    mUriHeaders = *headers;
 	}
 #if 0
-	const char* dbg_url = "http://192.168.1.147/hb.mp4";
+	//const char* dbg_url = "http://192.168.1.147/hb.mp4";
+	//const char* dbg_url = "http://127.0.0.1:5656/play?url='cdn.voole.com:3528/play?fid=ece227876f8944978b119cbd52c02ba6'&time='0'";
 	//const char* dbg_url = "/mnt/extsd/hb.mp4";
 	mPlayer->control(mPlayer, CDX_SET_DATASOURCE_URL, (unsigned int)dbg_url, 0);
 #else
@@ -199,13 +200,24 @@ status_t CedarXPlayer::setDataSource(int fd, int64_t offset, int64_t length) {
 	ext_fd_desc.fd = fd;
 	ext_fd_desc.offset = offset;
 	ext_fd_desc.length = length;
-	mIsUri = false;
+	mSourceType = SOURCETYPE_FD;
 	mPlayer->control(mPlayer, CDX_SET_DATASOURCE_FD, (unsigned int)&ext_fd_desc, 0);
 	return OK;
 }
 
 status_t CedarXPlayer::setDataSource(const sp<IStreamSource> &source) {
-    return INVALID_OPERATION;
+	RefBase *refValue;
+	//Mutex::Autolock autoLock(mLock);
+	LOGV("CedarXPlayer::setDataSource stream");
+
+	mSftSource = new StreamingSource(source);
+	mSftSource->incStrong(this);
+	refValue = mSftSource.get();
+
+	mSourceType = SOURCETYPE_SFT_STREAM;
+	mPlayer->control(mPlayer, CDX_SET_DATASOURCE_SFT_STREAM, (unsigned int)refValue, 0);
+
+	return OK;
 }
 
 status_t CedarXPlayer::setParameter(int key, const Parcel &request)
@@ -273,8 +285,15 @@ void CedarXPlayer::notifyListener_l(int msg, int ext1, int ext2) {
 		sp<MediaPlayerBase> listener = mListener.promote();
 
 		if (listener != NULL) {
-			if(msg != MEDIA_BUFFERING_UPDATE)
-				listener->sendEvent(msg, ext1, ext2);
+			if(mSourceType == SOURCETYPE_SFT_STREAM
+				&& msg== MEDIA_INFO && (ext1 == MEDIA_INFO_BUFFERING_START || ext1 == MEDIA_INFO_BUFFERING_END
+						|| ext1 == MEDIA_BUFFERING_UPDATE)) {
+				LOGV("skip notifyListerner");
+				return;
+			}
+
+			//if(msg != MEDIA_BUFFERING_UPDATE)
+			listener->sendEvent(msg, ext1, ext2);
 		}
 	}
 }
@@ -303,7 +322,17 @@ status_t CedarXPlayer::play_l(int command) {
 		return OK;
 	}
 
-    if (!(mFlags & PREPARED)) {
+	if (mSourceType == SOURCETYPE_SFT_STREAM) {
+		if (!(mFlags & (PREPARED | PREPARING))) {
+			mFlags |= PREPARING;
+			mIsAsyncPrepare = true;
+
+			mPlayer->control(mPlayer, CDX_CMD_SET_NETWORK_ENGINE, CEDARX_NETWORK_ENGINE_SFT, 0);
+			mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_OUTPUT_SETTING, CEDARX_OUTPUT_SETTING_MODE_PLANNER, 0);
+			mPlayer->control(mPlayer, CDX_CMD_PREPARE_ASYNC, 0, 0);
+		}
+	}
+	else if (!(mFlags & PREPARED)) {
         status_t err = prepare_l();
 
         if (err != OK) {
@@ -644,7 +673,7 @@ void CedarXPlayer::finishAsyncPrepare_l(int err){
 
 	//mPlayer->control(mPlayer, CDX_CMD_SET_AUDIOCHANNEL_MUTE, 1, 0);
 
-	if(mIsAsyncPrepare){
+	if(mIsAsyncPrepare && mSourceType != SOURCETYPE_SFT_STREAM){
 		notifyListener_l(MEDIA_PREPARED);
 	}
 
@@ -671,8 +700,16 @@ void CedarXPlayer::finishSeek_l(int err){
 
 status_t CedarXPlayer::prepareAsync() {
 	Mutex::Autolock autoLock(mLock);
-	int outputSetting = 0;
+	int  outputSetting = 0;
 	char prop_value[4];
+
+	property_get(PROP_CHIP_VERSION_KEY, prop_value, "3");
+	mPlayer->control(mPlayer, CDX_CMD_SET_SOFT_CHIP_VERSION, atoi(prop_value), 0);
+
+	if (mSourceType == SOURCETYPE_SFT_STREAM) {
+		notifyListener_l(MEDIA_PREPARED);
+		return OK;
+	}
 
 	if ((mFlags & PREPARING) || (mPlayer == NULL)) {
 		return UNKNOWN_ERROR; // async prepare already pending
@@ -680,33 +717,28 @@ status_t CedarXPlayer::prepareAsync() {
 	mFlags |= PREPARING;
 	mIsAsyncPrepare = true;
 
-	property_get(PROP_CHIP_VERSION_KEY, prop_value, "3");
-	mPlayer->control(mPlayer, CDX_CMD_SET_SOFT_CHIP_VERSION, atoi(prop_value), 0);
-
 	//0: no rotate, 1: 90 degree (clock wise), 2: 180, 3: 270, 4: horizon flip, 5: vertical flig;
 	//mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_ROTATION, 2, 0);
 
-
-	if(mIsUri) {
+	if (mSourceType == SOURCETYPE_URL) {
 		const char *uri = mUri.string();
 		const char *extension = strrchr(uri,'.');
 
-		if(!(!strcasecmp(extension, ".m3u8") || !strcasecmp(extension,".m3u") || strcasestr(uri,"m3u8")!=NULL)) {
+		//if(!(!strcasecmp(extension, ".m3u8") || !strcasecmp(extension,".m3u") || strcasestr(uri,"m3u8")!=NULL))
+		{
 			mPlayer->control(mPlayer, CDX_CMD_SET_NETWORK_ENGINE, CEDARX_NETWORK_ENGINE_SFT, 0);
 		}
 
 		//if (!strncasecmp("http://", uri, 7) || !strncasecmp("rtsp://", uri, 7))
 		if (!strncasecmp("http://", uri, 7) && strcasestr(uri,"qq.com/")!=NULL)
 		{
-			outputSetting |= CEDARX_OUTPUT_SETTING_MODE_PLANNER;
+			//outputSetting |= CEDARX_OUTPUT_SETTING_MODE_PLANNER;
 			//outputSetting |= CEDARX_OUTPUT_SETTING_HARDWARE_CONVERT; //use
 		}
-
-//		if(outputSetting & CEDARX_OUTPUT_SETTING_MODE_PLANNER) {
-//			if(mScreenID != SLAVE_SCREEN){//as no overlay support, we can use hardware convert
-//				outputSetting |= CEDARX_OUTPUT_SETTING_HARDWARE_CONVERT;
-//			}
-//		}
+	}
+	else if (mSourceType == SOURCETYPE_SFT_STREAM) {
+		mPlayer->control(mPlayer, CDX_CMD_SET_NETWORK_ENGINE, CEDARX_NETWORK_ENGINE_SFT, 0);
+		outputSetting |= CEDARX_OUTPUT_SETTING_MODE_PLANNER;
 	}
 
 	mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_OUTPUT_SETTING, outputSetting, 0);
@@ -1425,7 +1457,9 @@ int CedarXPlayer::StagefrightVideoRenderInit(int width, int height, int format, 
 	mDisplayWidth 	= width;
 	mDisplayHeight 	= height;
 	mFirstFrame 	= 1;
-	mDisplayFormat 	= (format == 0x11) ? HWC_FORMAT_MBYUV422 : ((format == 0xd) ? HAL_PIXEL_FORMAT_YV12 : HWC_FORMAT_MBYUV420);
+	mDisplayFormat 	= (format == 0x11) ? (int32_t)HWC_FORMAT_MBYUV422
+			: ((format == 0xd) ? (int32_t)HAL_PIXEL_FORMAT_YV12 : (int32_t)HWC_FORMAT_MBYUV420);
+
 	if(mVideoWidth!=width ||  mVideoHeight!=height)
 	{
 		mVideoWidth = width;
@@ -1487,7 +1521,7 @@ void CedarXPlayer::StagefrightVideoRenderData(void *frame_info, int frame_id)
 				if(display_3d_mode != CEDARX_DISPLAY_3D_MODE_ANAGLAGH)
 				{
 					//* switch on anaglagh display.
-					if(anaglagh_type == frm_inf->anaglath_transform_mode)
+					if(anaglagh_type == (uint32_t)frm_inf->anaglath_transform_mode)
 					{
 						display_3d_mode = CEDARX_DISPLAY_3D_MODE_ANAGLAGH;
 						set3DMode(_3d_mode, display_3d_mode);

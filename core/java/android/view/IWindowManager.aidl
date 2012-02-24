@@ -230,4 +230,7 @@ interface IWindowManager
      */
     boolean hasNavigationBar();
     void resetInputCalibration();
+    void statusbarShow();
+    void statusbarHide();
+    void invokePerformWindow();
 }

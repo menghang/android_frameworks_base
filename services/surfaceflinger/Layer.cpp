@@ -257,7 +257,13 @@ void Layer::setPerFrameData(hwc_layer_t* hwcl) {
 
 void Layer::onDraw(const Region& clip) const
 {
-    if (CC_UNLIKELY(mActiveBuffer == 0)) {
+    if(texture_format)
+    {
+        clearWithOpenGL(clip,0,0,0,0);
+    }
+    else
+    {
+        if (CC_UNLIKELY(mActiveBuffer == 0)) {
         // the texture has not been created yet, this Layer has
         // in fact never been drawn into. This happens frequently with
         // SurfaceView because the WindowManager can't know when the client
@@ -283,35 +289,37 @@ void Layer::onDraw(const Region& clip) const
             clearWithOpenGL(holes, 0, 0, 0, 1);
         }
         return;
-    }
-
-    if (!isProtected()) {
-        glBindTexture(GL_TEXTURE_EXTERNAL_OES, mTextureName);
-        GLenum filter = GL_NEAREST;
-        if (getFiltering() || needsFiltering() || isFixedSize() || isCropped()) {
-            // TODO: we could be more subtle with isFixedSize()
-            filter = GL_LINEAR;
         }
-        glTexParameterx(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, filter);
-        glTexParameterx(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, filter);
-        glMatrixMode(GL_TEXTURE);
-        glLoadMatrixf(mTextureMatrix);
-        glMatrixMode(GL_MODELVIEW);
-        glDisable(GL_TEXTURE_2D);
-        glEnable(GL_TEXTURE_EXTERNAL_OES);
-    } else {
-        glBindTexture(GL_TEXTURE_2D, mFlinger->getProtectedTexName());
-        glMatrixMode(GL_TEXTURE);
-        glLoadIdentity();
-        glMatrixMode(GL_MODELVIEW);
+
+        if (!isProtected()) {
+            glBindTexture(GL_TEXTURE_EXTERNAL_OES, mTextureName);
+            GLenum filter = GL_NEAREST;
+            if (getFiltering() || needsFiltering() || isFixedSize() || isCropped()) {
+                // TODO: we could be more subtle with isFixedSize()
+                filter = GL_LINEAR;
+            }
+            glTexParameterx(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, filter);
+            glTexParameterx(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, filter);
+            glMatrixMode(GL_TEXTURE);
+            glLoadMatrixf(mTextureMatrix);
+            glMatrixMode(GL_MODELVIEW);
+            glDisable(GL_TEXTURE_2D);
+            glEnable(GL_TEXTURE_EXTERNAL_OES);
+        } else {
+            glBindTexture(GL_TEXTURE_2D, mFlinger->getProtectedTexName());
+            glMatrixMode(GL_TEXTURE);
+            glLoadIdentity();
+            glMatrixMode(GL_MODELVIEW);
+            glDisable(GL_TEXTURE_EXTERNAL_OES);
+            glEnable(GL_TEXTURE_2D);
+        }
+
+        drawWithOpenGL(clip);
+
         glDisable(GL_TEXTURE_EXTERNAL_OES);
-        glEnable(GL_TEXTURE_2D);
+        glDisable(GL_TEXTURE_2D);
     }
-
-    drawWithOpenGL(clip);
-
-    glDisable(GL_TEXTURE_EXTERNAL_OES);
-    glDisable(GL_TEXTURE_2D);
+    
 }
 
 // As documented in libhardware header, formats in the range

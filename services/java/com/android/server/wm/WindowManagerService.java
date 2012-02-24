@@ -9415,6 +9415,23 @@ public class WindowManagerService extends IWindowManager.Stub
 	{
 		mInputManager.resetTouchCalibration();
 	}
+
+	public void statusbarShow()
+	{
+		mPolicy.statusbarShow();
+	}
+	
+    public void statusbarHide()
+    {
+    	mPolicy.statusbarHide();
+    }
+
+	public void invokePerformWindow()
+	{
+		synchronized (mWindowMap) {
+            performLayoutAndPlaceSurfacesLocked();
+        }
+	}
 	
     void dumpInput(FileDescriptor fd, PrintWriter pw, boolean dumpAll) {
         pw.println("WINDOW MANAGER INPUT (dumpsys window input)");

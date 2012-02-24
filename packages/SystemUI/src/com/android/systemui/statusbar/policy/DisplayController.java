@@ -31,6 +31,7 @@ import com.android.systemui.statusbar.policy.DisplayHotPlugPolicy;
 import android.media.MediaPlayer;
 import android.media.AudioSystem;
 import com.android.systemui.R;
+import android.os.SystemProperties;
 
 public class DisplayController extends BroadcastReceiver {
     private static final String TAG = "StatusBar.DisplayController";
@@ -97,6 +98,7 @@ public class DisplayController extends BroadcastReceiver {
 		        mDisplayManager.setDisplayMode(DisplayManager.DISPLAY_MODE_DUALSAME);
 				maxscreen = mDisplayManager.getMaxWidthDisplay();
 				MediaPlayer.setScreen(1);
+				SystemProperties.set("audio.routing", Integer.toString(AudioSystem.DEVICE_OUT_AUX_DIGITAL));
 				AudioSystem.setParameters("routing="+AudioSystem.DEVICE_OUT_AUX_DIGITAL);
 				//Camera.setCameraScreen(1);
 		        //mDisplayManager.setDisplayOutputType(0,DisplayManager.DISPLAY_OUTPUT_TYPE_HDMI,DisplayManager.DISPLAY_TVFORMAT_1080P_60HZ);
@@ -131,6 +133,7 @@ public class DisplayController extends BroadcastReceiver {
 	        mDisplayManager.setDisplayMode(DisplayManager.DISPLAY_MODE_SINGLE);
 	        maxscreen = mDisplayManager.getMaxWidthDisplay();
 	        MediaPlayer.setScreen(0);
+			SystemProperties.set("audio.routing", Integer.toString(AudioSystem.DEVICE_OUT_SPEAKER));
 			AudioSystem.setParameters("routing="+AudioSystem.DEVICE_OUT_SPEAKER);
 			//Camera.setCameraScreen(0);
 	        //mDisplayManager.setDisplayOutputType(0,DisplayManager.DISPLAY_OUTPUT_TYPE_LCD,0);

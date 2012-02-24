@@ -163,6 +163,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     // No longer recommended for desk docks; still useful in car docks.
     static final boolean ENABLE_CAR_DOCK_HOME_CAPTURE = true;
     static final boolean ENABLE_DESK_DOCK_HOME_CAPTURE = false;
+	static final boolean FULLSCREEN_HIDESTATUSBAR = true;
 
     static final int LONG_PRESS_POWER_NOTHING = 0;
     static final int LONG_PRESS_POWER_GLOBAL_ACTIONS = 1;
@@ -283,7 +284,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
     /** If true, hitting shift & menu will broadcast Intent.ACTION_BUG_REPORT */
     boolean mEnableShiftMenuBugReports = false;
-    
+    boolean mStatusBarShow = true;
+	boolean mStatusBarWillHide = true;
+	boolean mStatusBarReqShow = false;
     boolean mSafeMode;
     WindowState mStatusBar = null;
     boolean mStatusBarCanHide;
@@ -2219,11 +2222,21 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     pf.right = df.right = mUnrestrictedScreenLeft+mUnrestrictedScreenWidth;
                     pf.bottom = df.bottom = mUnrestrictedScreenTop+mUnrestrictedScreenHeight;
                 } else {
-                    pf.left = df.left = cf.left = mRestrictedScreenLeft;
-                    pf.top = df.top = cf.top = mRestrictedScreenTop;
-                    pf.right = df.right = cf.right = mRestrictedScreenLeft+mRestrictedScreenWidth;
-                    pf.bottom = df.bottom = cf.bottom
-                            = mRestrictedScreenTop+mRestrictedScreenHeight;
+                	if(FULLSCREEN_HIDESTATUSBAR && mStatusBarWillHide && (mStatusBarReqShow == false))
+                	{
+	                	pf.left = df.left = mUnrestrictedScreenLeft;
+	                    pf.top = df.top = mUnrestrictedScreenTop;
+	                    pf.right = df.right = mUnrestrictedScreenLeft+mUnrestrictedScreenWidth;
+	                    pf.bottom = df.bottom = mUnrestrictedScreenTop+mUnrestrictedScreenHeight;
+                	}
+					else
+					{
+	                    pf.left = df.left = cf.left = mRestrictedScreenLeft;
+	                    pf.top = df.top = cf.top = mRestrictedScreenTop;
+	                    pf.right = df.right = cf.right = mRestrictedScreenLeft+mRestrictedScreenWidth;
+	                    pf.bottom = df.bottom = cf.bottom
+	                            = mRestrictedScreenTop+mRestrictedScreenHeight;
+					}
                 }
                 if (adjust != SOFT_INPUT_ADJUST_NOTHING) {
                     vf.left = mCurLeft;
@@ -2403,9 +2416,51 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                                 }
                             }});
                         }
-                    } else if (DEBUG_LAYOUT) {
-                        Log.v(TAG, "Preventing status bar from hiding by policy");
-                    }
+                    } 
+					else
+					{
+						if (DEBUG_LAYOUT) 
+						{
+                        	Log.v(TAG, "Preventing status bar from hiding by policy");
+                    	}
+
+						if(FULLSCREEN_HIDESTATUSBAR)
+						{
+							if(MediaPlayer.isPlayingVideo())
+							{
+								if(mStatusBarShow)
+								{
+									if(mStatusBarWillHide)
+									{
+										if (mStatusBar.hideLw(false)) 
+										{
+										    mStatusBarShow = false;
+				                            changes |= FINISH_LAYOUT_REDO_LAYOUT;
+				                        }
+
+										mHandler.removeCallbacks(mStatusBarHide);
+									}
+									
+								}
+								else
+								{
+									if(mStatusBarReqShow)
+									{
+										if (mStatusBar.showLw(false)) 
+										{
+										    mStatusBarShow = true;
+				                            changes |= FINISH_LAYOUT_REDO_LAYOUT;
+
+											mStatusBarWillHide = false;
+											mStatusBarReqShow  = false;
+											mHandler.postDelayed(mStatusBarHide,5000);
+				                        }
+									}
+								}
+							}
+						}
+					}
+						
                 } else {
                     if (DEBUG_LAYOUT) Log.v(TAG, "Showing status bar: top is not fullscreen");
                     if (mStatusBar.showLw(true)) changes |= FINISH_LAYOUT_REDO_LAYOUT;
@@ -3500,6 +3555,19 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         }
     };
 
+	Runnable mStatusBarHide = new Runnable() {
+        public void run() {
+				mStatusBarWillHide = true;
+				try {
+		            //set orientation on WindowManager
+		            mWindowManager.invokePerformWindow();
+		        } catch (RemoteException e) {
+		            // Ignore
+		        }
+                
+        }
+    };
+
     private void updateLockScreenTimeout() {
         synchronized (mScreenLockTimeout) {
             boolean enable = (mAllowLockscreenWhenOn && mScreenOnEarly && mKeyguardMediator.isSecure());
@@ -3752,6 +3820,40 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     public boolean hasNavigationBar() {
         return mHasNavigationBar;
     }
+
+	public void statusbarShow()
+	{
+		synchronized (this) 
+		{
+			mStatusBarReqShow = true;
+			if(mStatusBarShow == false)
+			{
+				try {
+		            //set orientation on WindowManager
+		            mWindowManager.invokePerformWindow();
+		        } catch (RemoteException e) {
+		            // Ignore
+		        }
+			}
+		}
+	}
+
+	public void statusbarHide()
+	{
+		synchronized (this) 
+		{
+			mStatusBarReqShow = false;
+			if(mStatusBarShow == true)
+			{
+				try {
+		            //set orientation on WindowManager
+		            mWindowManager.invokePerformWindow();
+		        } catch (RemoteException e) {
+		            // Ignore
+		        }
+			}
+		}
+	}
 
     public void dump(String prefix, FileDescriptor fd, PrintWriter pw, String[] args) {
         pw.print(prefix); pw.print("mSafeMode="); pw.print(mSafeMode);

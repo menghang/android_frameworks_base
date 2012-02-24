@@ -36,6 +36,7 @@ import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.Region;
 import android.media.AudioManager;
+import android.os.ServiceManager;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Debug;
@@ -296,6 +297,8 @@ public final class ViewRootImpl extends Handler implements ViewParent,
 
     private final int mDensity;
 
+	private static IWindowManager mWindowManager;
+
     /**
      * Consistency verifier for debugging purposes.
      */
@@ -310,6 +313,7 @@ public final class ViewRootImpl extends Handler implements ViewParent,
                     InputMethodManager imm = InputMethodManager.getInstance(mainLooper);
                     sWindowSession = Display.getWindowManager().openSession(
                             imm.getClient(), imm.getInputContext());
+					mWindowManager	= IWindowManager.Stub.asInterface(ServiceManager.getService("window"));
                     mInitialized = true;
                 } catch (RemoteException e) {
                 }
@@ -2869,6 +2873,18 @@ public final class ViewRootImpl extends Handler implements ViewParent,
 
         // Enter touch mode on down or scroll.
         final int action = event.getAction();
+		if(action == MotionEvent.ACTION_UP)
+		{
+			try 
+			{
+	            mWindowManager.statusbarShow();
+	        } 
+	        catch (Exception e) 
+	        {
+	            Log.d(TAG,"mWindowManager.statusbarShow failed!");
+	        }
+			
+		}
         if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_SCROLL) {
             ensureTouchMode(true);
         }

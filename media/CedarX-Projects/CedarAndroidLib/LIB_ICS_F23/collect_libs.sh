@@ -32,6 +32,8 @@ cp $SRCDIR0/libmp4_muxer_intermediates/libmp4_muxer.a ./
 cp $SRCDIR0/libm3u_intermediates/libm3u.a ./
 cp $SRCDIR0/libcedara_decoder_intermediates/libcedara_decoder.a ./
 
+cp $SRCDIR0/libstagefright_httplive_opt_intermediates/libstagefright_httplive_opt.a ./
+
 #cp $SRCDIR0/../../system/lib/libstagefright_soft_cedar_h264dec.so ./
 
 cp $SRCDIR0/../../system/lib/libcedarxosal.so ./

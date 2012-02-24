@@ -999,9 +999,9 @@ void SurfaceFlinger::composeSurfaces(const Region& dirty)
     const Vector< sp<LayerBase> >& layers(mVisibleLayersSortedByZ);
     size_t count = layers.size();
     for (size_t i=0 ; i<count ; i++) {
-        if (cur && (cur[i].compositionType != HWC_FRAMEBUFFER)) {
-            continue;
-        }
+        //if (cur && (cur[i].compositionType != HWC_FRAMEBUFFER)) {
+         //   continue;
+       // }
         const sp<LayerBase>& layer(layers[i]);
         const Region clip(dirty.intersect(layer->visibleRegionScreen));
         if (!clip.isEmpty()) {

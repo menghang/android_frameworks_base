@@ -27,8 +27,10 @@
 typedef enum CEDARX_SOURCETYPE{
 	CEDARX_SOURCE_FD,
 	CEDARX_SOURCE_FILEPATH,
-	CEDARX_SOURCE_M3UBUFFER,
+	CEDARX_SOURCE_M3U8,
 	CEDARX_SOURCE_DRAMBUFFER,
+	CEDARX_SOURCE_SFT_STREAM, //for ics
+	CEDARX_SOURCE_NORMAL_STREAM,
 }CEDARX_SOURCETYPE;
 
 typedef enum MEDIA_3DMODE_TYPE{
@@ -51,6 +53,8 @@ typedef struct CedarXDataSourceDesc{
 
 	char *source_url; //SetDataSource url
 	CedarXExternFdDesc ext_fd_desc;
+
+	void *sft_stream_handle;
 
 	int  demux_type;
 

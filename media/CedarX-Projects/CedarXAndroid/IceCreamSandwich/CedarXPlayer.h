@@ -32,6 +32,9 @@
 
 #include <CDX_PlayerAPI.h>
 
+#include <include_sft/NuPlayerSource.h>
+#include <include_sft/StreamingSource.h>
+
 namespace android {
 
 struct CedarXAudioPlayer;
@@ -74,6 +77,12 @@ enum {
     PAUSING				= 0x8000,
     RESTORE_CONTROL_PARA= 0x10000,
     NATIVE_SUSPENDING   = 0x20000,
+};
+
+enum {
+	SOURCETYPE_URL = 0,
+	SOURCETYPE_FD ,
+	SOURCETYPE_SFT_STREAM
 };
 
 typedef struct CedarXPlayerExtendMember_{
@@ -198,11 +207,13 @@ private:
     sp<MediaPlayerBase::AudioSink> mAudioSink;
 
     String8 mUri;
-    bool mIsUri;
+    int mSourceType;
     KeyedVector<String8, String8> mUriHeaders;
 
     sp<CedarXRenderer> mVideoRenderer;
     bool mVideoRendererIsPreview;
+
+    sp<Source> mSftSource;
 
     CedarXMediaInformations mMediaInfo;
     CedarXAudioPlayer *mAudioPlayer;

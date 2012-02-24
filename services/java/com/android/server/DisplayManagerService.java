@@ -124,6 +124,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
+import android.provider.Settings;
+import android.os.SystemProperties;
+
 
 /**
  * Keep track of all those .apks everywhere.
@@ -140,7 +143,7 @@ public class DisplayManagerService extends IDisplayManager.Stub
 {
     private static final String TAG = "DisplayManagerService";
 
-    private static final boolean LOCAL_LOGV = false;
+    private static final boolean LOCAL_LOGV = true;
 	
     private final Context 	mContext;
 	private final 			PowerManagerService mPM;
@@ -159,6 +162,7 @@ public class DisplayManagerService extends IDisplayManager.Stub
 	private int 			mDisplayFormat1;
 	private static 			DisplayThread sThread;
     private static 			boolean sThreadStarted = false;
+	private int             mBacklightMode;
     
     private native void nativeInit();
     private native int 	nativeGetDisplayCount();
@@ -181,6 +185,7 @@ public class DisplayManagerService extends IDisplayManager.Stub
 	private native int  nativeGetMaxWidthDisplay();
 	private native int  nativeGetMaxHdmiMode();
 	private native int  nativeSetDisplayParameter(int mDisplay,int para0,int para1);
+	private native int nativeSetDisplayBacklihgtMode(int mode);
 
 	private final void sendHdmiIntent() 
 	{
@@ -352,16 +357,20 @@ public class DisplayManagerService extends IDisplayManager.Stub
 		nativeInit();
 		
         // set initial hotplug status
-        update_hotplug();
-
-		if (sThreadStarted == false) 
+ 		if(SystemProperties.get("ro.display.switch").equals("1"))
 		{
-            sThread = new DisplayThread(mContext,this,mPM);
-            sThread.start();
-            sThreadStarted = true;
-        }
+	        update_hotplug();
 
+			if (sThreadStarted == false) 
+			{
+	            sThread = new DisplayThread(mContext,this,mPM);
+	            sThread.start();
+	            sThreadStarted = true;
+	        }
+ 		}
 		mWindowManager	= IWindowManager.Stub.asInterface(ServiceManager.getService(Context.WINDOW_SERVICE));
+		boolean enable = Settings.System.getInt(mContext.getContentResolver(),Settings.System.SMART_BRIGHTNESS_ENABLE,0) != 0 ? true : false;
+		setDisplayBacklightMode(enable?1:0);
 		Log.d(TAG,"getWindowManager Starting.......!");
     }
     
@@ -483,6 +492,17 @@ public class DisplayManagerService extends IDisplayManager.Stub
 	public int getDisplayHotPlugStatus(int mDisplay)
 	{
 		return nativeGetDisplayHotPlug(mDisplay);
+	}
+
+	public int setDisplayBacklightMode(int mode)
+	{
+		mBacklightMode = mode;
+		return nativeSetDisplayBacklihgtMode(mode);
+	}
+
+	public int getDisplayBacklightMode()
+	{
+		return mBacklightMode;
 	}
 	
 	public int openDisplay(int mDisplay)

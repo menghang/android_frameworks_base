@@ -475,4 +475,19 @@ public class BridgeWindowManager implements IWindowManager {
 	{
 		
 	}
+
+	public void statusbarShow()
+	{
+	
+	}
+	
+    public void statusbarHide()
+    {
+    
+    }
+	
+    public void invokePerformWindow()
+    {
+    
+    }
 }

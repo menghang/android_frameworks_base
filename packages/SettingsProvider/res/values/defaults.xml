@@ -148,4 +148,6 @@
     <bool name="def_is_scan_tf_card">true</bool>
     <!-- Default for enable media scanning for usb host-->
     <bool name="def_is_scan_usb_host">false</bool>
+    <!-- Default for enable smart brightness in nuclear-->
+    <bool name="def_smart_brightness_enable">false</bool>
 </resources>

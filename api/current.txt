@@ -22150,6 +22150,7 @@ package android.view {
   public class DisplayManager {
     ctor public DisplayManager();
     method public int closeDisplay(int);
+    method public int getDisplayBacklightMode();
     method public int getDisplayCount();
     method public int getDisplayHeight(int);
     method public int getDisplayHotPlugStatus(int);
@@ -22163,6 +22164,7 @@ package android.view {
     method public int getMaxHdmiMode();
     method public int getMaxWidthDisplay();
     method public int openDisplay(int);
+    method public int setDisplayBacklightMode(int);
     method public int setDisplayMaster(int);
     method public int setDisplayMode(int);
     method public int setDisplayOutputType(int, int, int);

@@ -35,6 +35,7 @@ LOCAL_SHARED_LIBRARIES := \
         libsurfaceflinger_client \
         libcamera_client \
         libstagefright_foundation \
+        libstagefright \
         libicuuc \
 		libsurfaceflinger_client \
 		libskiagl \

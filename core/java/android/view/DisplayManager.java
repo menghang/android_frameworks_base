@@ -246,6 +246,7 @@ public class DisplayManager
 		try 
 		{
 			Log.d(TAG,"setDisplayMode");
+			setDisplayBacklightMode(1);
             return  mService.setDisplayMode(mode);
         } 
         catch (RemoteException ex) 
@@ -310,6 +311,19 @@ public class DisplayManager
             return -1;
         }
 	}
+    
+	public int setDisplayBacklightMode(int mode)
+	{
+		try
+		{
+			Log.d(TAG,"11111111111111111111111111111111111111111111111111111111111111111111111111111111111");
+			return mService.setDisplayBacklightMode(mode);
+		}
+		catch (RemoteException ex)
+		{
+			return -1;
+		}
+	}
 	
 	public int setDisplayMaster(int mDisplay)
 	{
@@ -367,6 +381,18 @@ public class DisplayManager
             // system process is dead anyway.
             return -1;
         }
+	}
+	public int getDisplayBacklightMode()
+	{
+		try
+		{
+			// get display backlight mode
+			return mService.getDisplayBacklightMode();
+		}
+		catch (RemoteException ex)
+		{
+			return -1;
+		}
 	}
 }
 

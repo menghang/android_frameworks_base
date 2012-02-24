@@ -249,6 +249,7 @@ extern "C" {
         CEDARV_COMMAND_ROTATE,
         CEDARV_COMMAND_SET_TOTALMEMSIZE,
 
+        CEDARV_COMMAND_DROP_B_FRAME,
         CEDARV_COMMAND_DISABLE_3D,
         CEDARV_COMMAN_SET_SYS_TIME,
         //* for preview application.

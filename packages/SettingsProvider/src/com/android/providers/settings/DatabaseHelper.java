@@ -1423,6 +1423,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	            loadSetting(stmt,Settings.System.DISPLAY_ADAPTION_ENABLE,false);
 			}
 
+			loadBooleanSetting(stmt, Settings.System.SMART_BRIGHTNESS_ENABLE,
+                    R.bool.def_smart_brightness_enable);
         } finally {
             if (stmt != null) stmt.close();
         }

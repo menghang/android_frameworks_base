@@ -946,6 +946,10 @@ public interface WindowManagerPolicy {
      */
     public void systemReady();
 
+	public void statusbarShow();
+
+	public void statusbarHide();
+
     /**
      * Called when the system is done booting to the point where the
      * user can start interacting with it.

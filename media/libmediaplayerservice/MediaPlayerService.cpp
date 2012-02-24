@@ -74,7 +74,7 @@
 #include <OMX.h>
 /* add by Gary. start {{----------------------------------- */
 /* save the screen info */
-#define PROP_SCREEN_KEY             "media.stagefright.screen"
+#define PROP_SCREEN_KEY             "mediasw.sft.screen"
 #define PROP_MASTER_SCREEN          "master"
 #define PROP_SLAVE_SCREEN           "slave"
 #define PROP_SCREEN_DEFAULT_VALUE   PROP_MASTER_SCREEN
@@ -83,21 +83,21 @@
 /* add by Gary. start {{----------------------------------- */
 /* 2011-11-14 */
 /* support adjusting colors while playing video */
-#define PROP_VPP_GATE_KEY           "media.stagefright.vpp_gate"
+#define PROP_VPP_GATE_KEY           "mediasw.sft.vpp_gate"
 #define PROP_ENABLE_VPP             "enable vpp"
 #define PROP_DISABLE_VPP            "disable vpp"
 #define PROP_VPP_GATE_DEFAULT_VALUE PROP_DISABLE_VPP
 
-#define PROP_LUMA_SHARP_KEY           "media.stagefright.luma_sharp"
+#define PROP_LUMA_SHARP_KEY           "mediasw.sft.luma_sharp"
 #define PROP_LUMA_SHARP_DEFAULT_VALUE PROP_DISABLE_VPP
 
-#define PROP_CHROMA_SHARP_KEY           "media.stagefright.chroma_sharp"
+#define PROP_CHROMA_SHARP_KEY           "mediasw.sft.chroma_sharp"
 #define PROP_CHROMA_SHARP_DEFAULT_VALUE PROP_DISABLE_VPP
 
-#define PROP_WHITE_EXTEND_KEY           "media.stagefright.white_extend"
+#define PROP_WHITE_EXTEND_KEY           "mediasw.sft.white_extend"
 #define PROP_WHITE_EXTEND_DEFAULT_VALUE PROP_DISABLE_VPP
 
-#define PROP_BLACK_EXTEND_KEY           "media.stagefright.black_extend"
+#define PROP_BLACK_EXTEND_KEY           "mediasw.sft.black_extend"
 #define PROP_BLACK_EXTEND_DEFAULT_VALUE PROP_DISABLE_VPP
 
 /* add by Gary. end   -----------------------------------}} */
@@ -979,7 +979,7 @@ status_t MediaPlayerService::Client::setDataSource(int fd, int64_t offset, int64
 status_t MediaPlayerService::Client::setDataSource(
         const sp<IStreamSource> &source) {
     // create the right type of player
-    sp<MediaPlayerBase> p = createPlayer(NU_PLAYER);
+    sp<MediaPlayerBase> p = createPlayer(CEDARX_PLAYER);
 
     if (p == NULL) {
         return NO_INIT;

@@ -205,6 +205,7 @@ ssize_t ChromiumHTTPDataSource::readAt(off64_t offset, void *data, size_t size) 
         // The read operation was successful, mIOResult contains
         // the number of bytes read.
         addBandwidthMeasurement(mIOResult, delayUs);
+        //LOG_PRI(ANDROID_LOG_INFO, LOG_TAG, "@@@@ mIOResult:%d delay:%lld",mIOResult, delayUs);
 
         mCurrentOffset += mIOResult;
         return mIOResult;

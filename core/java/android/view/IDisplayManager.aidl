@@ -49,4 +49,6 @@ interface IDisplayManager
 	int getDisplayMaster();
 	int getMaxWidthDisplay();
 	int getMaxHdmiMode();
+	int setDisplayBacklightMode(int mode);
+	int getDisplayBacklightMode();
 }

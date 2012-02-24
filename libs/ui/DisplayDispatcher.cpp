@@ -15,6 +15,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <limits.h>
+#include <cutils/properties.h>
+
 
 #define INDENT "  "
 #define INDENT2 "    "
@@ -149,11 +151,11 @@ namespace android
         int 				err;
         hw_module_t* 		module;
         status_t 			result;
-	    
+		char property[PROPERTY_VALUE_MAX];
 	    err = hw_get_module(DISPLAY_HARDWARE_MODULE_ID, (hw_module_t const**)&module);
 	    if (err == 0) 
 	    {
-            //LOGD("DisplayDispatcher createing1 err = %d!\n",err);
+            LOGD("DisplayDispatcher createing1 err = %d!\n",err);
             
 		    err = display_open(module, &mDevice);
 		    if (err == 0) 
@@ -165,17 +167,33 @@ namespace android
         {
             LOGD("hw_get display module Failed!\n");
         }
-	    
-	    //LOGD("DisplayDispatcher createing err2 = %d!\n",err);
 
-        mThread = new DisplayDispatcherThread(mDevice);
-        result = mThread->run("DisplayDispatcheR", PRIORITY_HIGHEST);
-	    if (result) 
-	    {
-	        LOGE("Could not start DisplayDispatcheR thread due to error %d.", result);
-	
-	        mThread->requestExit();
+	   if (property_get("ro.display.switch", property, NULL) > 0) 
+       {
+	        if (atoi(property) == 1) 
+	        {
+	            LOGW("display dispatcher enabled");
+	            mThread = new DisplayDispatcherThread(mDevice);
+		        result = mThread->run("DisplayDispatcheR", PRIORITY_HIGHEST);
+			    if (result) 
+			    {
+			        LOGE("Could not start DisplayDispatcheR thread due to error %d.", result);
+			
+			        mThread->requestExit();
+			    }
+	        }
+	        else
+	        {
+	            LOGW("display dispatcher disable");
+	        }
 	    }
+	    else
+	    {
+	        LOGW("display dispatcher disable");
+	    }
+		    //LOGD("DisplayDispatcher createing err2 = %d!\n",err);
+
+        
     }
 
     DisplayDispatcher::~DisplayDispatcher()
@@ -400,8 +418,16 @@ namespace android
 		
 		return  -1;
     }
-
-    int DisplayDispatcher::setDispProp(int cmd,int param0,int param1,int param2)
+	int DisplayDispatcher::setDisplayBacklightMode(int mode)
+	{
+		  if(mDevice)
+		  {
+		  		return mDevice->setdisplaybacklightmode(mDevice,mode);
+		  }
+		  
+		  return -1;
+	}
+    int DisplayDispatcher::setDispProp(int cmd,int param0,int param1,int param2)		
     {
         switch(cmd)
         {
@@ -446,7 +472,10 @@ namespace android
 
             case DISPLAY_CMD_SETDISPMODE:
                 return  setDisplayMode(param0);
-
+                
+			case DISPLAY_CMD_SETBACKLIGHTMODE:
+				return  setDisplayBacklightMode(param0);
+				
             default:
                 LOGE("Display Cmd not Support!\n");
                 return  -1;

@@ -262,6 +262,8 @@ typedef enum OMX_INDEXTYPE {
     OMX_IndexVendorSetAudioChannelNums,
     OMX_IndexVendorGetSysTime,
 
+    OMX_IndexVendorDropBFrameInDecoder,
+
     OMX_IndexVendorSetSoftChipVersion,
 
     OMX_IndexVendorSwitchSubtilte = 0xFF001000,

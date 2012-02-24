@@ -83,22 +83,8 @@ DisplayHardware::DisplayHardware(
     init(dpy);
     mDisplayDispatcher  = NULL;
     
-    if (property_get("ro.display.switch", property, NULL) > 0) 
-    {
-        if (atoi(property) == 1) 
-        {
-            LOGW("display dispatcher enabled");
-            mDisplayDispatcher = new DisplayDispatcher();
-        }
-        else
-        {
-            LOGW("display dispatcher disable");
-        }
-    }
-    else
-    {
-        LOGW("display dispatcher disable");
-    }
+    mDisplayDispatcher = new DisplayDispatcher();
+
 }
 
 DisplayHardware::~DisplayHardware()
