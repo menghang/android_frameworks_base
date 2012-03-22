@@ -224,8 +224,7 @@ class ServerThread extends Thread {
                     !firstBoot);
             ServiceManager.addService(Context.WINDOW_SERVICE, wm);
 
-//			if(SystemProperties.get("ro.display.switch").equals("1"))
-			if(true);
+			if(SystemProperties.get("ro.display.switch").equals("1"))
 			{
 				Slog.i(TAG, "Display Manager");
 				DisplayManagerService display = new DisplayManagerService(context,power);

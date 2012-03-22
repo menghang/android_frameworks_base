@@ -118,5 +118,14 @@ typedef struct _MediaPlayer_TrackInfo{
 
 /* add by Gary. end   -----------------------------------}} */
 
+/* add by Gary. start {{----------------------------------- */
+/* 2012-03-07 */
+/* set audio channel mute */
+#define AUDIO_CHANNEL_MUTE_NONE                0
+#define AUDIO_CHANNEL_MUTE_LEFT                1
+#define AUDIO_CHANNEL_MUTE_RIGHT               2
+#define AUDIO_CHANNEL_MUTE_ALL                 3
+/* add by Gary. end   -----------------------------------}} */
+
 
 #endif // ANDROID_MEDIAPLAYER_H

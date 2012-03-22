@@ -161,6 +161,8 @@ public class SurfaceView extends View {
     int mFormat = -1;
 	static int mScreenWidth	= -1;
 	static int mScreenHeight	= -1;
+	static int mViewWidth = -1;
+	static int mViewHeight = -1;
 	static int mScreenOrientation = -1;
 	static int mAdapterMode = -1;
 	int mSurfaceWidth	= -1;
@@ -972,14 +974,17 @@ public class SurfaceView extends View {
         final boolean formatChanged = mFormat != mRequestedFormat;
         final boolean sizeChanged = mWidth != myWidth || mHeight != myHeight;
         final boolean visibleChanged = mVisible != mRequestedVisible;
-
-        if (force || creating || formatChanged || sizeChanged || visibleChanged
+		final boolean viewSizeChanedd = mViewWidth != getWidth() || mViewHeight != getHeight();
+		
+        if (force || creating || formatChanged || sizeChanged || visibleChanged ||viewSizeChanedd
             || mLeft != mLocation[0] || mTop != mLocation[1]
             || mUpdateWindowNeeded || mReportDrawNeeded || redrawNeeded) {
 
             if (DEBUG) Log.i(TAG, "Changes: creating=" + creating
                     + " format=" + formatChanged + " size=" + sizeChanged
                     + " visible=" + visibleChanged
+                    + " mLeft=" + mLeft + " mTop =" + mTop 
+                    + " mLocation[0]=" + mLocation[0]+ " mLocation[1]=" + mLocation[1]
                     + " left=" + (mLeft != mLocation[0])
                     + " top=" + (mTop != mLocation[1]));
 
@@ -998,6 +1003,8 @@ public class SurfaceView extends View {
                 mLayout.y = mTop;
                 mLayout.width = getWidth();
                 mLayout.height = getHeight();   
+				mViewWidth = mLayout.width;
+				mViewHeight = mLayout.height;
 				updateGLSmartScaleLayout();
                 if (mTranslator != null) {
                     mTranslator.translateLayoutParamsInAppWindowToScreen(mLayout);

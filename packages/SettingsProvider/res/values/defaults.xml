@@ -150,4 +150,6 @@
     <bool name="def_is_scan_usb_host">false</bool>
     <!-- Default for enable smart brightness in nuclear-->
     <bool name="def_smart_brightness_enable">false</bool>
+    <!-- Default for enable smart brightness in nuclear-->
+    <bool name="def_smart_brightness_preview_enable">false</bool>
 </resources>

@@ -385,6 +385,20 @@ public:
     }
     /* add by Gary. end   -----------------------------------}} */
 
+    /* add by Gary. start {{----------------------------------- */
+    /* 2012-03-07 */
+    /* set audio channel mute */
+    virtual status_t setChannelMuteMode(int muteMode)
+    {
+        return OK;
+    };
+    
+    virtual int getChannelMuteMode()
+    {
+        return -1;
+    };
+    /* add by Gary. end   -----------------------------------}} */
+    
     // Invoke a generic method on the player by using opaque parcels
     // for the request and reply.
     //

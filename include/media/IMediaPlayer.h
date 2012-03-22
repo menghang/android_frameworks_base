@@ -101,6 +101,14 @@ public:
     /* support scale mode */
     virtual status_t        enableScaleMode(bool enable, int width, int height) = 0;
     /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2012-03-07 */
+    /* set audio channel mute */
+    virtual status_t        setChannelMuteMode(int muteMode) = 0;
+    virtual int             getChannelMuteMode() = 0;
+    /* add by Gary. end   -----------------------------------}} */
+
     virtual status_t        setParameter(int key, const Parcel& request) = 0;
     virtual status_t        getParameter(int key, Parcel* reply) = 0;
 

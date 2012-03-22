@@ -75,6 +75,7 @@ MediaPlayer::MediaPlayer()
     strcpy(mSubCharset, CHARSET_GBK);
 	mSubIndex = 0;
     mTrackIndex = 0;
+    mMuteMode = AUDIO_CHANNEL_MUTE_NONE;  // 2012-03-07, set audio channel mute
     /* add by Gary. end   -----------------------------------}} */
 }
 
@@ -166,7 +167,7 @@ status_t MediaPlayer::setDataSource(
             /* 2011-9-28 16:28:24 */
             /* save properties before creating the real player */
             if(player != 0) {
-	    	player->setSubGate(mSubGate);
+	    	    //player->setSubGate(mSubGate);
             	player->setSubColor(mSubColor);
             	player->setSubFrameColor(mSubFrameColor);
             	player->setSubPosition(mSubPosition);
@@ -175,6 +176,7 @@ status_t MediaPlayer::setDataSource(
             	player->setSubCharset(mSubCharset);
             	player->switchSub(mSubIndex);
             	player->switchTrack(mTrackIndex);
+                player->setChannelMuteMode(mMuteMode); // 2012-03-07, set audio channel mute
 	    }
             /* add by Gary. end   -----------------------------------}} */
             err = attachNewPlayer(player);
@@ -1312,4 +1314,54 @@ status_t MediaPlayer::setBlackExtend(int value)
 }
 
 /* add by Gary. end   -----------------------------------}} */
+
+/* add by Gary. start {{----------------------------------- */
+/* 2012-03-07 */
+/* set audio channel mute */
+status_t MediaPlayer::setChannelMuteMode(int muteMode)
+{
+    Mutex::Autolock lock(mLock);
+    mMuteMode = muteMode;
+    if (mPlayer == NULL) {
+        return OK;
+    }
+    return mPlayer->setChannelMuteMode(muteMode);
+}
+
+
+int MediaPlayer::getChannelMuteMode()
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return 0xFFFFFFFF;
+    }
+    return mPlayer->getChannelMuteMode();
+}
+/* add by Gary. end   -----------------------------------}} */
+
+/* add by Gary. start {{----------------------------------- */
+/* 2012-03-12 */
+/* add the global interfaces to control the subtitle gate  */
+
+bool MediaPlayer::getGlobalSubGate()
+{
+    const sp<IMediaPlayerService>& service(getMediaPlayerService());
+    if (service != 0) {
+        return service->getGlobalSubGate();
+    }else {
+        return -1;
+    }
+}
+
+status_t MediaPlayer::setGlobalSubGate(bool showSub)
+{
+    const sp<IMediaPlayerService>& service(getMediaPlayerService());
+    if (service != 0) {
+        return service->setGlobalSubGate(showSub);
+    }else {
+        return BAD_VALUE;
+    }
+}
+/* add by Gary. end   -----------------------------------}} */
+
 }; // namespace android

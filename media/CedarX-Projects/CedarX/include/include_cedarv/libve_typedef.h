@@ -95,6 +95,8 @@ extern "C" {
     	CONTAINER_FORMAT_RM,
     	CONTAINER_FORMAT_TS,
     	CONTAINER_FORMAT_VOB,
+    	CONTAINER_FORMAT_WEBM,
+    	CONTAINER_FORMAT_OGM,
     }container_format_e;
 
     //*******************************************************//

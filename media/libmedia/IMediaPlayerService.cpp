@@ -60,6 +60,13 @@ enum {
     SET_BLACK_EXTEND,
     GET_BLACK_EXTEND
     /* add by Gary. end   -----------------------------------}} */
+    /* add by Gary. start {{----------------------------------- */
+    /* 2012-03-12 */
+    /* add the global interfaces to control the subtitle gate  */
+    ,
+    SET_GLOBAL_SUB_GATE,
+    GET_GLOBAL_SUB_GATE,
+    /* add by Gary. end   -----------------------------------}} */
 };
 
 class BpMediaPlayerService: public BpInterface<IMediaPlayerService>
@@ -263,6 +270,27 @@ public:
     }
     
     /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2012-03-12 */
+    /* add the global interfaces to control the subtitle gate  */
+    status_t setGlobalSubGate(bool showSub)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayerService::getInterfaceDescriptor());
+        data.writeInt32(showSub);
+        remote()->transact(SET_GLOBAL_SUB_GATE, data, &reply);
+        return reply.readInt32();
+    }
+
+    bool getGlobalSubGate()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayerService::getInterfaceDescriptor());
+        remote()->transact(GET_GLOBAL_SUB_GATE, data, &reply);
+        return reply.readInt32();
+    }
+    /* add by Gary. end   -----------------------------------}} */
 };
 
 IMPLEMENT_META_INTERFACE(MediaPlayerService, "android.media.IMediaPlayerService");
@@ -417,6 +445,20 @@ status_t BnMediaPlayerService::onTransact(
         case GET_BLACK_EXTEND: {
             CHECK_INTERFACE(IMediaPlayer, data, reply);
             reply->writeInt32(getBlackExtend());
+            return NO_ERROR;
+        } break;
+        /* add by Gary. end   -----------------------------------}} */
+        /* add by Gary. start {{----------------------------------- */
+        /* 2012-03-12 */
+        /* add the global interfaces to control the subtitle gate  */
+        case SET_GLOBAL_SUB_GATE: {
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(setGlobalSubGate(data.readInt32()));
+            return NO_ERROR;
+        } break;
+        case GET_GLOBAL_SUB_GATE: {
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(getGlobalSubGate());
             return NO_ERROR;
         } break;
         /* add by Gary. end   -----------------------------------}} */

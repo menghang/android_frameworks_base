@@ -55,6 +55,8 @@ typedef struct CedarXDataSourceDesc{
 	CedarXExternFdDesc ext_fd_desc;
 
 	void *sft_stream_handle;
+	void *sft_cached_source2;
+	CDX_S64 sft_stream_lenght;
 
 	int  demux_type;
 

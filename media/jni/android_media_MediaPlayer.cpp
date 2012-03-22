@@ -1300,6 +1300,53 @@ android_media_MediaPlayer_getBlackExtend(JNIEnv *env, jobject thiz)
 
 /* add by Gary. end   -----------------------------------}} */
 
+/* add by Gary. start {{----------------------------------- */
+/* 2012-03-07 */
+/* set audio channel mute */
+static jint
+android_media_MediaPlayer_setChannelMuteMode(JNIEnv *env, jobject thiz, jint muteMode)
+{
+    sp<MediaPlayer> mp = getMediaPlayer(env, thiz);
+    if (mp == NULL ) {
+        jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return -1;
+    }
+    
+    return mp->setChannelMuteMode(muteMode);
+}
+
+static jint
+android_media_MediaPlayer_getChannelMuteMode(JNIEnv *env, jobject thiz)
+{
+    sp<MediaPlayer> mp = getMediaPlayer(env, thiz);
+    if (mp == NULL ) {
+        jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return -1;
+    }
+    
+    return mp->getChannelMuteMode();
+}
+/* add by Gary. end   -----------------------------------}} */
+
+/* add by Gary. start {{----------------------------------- */
+/* 2012-03-12 */
+/* add the global interfaces to control the subtitle gate  */
+static jint 
+android_media_MediaPlayer_setGlobalSubGate(JNIEnv *env, jobject thiz, jboolean showSub)
+{
+    if(OK == MediaPlayer::setGlobalSubGate(showSub))
+        return 0;
+    else
+        return -1;
+}
+
+static jboolean 
+android_media_MediaPlayer_getGlobalSubGate(JNIEnv *env, jobject thiz)
+{
+    return MediaPlayer::getGlobalSubGate();
+}
+/* add by Gary. end   -----------------------------------}} */
+
 // This function gets some field IDs, which in turn causes class initialization.
 // It is called from a static block in MediaPlayer, which won't run until the
 // first time an instance of this class is used.
@@ -1525,8 +1572,8 @@ static JNINativeMethod gMethods[] = {
     {"getSubList",             "()[Landroid/media/MediaPlayer$SubInfo;", (void *)android_media_MediaPlayer_getSubList},
     {"getCurSub",              "()I",                           (void *)android_media_MediaPlayer_getCurSub},
     {"switchSub",              "(I)I",                          (void *)android_media_MediaPlayer_switchSub},
-    {"setSubGate",             "(Z)I",                          (void *)android_media_MediaPlayer_setSubGate},
-    {"getSubGate",             "()Z",                           (void *)android_media_MediaPlayer_getSubGate},
+//    {"setSubGate",             "(Z)I",                          (void *)android_media_MediaPlayer_setSubGate},
+//    {"getSubGate",             "()Z",                           (void *)android_media_MediaPlayer_getSubGate},
     {"setSubColor",            "(I)I",                          (void *)android_media_MediaPlayer_setSubColor},
     {"getSubColor",            "()I",                           (void *)android_media_MediaPlayer_getSubColor},
     {"setSubFrameColor",       "(I)I",                          (void *)android_media_MediaPlayer_setSubFrameColor},
@@ -1562,16 +1609,28 @@ static JNINativeMethod gMethods[] = {
     /* add by Gary. start {{----------------------------------- */
     /* 2011-11-14 */
     /* support adjusting colors while playing video */
-    {"setVppGate",             "(Z)I",                           (void *)android_media_MediaPlayer_setVppGate},
-    {"getVppGate",             "()Z",                            (void *)android_media_MediaPlayer_getVppGate},
-    {"setLumaSharp",           "(I)I",                           (void *)android_media_MediaPlayer_setLumaSharp},
-    {"getLumaSharp",           "()I",                            (void *)android_media_MediaPlayer_getLumaSharp},
-    {"setChromaSharp",         "(I)I",                           (void *)android_media_MediaPlayer_setChromaSharp},
-    {"getChromaSharp",         "()I",                            (void *)android_media_MediaPlayer_getChromaSharp},
-    {"setWhiteExtend",          "(I)I",                           (void *)android_media_MediaPlayer_setWhiteExtend},
-    {"getWhiteExtend",          "()I",                            (void *)android_media_MediaPlayer_getWhiteExtend},
-    {"setBlackExtend",          "(I)I",                           (void *)android_media_MediaPlayer_setBlackExtend},
-    {"getBlackExtend",          "()I",                            (void *)android_media_MediaPlayer_getBlackExtend},
+    {"setVppGate",             "(Z)I",                          (void *)android_media_MediaPlayer_setVppGate},
+    {"getVppGate",             "()Z",                           (void *)android_media_MediaPlayer_getVppGate},
+    {"setLumaSharp",           "(I)I",                          (void *)android_media_MediaPlayer_setLumaSharp},
+    {"getLumaSharp",           "()I",                           (void *)android_media_MediaPlayer_getLumaSharp},
+    {"setChromaSharp",         "(I)I",                          (void *)android_media_MediaPlayer_setChromaSharp},
+    {"getChromaSharp",         "()I",                           (void *)android_media_MediaPlayer_getChromaSharp},
+    {"setWhiteExtend",         "(I)I",                          (void *)android_media_MediaPlayer_setWhiteExtend},
+    {"getWhiteExtend",         "()I",                           (void *)android_media_MediaPlayer_getWhiteExtend},
+    {"setBlackExtend",         "(I)I",                          (void *)android_media_MediaPlayer_setBlackExtend},
+    {"getBlackExtend",         "()I",                           (void *)android_media_MediaPlayer_getBlackExtend},
+    /* add by Gary. end   -----------------------------------}} */
+    /* add by Gary. start {{----------------------------------- */
+    /* 2012-03-07 */
+    /* set audio channel mute */
+    {"setChannelMuteMode",     "(I)I",                          (void *)android_media_MediaPlayer_setChannelMuteMode},
+    {"getChannelMuteMode",     "()I",                           (void *)android_media_MediaPlayer_getChannelMuteMode},
+    /* add by Gary. end   -----------------------------------}} */
+    /* add by Gary. start {{----------------------------------- */
+    /* 2012-03-12 */
+    /* add the global interfaces to control the subtitle gate  */
+    {"getGlobalSubGate",        "()Z",                          (void *)android_media_MediaPlayer_getGlobalSubGate},
+    {"setGlobalSubGate",        "(Z)I",                         (void *)android_media_MediaPlayer_setGlobalSubGate},
     /* add by Gary. end   -----------------------------------}} */
 };
 

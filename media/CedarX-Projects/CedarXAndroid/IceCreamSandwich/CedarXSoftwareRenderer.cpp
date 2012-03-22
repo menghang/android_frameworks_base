@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 #define LOG_TAG "CedarXSoftwareRenderer"
 #include <utils/Log.h>
 
@@ -123,12 +123,9 @@ void CedarXSoftwareRenderer::render(
     size_t dst_c_stride = ALIGN(buf->stride / 2, 16);
     size_t dst_c_size = dst_c_stride * buf->height / 2;
 
-#if 0
-    LOGV("buf->stride:%d buf->height:%d", buf->stride, buf->height);
-    memcpy(dst, data, dst_y_size * 3 / 2); LOGV("render size error!");
-#else
+    //LOGV("buf->stride:%d buf->height:%d WXH:%dx%d dst:%p data:%p", buf->stride, buf->height, mWidth, mHeight, dst, data);
     memcpy(dst, data, dst_y_size + dst_c_size*2);
-#endif
+    //memcpy(dst, data, dst_y_size * 3 / 2); LOGV("render size error!");
 
 #if 0
 		{
@@ -137,9 +134,11 @@ void CedarXSoftwareRenderer::render(
 
 			if(dec_count == 60)
 			{
-				fp = fopen("/mnt/sdcard/t.yuv","wb");
+				fp = fopen("/data/camera/t.yuv","wb");
 				LOGD("write start fp:%d addr:%p",fp,data);
-				fwrite(dst,1,buf->stride * buf->height * 3 / 2,fp);
+				fwrite(dst,1,buf->stride * buf->height,fp);
+				fwrite(dst + buf->stride * buf->height * 5/4,1,buf->stride * buf->height / 4,fp);
+				fwrite(dst + buf->stride * buf->height,1,buf->stride * buf->height / 4,fp);
 				fclose(fp);
 				LOGD("write finish");
 			}

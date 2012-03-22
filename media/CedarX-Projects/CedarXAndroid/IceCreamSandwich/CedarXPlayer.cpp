@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-  
+ 
 #include <CDX_LogNDebug.h>
 #define LOG_TAG "CedarXPlayer"
 #include <utils/Log.h>
@@ -23,7 +23,9 @@
 #include "CedarXPlayer.h"
 #include "CedarXNativeRenderer.h"
 #include "CedarXSoftwareRenderer.h"
+
 #include <libcedarv.h>
+#include <CDX_Config.h>
 
 #include <binder/IPCThreadState.h>
 #include <media/stagefright/CedarXAudioPlayer.h>
@@ -183,7 +185,7 @@ status_t CedarXPlayer::setDataSource(const char *uri, const KeyedVector<
 	    mUriHeaders = *headers;
 	}
 #if 0
-	//const char* dbg_url = "http://192.168.1.147/hb.mp4";
+	const char* dbg_url = "http://192.168.1.147/coby.mp4";
 	//const char* dbg_url = "http://127.0.0.1:5656/play?url='cdn.voole.com:3528/play?fid=ece227876f8944978b119cbd52c02ba6'&time='0'";
 	//const char* dbg_url = "/mnt/extsd/hb.mp4";
 	mPlayer->control(mPlayer, CDX_SET_DATASOURCE_URL, (unsigned int)dbg_url, 0);
@@ -265,7 +267,7 @@ void CedarXPlayer::reset_l() {
 	mVideoWidth = mVideoHeight = -1;
 	mVideoTimeUs = 0;
 
-	mTagPlay = true;
+	mTagPlay = 1;
 	mSeeking = false;
 	mSeekNotificationSent = false;
 	mSeekTimeUs = 0;
@@ -299,13 +301,17 @@ void CedarXPlayer::notifyListener_l(int msg, int ext1, int ext2) {
 }
 
 status_t CedarXPlayer::play() {
-	Mutex::Autolock autoLock(mLock);
-	LOGV("CedarXPlayer::play()");
+	SuspensionState *state = &mSuspensionState;
 
 	if(mFlags & NATIVE_SUSPENDING) {
 		LOGW("you has been suspend by other's");
-		return UNKNOWN_ERROR;
+		mFlags &= ~NATIVE_SUSPENDING;
+		state->mFlags |= PLAYING;
+		return resume();
 	}
+
+	Mutex::Autolock autoLock(mLock);
+	LOGV("CedarXPlayer::play()");
 
 	mFlags &= ~CACHE_UNDERRUN;
 
@@ -392,7 +398,8 @@ status_t CedarXPlayer::play_l(int command) {
 		mPlayer->control(mPlayer, command, (unsigned int)&mSuspensionState.mPositionUs, 0);
 	}
 
-	mTagPlay = false;
+	mSeeking = false;
+	mTagPlay = 0;
 	mPlayerState = PLAYER_STATE_PLAYING;
 	mFlags &= ~PAUSING;
 
@@ -433,6 +440,10 @@ status_t CedarXPlayer::stop_l() {
 
 	pause_l(true);
 
+	if(mVideoRenderer != NULL)
+	{
+		mVideoRenderer->control(VIDEORENDER_CMD_SHOW, 0);
+	}
 	mVideoRenderer.clear();
 	mVideoRenderer = NULL;
 	mFlags &= ~SUSPENDING;
@@ -592,8 +603,8 @@ status_t CedarXPlayer::getPosition(int64_t *positionUs) {
 		}
 	}
 
-	if(*positionUs == -1){
-		*positionUs = mSeekTimeUs; //temp to fix sohuvideo bug
+	if(*positionUs == -1 || mSeeking == true){
+		*positionUs = mSeekTimeUs;
 	}
 
 	struct timeval now;
@@ -608,7 +619,7 @@ status_t CedarXPlayer::getPosition(int64_t *positionUs) {
 
 	*positionUs = (*positionUs / 1000) * 1000; //to fix android 4.0 cts bug
 	mExtendMember->mLastPositionUs = *positionUs;
-	//LOGV("getPosition: %lld nowUs:%lld lastUs:%lld",*positionUs / 1000,nowUs,mExtendMember->mLastGetPositionTimeUs);
+	//LOGV("getPosition: %lld mSeekTimeUs:%lld nowUs:%lld lastUs:%lld",*positionUs / 1000,mSeekTimeUs,nowUs,mExtendMember->mLastGetPositionTimeUs);
 
 	return OK;
 }
@@ -635,7 +646,7 @@ status_t CedarXPlayer::seekTo(int64_t timeUs) {
 		if (!(mFlags & PLAYING)) {
 			LOGV( "seeking while paused, sending SEEK_COMPLETE notification"
 						" immediately.");
-
+			mTagPlay = 1;
 			notifyListener_l(MEDIA_SEEK_COMPLETE);
 			mSeekNotificationSent = true;
 			return OK;
@@ -701,10 +712,8 @@ void CedarXPlayer::finishSeek_l(int err){
 status_t CedarXPlayer::prepareAsync() {
 	Mutex::Autolock autoLock(mLock);
 	int  outputSetting = 0;
+	int  disable_media_type = 0;
 	char prop_value[4];
-
-	property_get(PROP_CHIP_VERSION_KEY, prop_value, "3");
-	mPlayer->control(mPlayer, CDX_CMD_SET_SOFT_CHIP_VERSION, atoi(prop_value), 0);
 
 	if (mSourceType == SOURCETYPE_SFT_STREAM) {
 		notifyListener_l(MEDIA_PREPARED);
@@ -716,6 +725,9 @@ status_t CedarXPlayer::prepareAsync() {
 	}
 	mFlags |= PREPARING;
 	mIsAsyncPrepare = true;
+
+	property_get(PROP_CHIP_VERSION_KEY, prop_value, "3");
+	mPlayer->control(mPlayer, CDX_CMD_SET_SOFT_CHIP_VERSION, atoi(prop_value), 0);
 
 	//0: no rotate, 1: 90 degree (clock wise), 2: 180, 3: 270, 4: horizon flip, 5: vertical flig;
 	//mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_ROTATION, 2, 0);
@@ -730,7 +742,6 @@ status_t CedarXPlayer::prepareAsync() {
 		}
 
 		//if (!strncasecmp("http://", uri, 7) || !strncasecmp("rtsp://", uri, 7))
-		if (!strncasecmp("http://", uri, 7) && strcasestr(uri,"qq.com/")!=NULL)
 		{
 			//outputSetting |= CEDARX_OUTPUT_SETTING_MODE_PLANNER;
 			//outputSetting |= CEDARX_OUTPUT_SETTING_HARDWARE_CONVERT; //use
@@ -741,6 +752,7 @@ status_t CedarXPlayer::prepareAsync() {
 		outputSetting |= CEDARX_OUTPUT_SETTING_MODE_PLANNER;
 	}
 
+	mExtendMember->mOutputSetting = outputSetting;
 	mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_OUTPUT_SETTING, outputSetting, 0);
 
 	//mMaxOutputWidth = 720;
@@ -751,7 +763,12 @@ status_t CedarXPlayer::prepareAsync() {
 		mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_MAXHEIGHT, mMaxOutputHeight, 0);
 	}
 
-	//mPlayer->control(mPlayer, CDX_CMD_DISABLE_XXXX, mDisableXXXX, 0);
+#if 0
+	disable_media_type |= CDX_MEDIA_TYPE_DISABLE_MPG | CDX_MEDIA_TYPE_DISABLE_TS | CDX_MEDIA_TYPE_DISABLE_ASF;
+	disable_media_type |= CDX_CODEC_TYPE_DISABLE_MPEG2 | CDX_CODEC_TYPE_DISABLE_VC1;
+	disable_media_type |= CDX_CODEC_TYPE_DISABLE_WMA;
+	mPlayer->control(mPlayer, CDX_CMD_DISABLE_MEDIA_TYPE, disable_media_type, 0);
+#endif
 
 	return (mPlayer->control(mPlayer, CDX_CMD_PREPARE_ASYNC, 0, 0) == 0 ? OK : UNKNOWN_ERROR);
 }
@@ -800,78 +817,79 @@ void CedarXPlayer::abortPrepare(status_t err) {
 	mFlags &= ~(PREPARING | PREPARE_CANCELLED);
 }
 
-//status_t CedarXPlayer::suspend() {
-//	LOGD("suspend start");
-//
-//	if (mFlags & SUSPENDING)
-//		return OK;
-//
-//	SuspensionState *state = &mSuspensionState;
-//	getPosition(&state->mPositionUs);
-//
-//	Mutex::Autolock autoLock(mLock);
-//
-//	state->mFlags = mFlags & (PLAYING | AUTO_LOOPING | LOOPING | AT_EOS);
-//    state->mUri = mUri;
-//    state->mUriHeaders = mUriHeaders;
-//	mFlags |= SUSPENDING;
-//
-//	if(isCedarXInitialized){
-//		mPlayer->control(mPlayer, CDX_CMD_STOP_ASYNC, 0, 0);
-//		CDXPlayer_Destroy(mPlayer);
-//		mPlayer = NULL;
-//		isCedarXInitialized = false;
-//	}
-//
-//	pause_l(true);
-//	mVideoRenderer.clear();
-//	mVideoRenderer = NULL;
-//	if(mAudioPlayer){
-//		delete mAudioPlayer;
-//		mAudioPlayer = NULL;
-//	}
-//	mPlayerState = PLAYER_STATE_SUSPEND;
-//	LOGD("suspend end");
-//
-//	return OK;
-//}
-//
-//status_t CedarXPlayer::resume() {
-//	LOGD("resume start");
-//    Mutex::Autolock autoLock(mLock);
-//    SuspensionState *state = &mSuspensionState;
-//    status_t err;
-//
-//    if(mPlayer == NULL){
-//    	CDXPlayer_Create((void**)&mPlayer);
-//    	mPlayer->control(mPlayer, CDX_CMD_REGISTER_CALLBACK, (unsigned int)&CedarXPlayerCallbackWrapper, (unsigned int)this);
-//    	isCedarXInitialized = true;
-//    }
-//
-//    //mPlayer->control(mPlayer, CDX_CMD_SET_STATE, CDX_STATE_UNKOWN, 0);
-//
-//    if (mIsUri) {
-//    	err = setDataSource(state->mUri, &state->mUriHeaders);
-//    } else {
-//        LOGW("NOT support setdatasouce non-uri currently");
-//    }
-//
-//    mFlags = state->mFlags & (AUTO_LOOPING | LOOPING | AT_EOS);
-//
-//    mFlags |= RESTORE_CONTROL_PARA;
-//
-//    if (state->mFlags & PLAYING) {
-//        play_l(CDX_CMD_TAG_START_ASYNC);
-//    }
-//    mFlags &= ~SUSPENDING;
-//    //state->mPositionUs = 0;
-//    mPlayerState = PLAYER_STATE_RESUME;
-//
-//    LOGD("resume end");
-//
-//	return OK;
-//}
+status_t CedarXPlayer::suspend() {
+	LOGD("suspend start");
 
+	if (mFlags & SUSPENDING)
+		return OK;
+
+	SuspensionState *state = &mSuspensionState;
+	getPosition(&state->mPositionUs);
+
+	Mutex::Autolock autoLock(mLock);
+
+	state->mFlags = mFlags & (PLAYING | AUTO_LOOPING | LOOPING | AT_EOS);
+    state->mUri = mUri;
+    state->mUriHeaders = mUriHeaders;
+	mFlags |= SUSPENDING;
+
+	if(isCedarXInitialized){
+		mPlayer->control(mPlayer, CDX_CMD_STOP_ASYNC, 0, 0);
+		CDXPlayer_Destroy(mPlayer);
+		mPlayer = NULL;
+		isCedarXInitialized = false;
+	}
+
+	pause_l(true);
+	mVideoRenderer.clear();
+	mVideoRenderer = NULL;
+	if(mAudioPlayer){
+		delete mAudioPlayer;
+		mAudioPlayer = NULL;
+	}
+	mPlayerState = PLAYER_STATE_SUSPEND;
+	LOGD("suspend end");
+
+	return OK;
+}
+
+status_t CedarXPlayer::resume() {
+	LOGD("resume start");
+    Mutex::Autolock autoLock(mLock);
+    SuspensionState *state = &mSuspensionState;
+    status_t err;
+    if (mSourceType != SOURCETYPE_URL){
+        LOGW("NOT support setdatasouce non-uri currently");
+        return UNKNOWN_ERROR;
+    }
+
+    if(mPlayer == NULL){
+    	CDXPlayer_Create((void**)&mPlayer);
+    	mPlayer->control(mPlayer, CDX_CMD_REGISTER_CALLBACK, (unsigned int)&CedarXPlayerCallbackWrapper, (unsigned int)this);
+    	isCedarXInitialized = true;
+    }
+
+    //mPlayer->control(mPlayer, CDX_CMD_SET_STATE, CDX_STATE_UNKOWN, 0);
+
+    err = setDataSource(state->mUri, &state->mUriHeaders);
+	mPlayer->control(mPlayer, CDX_CMD_SET_NETWORK_ENGINE, CEDARX_NETWORK_ENGINE_SFT, 0);
+	mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_OUTPUT_SETTING, mExtendMember->mOutputSetting, 0);
+
+    mFlags = state->mFlags & (AUTO_LOOPING | LOOPING | AT_EOS);
+
+    mFlags |= RESTORE_CONTROL_PARA;
+
+    if (state->mFlags & PLAYING) {
+        play_l(CDX_CMD_TAG_START_ASYNC);
+    }
+    mFlags &= ~SUSPENDING;
+    //state->mPositionUs = 0;
+    mPlayerState = PLAYER_STATE_RESUME;
+
+    LOGD("resume end");
+
+	return OK;
+}
 
 status_t CedarXPlayer::setScreen(int screen) {
 	mScreenID = screen;
@@ -889,7 +907,7 @@ status_t CedarXPlayer::set3DMode(int source3dMode, int displayMode)
 
 	_3d_info.width 	 			= mDisplayWidth;
 	_3d_info.height	 			= mDisplayHeight;
-	_3d_info.format	 			= (mDisplayFormat == CEDARV_PIXEL_FORMAT_AW_YUV422) ?  HWC_FORMAT_MBYUV422:HWC_FORMAT_MBYUV420; //* or HWC_FORMAT_RGBA_8888.
+	_3d_info.format	 			= mDisplayFormat;
 	_3d_info.is_mode_changed 	= 1;
 
 	//* set source 3d mode.
@@ -1407,10 +1425,12 @@ int CedarXPlayer::nativeSuspend()
 		return -1;
 	}
 
-	if(mPlayer != NULL){
-		LOGV("I'm force to quit!");
-		mPlayer->control(mPlayer, CDX_CMD_STOP_ASYNC, 0, 0);
-	}
+//	if(mPlayer != NULL){
+//		LOGV("I'm force to quit!");
+//		mPlayer->control(mPlayer, CDX_CMD_STOP_ASYNC, 0, 0);
+//	}
+
+	suspend();
 
 	mFlags |= NATIVE_SUSPENDING;
 

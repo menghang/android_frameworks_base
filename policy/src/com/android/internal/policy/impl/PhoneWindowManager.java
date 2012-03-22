@@ -2434,10 +2434,10 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 									{
 										if (mStatusBar.hideLw(false)) 
 										{
-										    mStatusBarShow = false;
 				                            changes |= FINISH_LAYOUT_REDO_LAYOUT;
 				                        }
-
+										
+										mStatusBarShow = false;
 										mHandler.removeCallbacks(mStatusBarHide);
 									}
 									
@@ -2447,16 +2447,29 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 									if(mStatusBarReqShow)
 									{
 										if (mStatusBar.showLw(false)) 
-										{
-										    mStatusBarShow = true;
+										{										    
 				                            changes |= FINISH_LAYOUT_REDO_LAYOUT;
-
-											mStatusBarWillHide = false;
-											mStatusBarReqShow  = false;
-											mHandler.postDelayed(mStatusBarHide,5000);
 				                        }
+
+										mStatusBarShow = true;
+										mStatusBarWillHide = false;
+										mStatusBarReqShow  = false;
+										mHandler.postDelayed(mStatusBarHide,5000);
 									}
 								}
+							}
+							else
+							{
+								if(mStatusBarShow == false)
+								{
+                                	if (mStatusBar.showLw(false))
+                                	{
+                                    	changes |= FINISH_LAYOUT_REDO_LAYOUT;
+                                    }
+                                	mStatusBarShow = true;
+                                	mStatusBarWillHide = false;
+                                	mStatusBarReqShow  = false;
+                                }
 							}
 						}
 					}
@@ -3821,37 +3834,32 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         return mHasNavigationBar;
     }
 
-	public void statusbarShow()
+	public boolean statusbarShow()
 	{
 		synchronized (this) 
 		{
 			mStatusBarReqShow = true;
+			Log.d(TAG,"statusbarShow mStatusBarShow = " + mStatusBarShow);
 			if(mStatusBarShow == false)
 			{
-				try {
-		            //set orientation on WindowManager
-		            mWindowManager.invokePerformWindow();
-		        } catch (RemoteException e) {
-		            // Ignore
-		        }
+				return true;
 			}
+
+			return false;
 		}
 	}
 
-	public void statusbarHide()
+	public boolean statusbarHide()
 	{
 		synchronized (this) 
 		{
 			mStatusBarReqShow = false;
 			if(mStatusBarShow == true)
 			{
-				try {
-		            //set orientation on WindowManager
-		            mWindowManager.invokePerformWindow();
-		        } catch (RemoteException e) {
-		            // Ignore
-		        }
+				return true;
 			}
+
+			return false;
 		}
 	}
 

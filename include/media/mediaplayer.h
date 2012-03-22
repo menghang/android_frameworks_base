@@ -285,6 +285,19 @@ public:
     static  int             getBlackExtend();
     /* add by Gary. end   -----------------------------------}} */
 
+    /* add by Gary. start {{----------------------------------- */
+    /* 2012-03-07 */
+    /* set audio channel mute */
+            status_t        setChannelMuteMode(int muteMode);
+            int             getChannelMuteMode();
+    /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2012-03-12 */
+    /* add the global interfaces to control the subtitle gate  */
+    static  status_t        setGlobalSubGate(bool showSub);
+    static  bool            getGlobalSubGate();
+    /* add by Gary. end   -----------------------------------}} */
 private:
             void            clear_l();
             status_t        seekTo_l(int msec);
@@ -326,6 +339,7 @@ private:
     char                        mSubCharset[MEDIAPLAYER_NAME_LEN_MAX];
 	int                         mSubIndex;
     int                         mTrackIndex;
+    int                         mMuteMode;   // 2012-03-07, set audio channel mute
    /* add by Gary. end   -----------------------------------}} */
 };
 

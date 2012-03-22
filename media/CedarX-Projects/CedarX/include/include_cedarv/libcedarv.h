@@ -66,6 +66,7 @@ extern "C" {
     	CEDARV_CONTAINER_FORMAT_TS,
     	CEDARV_CONTAINER_FORMAT_VOB,
     	CEDARV_CONTAINER_FORMAT_WEBM,
+    	CEDARV_CONTAINER_FORMAT_OGM,
     }cedarv_container_format_e;
 
 	typedef enum CEDARV_3D_MODE
@@ -210,6 +211,10 @@ extern "C" {
 
         u32						display_3d_mode;		//* this value has nothing to do with decoder, it is used for video render to
         												//* pass display mode to overlay module.
+        u32                     flag_addr;//dit maf flag address
+        u32                     flag_stride;//dit maf flag line stride
+        u8                      maf_valid;
+        u8                      pre_frame_valid;
     }cedarv_picture_t;
     
     typedef enum CEDARV_RESULT
@@ -275,7 +280,8 @@ extern "C" {
         CEDARV_COMMAND_CLOSE_ANAGLATH_TRANSFROM,	//* close ve anaglath transformation
         CEDARV_COMMAND_GET_CHIP_VERSION,
 
-        CEDARV_COMMAND_FLUSH
+        CEDARV_COMMAND_FLUSH,
+        CEDARV_COMMAND_CLOSE_MAF
     }cedarv_io_cmd_e;
     
     

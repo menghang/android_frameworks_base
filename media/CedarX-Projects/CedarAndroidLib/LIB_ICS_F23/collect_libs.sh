@@ -10,6 +10,7 @@ cp $SRCDIR0/libdemux_asf_intermediates/libdemux_asf.a   ./
 cp $SRCDIR0/libdemux_avi_intermediates/libdemux_avi.a   ./
 cp $SRCDIR0/libdemux_ts_intermediates/libdemux_ts.a     ./
 cp $SRCDIR0/libdemux_mkv_intermediates/libdemux_mkv.a   ./
+cp $SRCDIR0/libdemux_ogg_intermediates/libdemux_ogg.a   ./
 cp $SRCDIR0/libdemux_mov_intermediates/libdemux_mov.a   ./
 cp $SRCDIR0/libdemux_flv_intermediates/libdemux_flv.a   ./
 cp $SRCDIR0/libdemux_mpg_intermediates/libdemux_mpg.a   ./
@@ -34,7 +35,8 @@ cp $SRCDIR0/libcedara_decoder_intermediates/libcedara_decoder.a ./
 
 cp $SRCDIR0/libstagefright_httplive_opt_intermediates/libstagefright_httplive_opt.a ./
 
-#cp $SRCDIR0/../../system/lib/libstagefright_soft_cedar_h264dec.so ./
+cp $SRCDIR0/../../system/lib/libstagefright_soft_cedar_h264dec.so ./
+cp $SRCDIR0/../../system/lib/libstagefright_soft_cedar_h264dec.so $ANDROID_BUILD_TOP/device/softwinner/common/media/
 
 cp $SRCDIR0/../../system/lib/libcedarxosal.so ./
 cp $SRCDIR0/../../system/lib/libcedarxbase.so ./

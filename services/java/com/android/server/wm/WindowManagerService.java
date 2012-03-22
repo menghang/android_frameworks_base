@@ -9418,19 +9418,35 @@ public class WindowManagerService extends IWindowManager.Stub
 
 	public void statusbarShow()
 	{
-		mPolicy.statusbarShow();
+		if(mPolicy.statusbarShow())
+		{
+			final long origId = Binder.clearCallingIdentity();
+			synchronized (mWindowMap) {
+	            performLayoutAndPlaceSurfacesLocked();
+	        }
+			Binder.restoreCallingIdentity(origId);
+		}
 	}
 	
     public void statusbarHide()
     {
-    	mPolicy.statusbarHide();
+    	if(mPolicy.statusbarHide())
+    	{
+    		final long origId = Binder.clearCallingIdentity();
+			synchronized (mWindowMap) {
+	            performLayoutAndPlaceSurfacesLocked();
+	        }
+			Binder.restoreCallingIdentity(origId);
+    	}		
     }
 
 	public void invokePerformWindow()
 	{
+		final long origId = Binder.clearCallingIdentity();
 		synchronized (mWindowMap) {
             performLayoutAndPlaceSurfacesLocked();
         }
+		Binder.restoreCallingIdentity(origId);
 	}
 	
     void dumpInput(FileDescriptor fd, PrintWriter pw, boolean dumpAll) {

@@ -1407,7 +1407,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 			loadStringSetting(stmt, Settings.System.DISPLAY_ADAPTION_MODE,
                     R.string.def_screen_adaption_mode);
 
-		    loadStringSetting(stmt,Settings.System.IS_SCAN_USB_HOST,
+		    loadBooleanSetting(stmt,Settings.System.IS_SCAN_USB_HOST,
 				    R.bool.def_is_scan_usb_host);
 
 			/* add by huanglong */
@@ -1425,6 +1425,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 			loadBooleanSetting(stmt, Settings.System.SMART_BRIGHTNESS_ENABLE,
                     R.bool.def_smart_brightness_enable);
+			loadBooleanSetting(stmt, Settings.System.SMART_BRIGHTNESS_PREVIEW_ENABLE,
+                    R.bool.def_smart_brightness_preview_enable);
         } finally {
             if (stmt != null) stmt.close();
         }

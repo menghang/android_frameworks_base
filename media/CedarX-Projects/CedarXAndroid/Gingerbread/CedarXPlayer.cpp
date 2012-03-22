@@ -1352,7 +1352,12 @@ void CedarXPlayer::StagefrightVideoRenderData(void *frame_info, int frame_id)
 		overlay_para.bProgressiveSrc = frm_inf->is_progressive;
 		overlay_para.bTopFieldFirst = frm_inf->top_field_first;
 		overlay_para.pVideoInfo.frame_rate = frm_inf->frame_rate;
-
+    #if 0  	
+		overlay_para.flag_addr              = frm_inf->flag_addr;
+		overlay_para.flag_stride            = frm_inf->flag_stride;
+		overlay_para.maf_valid              = frm_inf->maf_valid;
+		overlay_para.pre_frame_valid        = frm_inf->pre_frame_valid;
+    #endif
 		if(frm_inf->_3d_mode == CEDARV_3D_MODE_DOUBLE_STREAM && this->display_3d_mode == CEDARX_DISPLAY_3D_MODE_3D)
 		{
 			overlay_para.top_y 		= (unsigned int)frm_inf->y;

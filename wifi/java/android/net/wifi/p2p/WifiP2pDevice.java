@@ -307,6 +307,8 @@ public class WifiP2pDevice implements Parcelable {
     private String trimQuotes(String str) {
         str = str.trim();
         if (str.startsWith("'") && str.endsWith("'")) {
+            if(str.length()==1)
+                return new String();
             return str.substring(1, str.length()-1);
         }
         return str;

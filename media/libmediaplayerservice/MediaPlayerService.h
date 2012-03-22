@@ -263,6 +263,13 @@ public:
     virtual int                 getBlackExtend();
     /* add by Gary. end   -----------------------------------}} */
 
+    /* add by Gary. start {{----------------------------------- */
+    /* 2012-03-12 */
+    /* add the global interfaces to control the subtitle gate  */
+    virtual status_t            setGlobalSubGate(bool showSub);
+    virtual bool                getGlobalSubGate();
+    /* add by Gary. end   -----------------------------------}} */
+
 private:
 
     class Client : public BnMediaPlayer {
@@ -358,6 +365,13 @@ private:
         virtual status_t        setBlackExtend(int value);
         /* add by Gary. end   -----------------------------------}} */
 
+        /* add by Gary. start {{----------------------------------- */
+        /* 2012-03-07 */
+        /* set audio channel mute */
+        virtual status_t        setChannelMuteMode(int muteMode);
+        virtual int             getChannelMuteMode();
+        /* add by Gary. end   -----------------------------------}} */
+
         sp<MediaPlayerBase>     createPlayer(player_type playerType);
 
         virtual status_t        setDataSource(
@@ -435,6 +449,7 @@ private:
                     char                        mSubCharset[MEDIAPLAYER_NAME_LEN_MAX];
 					int                         mSubIndex;
 				    int                         mTrackIndex;
+                    int                         mMuteMode;   // 2012-03-07, set audio channel mute
                     /* add by Gary. end   -----------------------------------}} */
 
                     /* add by Gary. start {{----------------------------------- */
@@ -493,6 +508,7 @@ private:
                 int                         mChromaSharp;
                 int                         mWhiteExtend;
                 int                         mBlackExtend;
+                bool                        mGlobalSubGate;  // 2012-03-12, add the global interfaces to control the subtitle gate
                 /* add by Gary. end   -----------------------------------}} */
 };
 

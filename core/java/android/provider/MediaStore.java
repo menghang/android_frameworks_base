@@ -138,6 +138,13 @@ public final class MediaStore {
      * This is a boolean property that specifies whether or not to show action icons.
      */
     public static final String EXTRA_SHOW_ACTION_ICONS = "android.intent.extra.showActionIcons";
+    
+    //by Bevis, for VideoPlayer to create playlist
+    public static final String PLAYLIST_TYPE = "android.intent.extra.playListType";
+
+    public static final String PLAYLIST_TYPE_CUR_FOLDER = "curFolder";
+    public static final String PLAYLIST_TYPE_MEDIA_PROVIDER = "mediaProvider";
+
 
     /**
      * The name of the Intent-extra used to control the onCompletion behavior of a MovieView.

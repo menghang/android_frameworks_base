@@ -75,6 +75,13 @@ public:
     virtual int             getBlackExtend() = 0;
     /* add by Gary. end   -----------------------------------}} */
 
+    /* add by Gary. start {{----------------------------------- */
+    /* 2012-03-12 */
+    /* add the global interfaces to control the subtitle gate  */
+    virtual status_t        setGlobalSubGate(bool showSub) = 0;
+    virtual bool            getGlobalSubGate() = 0;
+    /* add by Gary. end   -----------------------------------}} */
+
     // codecs and audio devices usage tracking for the battery app
     enum BatteryDataBits {
         // tracking audio codec

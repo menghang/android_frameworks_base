@@ -10744,11 +10744,13 @@ package android.media {
     method public int getAudioSampleRate();
     method public int getAudioSessionId();
     method public static int getBlackExtend();
+    method public int getChannelMuteMode();
     method public static int getChromaSharp();
     method public int getCurSub();
     method public int getCurTrack();
     method public int getCurrentPosition();
     method public int getDuration();
+    method public static boolean getGlobalSubGate();
     method public int getInputDimensionType();
     method public static int getLumaSharp();
     method public int getOutputDimensionType();
@@ -10758,7 +10760,7 @@ package android.media {
     method public int getSubDelay();
     method public int getSubFontSize();
     method public int getSubFrameColor();
-    method public boolean getSubGate();
+    method public deprecated boolean getSubGate();
     method public android.media.MediaPlayer.SubInfo[] getSubList();
     method public int getSubPosition();
     method public android.media.MediaPlayer.TrackInfo[] getTrackList();
@@ -10782,6 +10784,7 @@ package android.media {
     method public void setAudioStreamType(int);
     method public void setAuxEffectSendLevel(float);
     method public static int setBlackExtend(int);
+    method public int setChannelMuteMode(int);
     method public static int setChromaSharp(int);
     method public void setDataSource(android.content.Context, android.net.Uri) throws java.io.IOException, java.lang.IllegalArgumentException, java.lang.IllegalStateException, java.lang.SecurityException;
     method public void setDataSource(android.content.Context, android.net.Uri, java.util.Map<java.lang.String, java.lang.String>) throws java.io.IOException, java.lang.IllegalArgumentException, java.lang.IllegalStateException, java.lang.SecurityException;
@@ -10789,6 +10792,7 @@ package android.media {
     method public void setDataSource(java.io.FileDescriptor) throws java.io.IOException, java.lang.IllegalArgumentException, java.lang.IllegalStateException;
     method public void setDataSource(java.io.FileDescriptor, long, long) throws java.io.IOException, java.lang.IllegalArgumentException, java.lang.IllegalStateException;
     method public void setDisplay(android.view.SurfaceHolder);
+    method public static int setGlobalSubGate(boolean);
     method public int setInputDimensionType(int);
     method public void setLooping(boolean);
     method public static int setLumaSharp(int);
@@ -10808,7 +10812,7 @@ package android.media {
     method public int setSubDelay(int);
     method public int setSubFontSize(int);
     method public int setSubFrameColor(int);
-    method public int setSubGate(boolean);
+    method public deprecated int setSubGate(boolean);
     method public int setSubPosition(int);
     method public void setSurface(android.view.Surface);
     method public void setVolume(float, float);
@@ -10826,6 +10830,10 @@ package android.media {
     field public static final int ANAGLAGH_RED_CYAN = 2; // 0x2
     field public static final int ANAGLAGH_RED_GREEN = 1; // 0x1
     field public static final int ANAGLAGH_YELLOW_BLUE = 6; // 0x6
+    field public static final int AUDIO_CHANNEL_MUTE_ALL = 3; // 0x3
+    field public static final int AUDIO_CHANNEL_MUTE_LEFT = 1; // 0x1
+    field public static final int AUDIO_CHANNEL_MUTE_NONE = 0; // 0x0
+    field public static final int AUDIO_CHANNEL_MUTE_RIGHT = 2; // 0x2
     field public static final java.lang.String CHARSET_BIG5 = "Big5";
     field public static final java.lang.String CHARSET_BIG5_HKSCS = "Big5-HKSCS";
     field public static final java.lang.String CHARSET_BOCU_1 = "BOCU-1";
@@ -17348,6 +17356,9 @@ package android.provider {
     field public static final java.lang.String INTENT_ACTION_VIDEO_CAMERA = "android.media.action.VIDEO_CAMERA";
     field public static final java.lang.String MEDIA_IGNORE_FILENAME = ".nomedia";
     field public static final java.lang.String MEDIA_SCANNER_VOLUME = "volume";
+    field public static final java.lang.String PLAYLIST_TYPE = "android.intent.extra.playListType";
+    field public static final java.lang.String PLAYLIST_TYPE_CUR_FOLDER = "curFolder";
+    field public static final java.lang.String PLAYLIST_TYPE_MEDIA_PROVIDER = "mediaProvider";
     field public static final java.lang.String UNKNOWN_STRING = "<unknown>";
   }
 

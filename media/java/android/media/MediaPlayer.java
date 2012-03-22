@@ -2009,21 +2009,31 @@ public class MediaPlayer
     public native int switchSub(int index);
     
     /**
+     *@deprecated Use {@link #setGlobalSubGate(boolean)} instead     
      * show or hide a subitle.
      * <p>
      * 
      * @param showSub  whether to show subtitle or not
      * @return ==0 means successful, !=0 means failed.
      */
-    public native int setSubGate(boolean showSub); 
+    @Deprecated
+    public int setSubGate(boolean showSub){
+        Log.d(TAG,"Deprecated setSubGate()");
+        return setGlobalSubGate(showSub);
+    }
     
     /**
+     *@deprecated Use {@link #getGlobalSubGate()} instead   
      * check whether subtitles is allowed showing.
      * <p>
      * 
      * @return true if subtitles is allowed showing, false otherwise.
      */
-    public native boolean getSubGate();
+    @Deprecated
+    public boolean getSubGate(){
+        Log.d(TAG,"Deprecated getSubGate()");
+        return getGlobalSubGate();
+    }
     
     /**
      * Set the subtitle¡¯s color.
@@ -2496,5 +2506,56 @@ public class MediaPlayer
      */
     public static native int getBlackExtend();
         
+    /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2012-03-07 */
+    /* set audio channel mute */
+
+	public static final int AUDIO_CHANNEL_MUTE_NONE  = 0;
+	public static final int AUDIO_CHANNEL_MUTE_LEFT  = 1;
+	public static final int AUDIO_CHANNEL_MUTE_RIGHT = 2;
+	public static final int AUDIO_CHANNEL_MUTE_ALL   = 3;
+
+    /**
+     * set the audio channel mute mode
+     * <p>
+     * 
+     * @param muteMode  mute mode
+     * @return ==0 means successful, !=0 means failed.
+     */
+    public native int setChannelMuteMode(int muteMode); 
+
+    /**
+     * get the audio channel mute mode
+     * <p>
+     * 
+     * @return the audio channel mute mode.
+     */
+    public native int getChannelMuteMode(); 
+
+    /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2012-03-12 */
+    /* add the global interfaces to control the subtitle gate  */
+
+    /**
+     * show or hide a subitle.
+     * <p>
+     * 
+     * @param showSub  whether to show subtitle or not
+     * @return ==0 means successful, !=0 means failed.
+     */
+    public static native int setGlobalSubGate(boolean showSub); 
+    
+    /**
+     * check whether subtitles is allowed showing.
+     * <p>
+     * 
+     * @return true if subtitles is allowed showing, false otherwise.
+     */
+    public static native boolean getGlobalSubGate();
+    
     /* add by Gary. end   -----------------------------------}} */
 }

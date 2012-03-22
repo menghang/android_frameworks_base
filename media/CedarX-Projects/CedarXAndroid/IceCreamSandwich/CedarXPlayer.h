@@ -88,6 +88,7 @@ enum {
 typedef struct CedarXPlayerExtendMember_{
 	int64_t mLastGetPositionTimeUs;
 	int64_t mLastPositionUs;
+	int32_t mOutputSetting;
 }CedarXPlayerExtendMember;
 
 struct CedarXPlayer { //don't touch this struct any more, you can extend members in CedarXPlayerExtendMember
@@ -239,7 +240,7 @@ private:
     int64_t mTimeSourceDeltaUs;
     int64_t mVideoTimeUs;
 
-    bool mTagPlay;
+    int  mTagPlay; //0: none 1:first TagePlay 2: Seeding TagPlay
     bool mSeeking;
     bool mSeekNotificationSent;
     int64_t mSeekTimeUs;

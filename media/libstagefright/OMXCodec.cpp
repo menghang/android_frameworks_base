@@ -3426,9 +3426,17 @@ status_t OMXCodec::waitForBufferFilled_l() {
     }
     status_t err = mBufferFilled.waitRelative(mLock, kBufferFilledEventTimeOutNs);
     if (err != OK) {
-        CODEC_LOGE("Timed out waiting for output buffers: %d/%d",
-            countBuffersWeOwn(mPortBuffers[kPortIndexInput]),
-            countBuffersWeOwn(mPortBuffers[kPortIndexOutput]));
+    	if(countBuffersWeOwn(mPortBuffers[kPortIndexOutput]) > 0) {
+//    		CODEC_LOGI("Warnning Timed out waiting for output buffers: %d/%d",
+//				countBuffersWeOwn(mPortBuffers[kPortIndexInput]),
+//				countBuffersWeOwn(mPortBuffers[kPortIndexOutput]));
+    		return OK;
+    	}
+    	else {
+			CODEC_LOGE("Timed out waiting for output buffers: %d/%d",
+				countBuffersWeOwn(mPortBuffers[kPortIndexInput]),
+				countBuffersWeOwn(mPortBuffers[kPortIndexOutput]));
+    	}
     }
     return err;
 }

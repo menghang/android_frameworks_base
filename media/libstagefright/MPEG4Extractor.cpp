@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+//#define LOG_NDEBUG 0
 #define LOG_TAG "MPEG4Extractor"
 #include <utils/Log.h>
 
@@ -347,7 +348,7 @@ sp<MetaData> MPEG4Extractor::getTrackMetaData(
         CHECK(track->meta->findCString(kKeyMIMEType, &mime));
         if (!strncasecmp("video/", mime, 6)) {
             uint32_t sampleIndex;
-            uint32_t sampleTime;
+            uint64_t sampleTime;
             if (track->sampleTable->findThumbnailSample(&sampleIndex) == OK
                     && track->sampleTable->getMetaDataForSample(
                         sampleIndex, NULL /* offset */, NULL /* size */,
@@ -1995,6 +1996,7 @@ status_t MPEG4Source::read(
         isSeekMode = true;
 
         uint32_t sampleIndex;
+        LOGV("seekTimeUs:%lld mTimescale:%d to:%lld",seekTimeUs,mTimescale,seekTimeUs * mTimescale / 1000000);
         status_t err = mSampleTable->findSampleAtTime(
                 seekTimeUs * mTimescale / 1000000,
                 &sampleIndex, findFlags);
@@ -2012,34 +2014,48 @@ status_t MPEG4Source::read(
                     sampleIndex, &syncSampleIndex, findFlags);
         }
 
+        LOGV("syncSampleIndex:%d",syncSampleIndex);
+
         if (mode == ReadOptions::SEEK_VENDOR_OPT) {
             off64_t offset;
             size_t size;
-            uint32_t cts;
+            uint64_t cts;
 			status_t err;
-			int currSampleIndex = syncSampleIndex;
+			uint32_t currSampleIndex = syncSampleIndex;
 			int64_t offsetBefind;
+			uint32_t left;
+			uint32_t right;
 
 			offsetBefind = options->getLateBy();
+			mSampleTable->getMetaDataForSample(currSampleIndex, &offset, &size, &cts);
 
-			for(; ;currSampleIndex++) {
-				err = mSampleTable->getMetaDataForSample(
-						currSampleIndex, &offset, &size, &cts);
-				if (err != OK) {
-					break; //fall through for error deal
+			if(offset < offsetBefind) {
+				left = currSampleIndex;
+				right = mSampleTable->countSamples() - 1;
+
+				while (left < right) {
+					uint32_t center = (left + right) / 2;
+					mSampleTable->getMetaDataForSample(center, &offset, &size, &cts);
+					LOGV("offsetBefind:0x%llx offset:0x%llx center:%d left:%d right:%d",offsetBefind, offset, center, left, right);
+					if (offsetBefind < offset) {
+						right = center;
+					} else if (offsetBefind > offset) {
+						left = center + 1;
+					} else {
+						left = center;
+						break;
+					}
 				}
 
-				LOGV("offset:%lld offsetBefind:%lld",offset,offsetBefind);
+				currSampleIndex = left;
 
-				if(offset > offsetBefind) {
-					break;
-				}
+				mSampleTable->getMetaDataForSample(currSampleIndex, &offset, &size, &cts);
 			}
 
 			syncSampleIndex = sampleIndex = currSampleIndex;
         }
 
-        uint32_t sampleTime;
+        uint64_t sampleTime;
         if (err == OK) {
             err = mSampleTable->getMetaDataForSample(
                     sampleIndex, NULL, NULL, &sampleTime);
@@ -2084,7 +2100,7 @@ status_t MPEG4Source::read(
 
     off64_t offset;
     size_t size;
-    uint32_t cts;
+    uint64_t cts;
     bool isSyncSample;
     bool newBuffer = false;
     if (mBuffer == NULL) {

@@ -164,6 +164,10 @@ public class StorageNotification extends StorageEventListener {
              */
             StorageManager stmg = (StorageManager) mContext.getSystemService(mContext.STORAGE_SERVICE);
 			String[] list = stmg.getVolumePaths();
+			/* do not show notification for nandflash */
+			String nandflash = Environment.getExternalStorageDirectory().getPath();
+			if(nandflash.equals(path))
+				return;
 			for(int i = 0; i < list.length; i++)
 			{
 				if(path.equals(list[i]))
@@ -174,7 +178,7 @@ public class StorageNotification extends StorageEventListener {
 							R.string.usb_mounted_message,
 							com.android.internal.R.drawable.stat_notify_sdcard_prepare, true, true, null);
 					}
-					else if(path.contains("sd"))
+					else if(path.contains("extsd"))
 					{
 						setMediaStorageNotification(R.string.sd_mounted_title,
 							R.string.sd_mounted_message,

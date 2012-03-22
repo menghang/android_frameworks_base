@@ -22,6 +22,7 @@ LOCAL_C_INCLUDES += \
     $(JNI_H_INCLUDE) \
     frameworks/base/services \
     frameworks/base/core/jni \
+    device/softwinner/common/hardware/include \
     external/skia/include/core
 
 LOCAL_SHARED_LIBRARIES := \

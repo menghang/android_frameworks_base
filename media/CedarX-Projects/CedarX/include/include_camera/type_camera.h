@@ -2,20 +2,21 @@
 #ifndef __LIB__CAMERA__TYPE__H__
 #define __LIB__CAMERA__TYPE__H__
 
-typedef struct V4L2BUF_t
-{
-	unsigned int	addrPhyY;		// physical Y address of this frame
-	int 			index;			// DQUE id number
-	long long		timeStamp;		// time stamp of this frame
-}V4L2BUF_t;
-
 typedef struct PREVIEWINFO_t
 {
 	int left;
 	int top;
 	int height;			// preview height
 	int width;			// preview width
-}PREVIEWINFO_t;
+}PREVIEWINFO_t, RECT_t;
+
+typedef struct V4L2BUF_t
+{
+	unsigned int	addrPhyY;		// physical Y address of this frame
+	int 			index;			// DQUE id number
+	long long		timeStamp;		// time stamp of this frame
+	RECT_t			crop_rect;
+}V4L2BUF_t;
 
 typedef struct VIDEOINFO_t
 {
@@ -48,6 +49,7 @@ typedef struct ENC_BUFFER_t
 	int addrCr;
 	int width;
 	int height;
+	RECT_t crop_rect;
 }ENC_BUFFER_t;
 
 typedef enum JPEG_COLOR_FORMAT
@@ -60,29 +62,35 @@ typedef enum JPEG_COLOR_FORMAT
 
 typedef struct JPEG_ENC_t
 {
-	int src_w;
-	int src_h;
-	int pic_w;
-	int pic_h;
-	int addrY;
-	int addrC;
-	int colorFormat;
-	int quality;
-	int rotate;
+	int				src_w;
+	int				src_h;
+	int				pic_w;
+	int				pic_h;
+	int				addrY;
+	int				addrC;
+	int				colorFormat;
+	int				quality;
+	int				rotate;
 
-	int			scale_factor;
-	double		focal_length;
+	int				scale_factor;
+	double			focal_length;
 	
-	int			thumbWidth;
-	int			thumbHeight;
+	int				thumbWidth;
+	int				thumbHeight;
+
+	unsigned char	enable_crop;
+	int				crop_x;	
+	int				crop_y;
+	int				crop_w;
+	int				crop_h;
 
 	// gps exif
 	unsigned char	enable_gps;
-	double      gps_latitude;
-	double		gps_longitude;
-	long        gps_altitude;  
-	long        gps_timestamp;
-	char		gps_processing_method[100]; 
+	double      	gps_latitude;
+	double			gps_longitude;
+	long        	gps_altitude;  
+	long        	gps_timestamp;
+	char			gps_processing_method[100]; 
 }JPEG_ENC_t;
 
 #endif // __LIB__CAMERA__TYPE__H__

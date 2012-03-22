@@ -273,6 +273,7 @@ typedef enum OMX_INDEXTYPE {
 	OMX_IndexSetParamSubtitle,
 	OMX_IndexVendorSwitchDiffStyleSubtitle,
     OMX_IndexVendorSwitchSeamlessAudio,
+    OMX_IndexVendorDisableMediaType,
 
 	// star add for recorder
 	OMX_IndexVendorSetFP = 0xFF100000,

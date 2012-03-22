@@ -488,6 +488,11 @@ public class WifiP2pService extends IWifiP2pManager.Stub {
        @Override
         public void enter() {
             if (DBG) logd(getName());
+            try {
+                mNwService.wifiFirmwareReload(mInterface, "STA");
+            } catch (Exception e) {
+                loge("Failed to reload sta firmware " + e);
+            }
         }
 
         @Override
@@ -965,6 +970,10 @@ public class WifiP2pService extends IWifiP2pManager.Stub {
                         loge("Disconnect on unknown device address : " + interfaceAddress);
                     }
                     break;
+                case WifiMonitor.NETWORK_DISCONNECTION_EVENT:
+                    if (DBG) logd("Network connection lost");
+                    sendMessage(WifiP2pManager.REMOVE_GROUP);
+                    break;
                 case DhcpStateMachine.CMD_POST_DHCP_ACTION:
                     DhcpInfoInternal dhcpInfo = (DhcpInfoInternal) message.obj;
                     if (message.arg1 == DhcpStateMachine.DHCP_SUCCESS &&
@@ -1005,6 +1014,13 @@ public class WifiP2pService extends IWifiP2pManager.Stub {
                         mDhcpStateMachine = null;
                     }
 
+                    try {
+                        mNwService.clearInterfaceAddresses(mGroup.getInterface());
+                        mNwService.disableIpv6(mGroup.getInterface());
+                    } catch (Exception e) {
+                        loge("Failed to clear addresses or disable ipv6" + e);
+                    }
+
                     mGroup = null;
                     if (changed) sendP2pPeersChangedBroadcast();
                     transitionTo(mInactiveState);
@@ -1042,10 +1058,12 @@ public class WifiP2pService extends IWifiP2pManager.Stub {
                     logd("===> INVITATION RESULT EVENT : " + message.obj);
                     break;
                 case WifiMonitor.P2P_PROV_DISC_PBC_REQ_EVENT:
-                    notifyP2pProvDiscPbcRequest((WifiP2pDevice) message.obj);
+                    if (mGroup.isGroupOwner())
+                        notifyP2pProvDiscPbcRequest((WifiP2pDevice) message.obj);
                     break;
                 case WifiMonitor.P2P_PROV_DISC_ENTER_PIN_EVENT:
-                    notifyP2pProvDiscPinRequest((WifiP2pDevice) message.obj);
+                    if (mGroup.isGroupOwner())
+                        notifyP2pProvDiscPinRequest((WifiP2pDevice) message.obj);
                     break;
                 case WifiMonitor.P2P_GROUP_STARTED_EVENT:
                     Slog.e(TAG, "Duplicate group creation event notice, ignore");

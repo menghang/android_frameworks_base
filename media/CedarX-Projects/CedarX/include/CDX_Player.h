@@ -67,6 +67,7 @@ typedef struct CedarXPlayerContext{
 	OMX_S32 is_hardware_init;
 	OMX_S32 fatal_error;
 	OMX_S32	disable_xxxx_track;
+	OMX_S32	disable_media_type;
 	OMX_S32	audio_mute_mode; //0: none 1: mute left 2: mute right 3: mute all
 	CedarXMetaData cdx_metadata;
 	CEDARV_REQUEST_CONTEXT cedarv_req_ctx;

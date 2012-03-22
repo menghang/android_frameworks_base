@@ -77,11 +77,6 @@ class HTML5VideoViewProxy extends Handler
 
 	//add by Bevis
 	private static final boolean AUTO_FULLSCREEN = true;
-	private static final boolean BREAKPOINT_ON = true;
-	private String mCurrentUrl = "";
-	private int mCurrentPosition = 0;
-    private int mCurrentDuration = 0;
-    private boolean isSeeked = false;
 
     // The C++ MediaPlayerPrivateAndroid object.
     int mNativePointer;
@@ -168,8 +163,7 @@ class HTML5VideoViewProxy extends Handler
                     }
                     mHTML5VideoView.pauseAndDispatch(mCurrentProxy);
                     mHTML5VideoView.release();
-                }
-                                
+                }                
                 mHTML5VideoView = new HTML5VideoFullScreen(proxy.getContext(),
                         layerId, savePosition, savedIsPlaying);
                 mCurrentProxy = proxy;
@@ -190,17 +184,6 @@ class HTML5VideoViewProxy extends Handler
                 currentVideoLayerId = mHTML5VideoView.getVideoLayerId();
                 backFromFullScreenMode = mHTML5VideoView.fullScreenExited();
             }
-
-			if(BREAKPOINT_ON){
-				int breaktime = proxy.getBreakpoint(url);
-//				Log.d(TAG, "----------------breaktime = " + breaktime);
-				if(breaktime != 0){
-					time = breaktime;
-					proxy.isSeeked = true;
-				}
-				proxy.mCurrentUrl = url;
-			}
-			
             if (backFromFullScreenMode
                 || currentVideoLayerId != videoLayerId
                 || mHTML5VideoView.surfaceTextureDeleted()) {
@@ -215,11 +198,6 @@ class HTML5VideoViewProxy extends Handler
                     }
                     // release the media player to avoid finalize error
                     mHTML5VideoView.release();
-                    if(AUTO_FULLSCREEN){
-                    	if(mHTML5VideoView instanceof HTML5VideoFullScreen){
-                    		client.onHideCustomView();
-                    	}
-                    }
                 }
                 mCurrentProxy = proxy;
                 if(AUTO_FULLSCREEN){
@@ -260,13 +238,6 @@ class HTML5VideoViewProxy extends Handler
 
         public static void seek(int time, HTML5VideoViewProxy proxy) {
             if (mCurrentProxy == proxy && time >= 0 && mHTML5VideoView != null) {
-            	if(BREAKPOINT_ON){
-            		if(proxy.isSeeked){
-//            			Log.d(TAG, "------------------------seek(), time = " + time + ", ignored!!");
-                		return;
-                	}
-                }
-
                 mHTML5VideoView.seekTo(time);
             }
         }
@@ -288,10 +259,12 @@ class HTML5VideoViewProxy extends Handler
 
         public static void end() {
             if (mCurrentProxy != null) {
-                if (isVideoSelfEnded)
-                    mCurrentProxy.dispatchOnEnded();
-                else
-                    mCurrentProxy.dispatchOnPaused();
+                if (isVideoSelfEnded){
+                	mCurrentProxy.dispatchOnEnded();
+                }
+                else{
+            		mCurrentProxy.dispatchOnPaused();
+            	}
             }
             isVideoSelfEnded = false;
         }
@@ -377,8 +350,21 @@ class HTML5VideoViewProxy extends Handler
                 break;
             }
             case ENDED:
-                if (msg.arg1 == 1)
-                    VideoPlayer.isVideoSelfEnded = true;
+                if (msg.arg1 == 1){
+               		if(HTML5VideoView.BREAKPOINT_ON){
+            			if(VideoPlayer.mHTML5VideoView != null){
+                			String url = VideoPlayer.mHTML5VideoView.getVideoUrl();
+                			deleteBreakpoint(url);
+            			}
+                	}
+                	if(AUTO_FULLSCREEN){
+                		WebChromeClient client = mWebView.getWebChromeClient();
+                		if (client != null) {
+                    		client.onHideCustomView();
+                		}
+                	}
+            		VideoPlayer.isVideoSelfEnded = true;
+            	}                    
                 VideoPlayer.end();
                 break;
             case ERROR: {
@@ -593,12 +579,6 @@ class HTML5VideoViewProxy extends Handler
                         Integer height = (Integer) map.get("height");
                         nativeOnPrepared(duration.intValue(), width.intValue(),
                                 height.intValue(), mNativePointer);
-                                
-                        if(BREAKPOINT_ON){
-        					isSeeked = false;
-        					mCurrentDuration = duration.intValue();
-//            				Log.d(TAG, "---------------PREPARED, mCurrentDuration = " + mCurrentDuration);
-        				}
                         break;
                     }
                     case ENDED:
@@ -606,15 +586,6 @@ class HTML5VideoViewProxy extends Handler
                         nativeOnEnded(mNativePointer);
                         break;
                     case PAUSED:
-                    	if(BREAKPOINT_ON){
-//                    		Log.d(TAG, "--------------------mCurrentPosition = " + mCurrentPosition + ", mCurrentDuration = " + mCurrentDuration);
-                    		if(mCurrentPosition > 10000 && mCurrentPosition < (mCurrentDuration - 10000)){
-                    			int olddPoint = getBreakpoint(mCurrentUrl);
-                    			if(olddPoint != mCurrentPosition){
-                    				saveBreakpoint(mCurrentUrl,mCurrentPosition);
-                    			}
-                    		}
-                    	}                    	
                         nativeOnPaused(mNativePointer);
                         break;
                     case POSTER_FETCHED:
@@ -622,9 +593,6 @@ class HTML5VideoViewProxy extends Handler
                         nativeOnPosterFetched(poster, mNativePointer);
                         break;
                     case TIMEUPDATE:
-                    	if(BREAKPOINT_ON){
-                    		mCurrentPosition = msg.arg1;
-                    	}
                         nativeOnTimeupdate(msg.arg1, mNativePointer);
                         break;
                     case STOPFULLSCREEN:
@@ -771,16 +739,14 @@ class HTML5VideoViewProxy extends Handler
         return false;
     }
     
-    private int getBreakpoint(String url){
+    int getBreakpoint(String url){
     	BreakpointService breakpointService = new BreakpointService(getContext());
     	int breakpoint = breakpointService.getBreakpoint(url);
-//    	Log.d(TAG, "------------------getBreakpoint():url = " + url + ", breakpoint = " + breakpoint);
     	breakpointService.close();
     	return breakpoint;
     }
     
-    private void saveBreakpoint(String url, int breakpoint){
-//    	Log.d(TAG, "-------------------saveBreakpoint(): url = " + url + ", breakpoint = " + breakpoint);
+    void saveBreakpoint(String url, int breakpoint){
     	BreakpointService breakpointService = new BreakpointService(getContext());
     	if( breakpointService.getBreakpoint(url) != 0 ) {
         	breakpointService.update(url, breakpoint);
@@ -788,6 +754,14 @@ class HTML5VideoViewProxy extends Handler
         	breakpointService.save(url, breakpoint);
         }
         breakpointService.close();
+    }
+    
+    boolean  deleteBreakpoint(String url){
+    	boolean ret = false;
+    	BreakpointService breakpointService = new BreakpointService(getContext());
+    	ret = breakpointService.delete(url);
+    	breakpointService.close();
+    	return ret;
     }
 }
 

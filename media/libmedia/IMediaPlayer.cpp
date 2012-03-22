@@ -98,6 +98,13 @@ enum {
     /* support scale mode */
     ENABLE_SCALE_MODE,
     /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2012-03-07 */
+    /* set audio channel mute */
+    SET_CHANNEL_MUTE_MODE,
+    GET_CHANNEL_MUTE_MODE
+    /* add by Gary. end   -----------------------------------}} */
 };
 
 class BpMediaPlayer: public BpInterface<IMediaPlayer>
@@ -674,6 +681,26 @@ public:
     }
     /* add by Gary. end   -----------------------------------}} */    
 
+    /* add by Gary. start {{----------------------------------- */
+    /* 2012-03-07 */
+    /* set audio channel mute */
+    status_t setChannelMuteMode(int muteMode)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        data.writeInt32(muteMode);
+        remote()->transact(SET_CHANNEL_MUTE_MODE, data, &reply);
+        return reply.readInt32();
+    }
+    
+    int getChannelMuteMode()
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        remote()->transact(GET_CHANNEL_MUTE_MODE, data, &reply);
+        return reply.readInt32();
+    }
+    /* add by Gary. end   -----------------------------------}} */
 };
 
 IMPLEMENT_META_INTERFACE(MediaPlayer, "android.media.IMediaPlayer");
@@ -1094,6 +1121,21 @@ status_t BnMediaPlayer::onTransact(
             int width = data.readInt32();
             int height = data.readInt32();
             reply->writeInt32(enableScaleMode(type, width, height));
+            return NO_ERROR;
+        } break;
+        /* add by Gary. end   -----------------------------------}} */
+
+        /* add by Gary. start {{----------------------------------- */
+        /* 2012-03-07 */
+        /* set audio channel mute */
+        case SET_CHANNEL_MUTE_MODE: {      
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(setChannelMuteMode(data.readInt32()));
+            return NO_ERROR;
+        } break;
+        case GET_CHANNEL_MUTE_MODE: {      
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            reply->writeInt32(getChannelMuteMode());
             return NO_ERROR;
         } break;
         /* add by Gary. end   -----------------------------------}} */

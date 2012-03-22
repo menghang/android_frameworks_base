@@ -47,6 +47,7 @@ LOCAL_STATIC_LIBRARIES += \
 	libcedarxplayer \
 	libcedarxcomponents \
 	libcedarxdemuxers \
+	libcedarxsftdemux \
 	libcedarxstream \
 	libcedarxrender \
 	libdemux_cedarm \
@@ -61,6 +62,7 @@ LOCAL_LDFLAGS += \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_$(CEDARX_CHIP_VERSION)/libcedarxplayer.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_$(CEDARX_CHIP_VERSION)/libcedarxcomponents.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_$(CEDARX_CHIP_VERSION)/libcedarxdemuxers.a \
+	$(CEDARX_TOP)/../CedarAndroidLib/LIB_$(CEDARX_CHIP_VERSION)/libcedarxsftdemux.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_$(CEDARX_CHIP_VERSION)/libcedarxstream.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_$(CEDARX_CHIP_VERSION)/libcedarxrender.a	\
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_$(CEDARX_CHIP_VERSION)/libdemux_cedarm.a \
@@ -79,6 +81,7 @@ LOCAL_STATIC_LIBRARIES += \
 	libdemux_avi \
 	libdemux_flv \
 	libdemux_mkv \
+	libdemux_ogg \
 	libdemux_mov \
 	libdemux_mpg \
 	libdemux_rmvb \
@@ -91,6 +94,7 @@ LOCAL_LDFLAGS += \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_$(CEDARX_CHIP_VERSION)/libdemux_avi.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_$(CEDARX_CHIP_VERSION)/libdemux_flv.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_$(CEDARX_CHIP_VERSION)/libdemux_mkv.a \
+	$(CEDARX_TOP)/../CedarAndroidLib/LIB_$(CEDARX_CHIP_VERSION)/libdemux_ogg.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_$(CEDARX_CHIP_VERSION)/libdemux_mov.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_$(CEDARX_CHIP_VERSION)/libdemux_mpg.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_$(CEDARX_CHIP_VERSION)/libdemux_rmvb.a \

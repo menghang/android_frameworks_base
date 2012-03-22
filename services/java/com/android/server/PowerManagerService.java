@@ -2956,6 +2956,15 @@ public class PowerManagerService extends IPowerManager.Stub
         }
     }
 
+	native void nativeSetWiseBacklightMode(int mode);
+	
+	public void setWiseBacklightMode(int mode)
+	{
+		nativeSetWiseBacklightMode(mode);
+
+		return ;
+	}
+
     public void setAttentionLight(boolean on, int color) {
         mContext.enforceCallingOrSelfPermission(android.Manifest.permission.DEVICE_POWER, null);
         mAttentionLight.setFlashing(color, LightsService.LIGHT_FLASH_HARDWARE, (on ? 3 : 0), 0);

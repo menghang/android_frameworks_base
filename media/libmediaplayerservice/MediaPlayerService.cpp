@@ -99,7 +99,15 @@
 
 #define PROP_BLACK_EXTEND_KEY           "mediasw.sft.black_extend"
 #define PROP_BLACK_EXTEND_DEFAULT_VALUE PROP_DISABLE_VPP
+/* add by Gary. end   -----------------------------------}} */
 
+/* add by Gary. start {{----------------------------------- */
+/* 2012-03-12 */
+/* add the global interfaces to control the subtitle gate  */
+#define PROP_GLOBAL_SUB_GATE_KEY           "persist.mediasw.sft.sub_gate"
+#define PROP_ENABLE_GLOBAL_SUB             "enable global sub"
+#define PROP_DISABLE_GLOBAL_SUB            "disable global sub"
+#define PROP_GLOBAL_SUB_GATE_DEFAULT_VALUE PROP_ENABLE_GLOBAL_SUB
 /* add by Gary. end   -----------------------------------}} */
 
 namespace {
@@ -333,6 +341,18 @@ MediaPlayerService::MediaPlayerService()
     int_value %= 5;
     mBlackExtend = int_value;
     /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2012-03-12 */
+    /* add the global interfaces to control the subtitle gate  */
+    property_get(PROP_GLOBAL_SUB_GATE_KEY, prop_value, PROP_GLOBAL_SUB_GATE_DEFAULT_VALUE);
+    LOGD("prop_value of PROP_GLOBAL_SUB_GATE_KEY = %s", prop_value);
+    String8 global_sub_value(prop_value);
+    if(global_sub_value == PROP_ENABLE_GLOBAL_SUB)
+        mGlobalSubGate = true;
+    else
+        mGlobalSubGate = false;
+    /* add by Gary. end   -----------------------------------}} */    
 }
 
 MediaPlayerService::~MediaPlayerService()
@@ -387,6 +407,8 @@ sp<IMediaPlayer> MediaPlayerService::create(pid_t pid, const sp<IMediaPlayerClie
     c->setChromaSharp(mChromaSharp);
     c->setWhiteExtend(mWhiteExtend);
     c->setBlackExtend(mBlackExtend);
+    c->setBlackExtend(mBlackExtend);
+    c->setSubGate(mGlobalSubGate);  // 2012-03-12, add the global interfaces to control the subtitle gate
     /* add by Gary. end   -----------------------------------}} */
     
 
@@ -611,6 +633,7 @@ MediaPlayerService::Client::Client(
 
     /* add by Gary. start {{----------------------------------- */
     mHasSurface = 0;
+    LOGD("mHasSurface is inited as 0");
     /* add by Gary. end   -----------------------------------}} */
     /* add by Gary. start {{----------------------------------- */
     /* 2011-9-28 16:28:24 */
@@ -624,6 +647,7 @@ MediaPlayerService::Client::Client(
     strcpy(mSubCharset, CHARSET_GBK);
 	mSubIndex = 0;
     mTrackIndex = 0;
+    mMuteMode = AUDIO_CHANNEL_MUTE_NONE;  // 2012-03-07, set audio channel mute
     /* add by Gary. end   -----------------------------------}} */
 
     /* add by Gary. start {{----------------------------------- */
@@ -893,6 +917,7 @@ status_t MediaPlayerService::Client::setDataSource(
         p->setSubCharset(mSubCharset);
 		p->switchSub(mSubIndex);
 		p->switchTrack(mTrackIndex);
+        p->setChannelMuteMode(mMuteMode); // 2012-03-07, set audio channel mute
         /* add by Gary. end   -----------------------------------}} */
         
         /* add by Gary. start {{----------------------------------- */
@@ -979,7 +1004,7 @@ status_t MediaPlayerService::Client::setDataSource(int fd, int64_t offset, int64
 status_t MediaPlayerService::Client::setDataSource(
         const sp<IStreamSource> &source) {
     // create the right type of player
-    sp<MediaPlayerBase> p = createPlayer(CEDARX_PLAYER);
+    sp<MediaPlayerBase> p = createPlayer(NU_PLAYER);
 
     if (p == NULL) {
         return NO_INIT;
@@ -1001,6 +1026,7 @@ status_t MediaPlayerService::Client::setDataSource(
     p->setSubCharset(mSubCharset);
 	p->switchSub(mSubIndex);
 	p->switchTrack(mTrackIndex);
+    p->setChannelMuteMode(mMuteMode); // 2012-03-07, set audio channel mute
     /* add by Gary. end   -----------------------------------}} */
 
     /* add by Gary. start {{----------------------------------- */
@@ -1053,7 +1079,7 @@ void MediaPlayerService::Client::disconnectNativeWindow() {
 status_t MediaPlayerService::Client::setVideoSurfaceTexture(
         const sp<ISurfaceTexture>& surfaceTexture)
 {
-    LOGV("[%d] setVideoSurfaceTexture(%p)", mConnId, surfaceTexture.get());
+    LOGD("[%d] setVideoSurfaceTexture(%p)", mConnId, surfaceTexture.get());
     sp<MediaPlayerBase> p = getPlayer();
     if (p == 0) return UNKNOWN_ERROR;
 
@@ -1089,6 +1115,7 @@ status_t MediaPlayerService::Client::setVideoSurfaceTexture(
 
     /* add by Gary. start {{----------------------------------- */
     mHasSurface = 1;
+    LOGD("mHasSurface is set as 1");
     /* add by Gary. end   -----------------------------------}} */
 
     disconnectNativeWindow();
@@ -1440,6 +1467,7 @@ status_t MediaPlayerService::Client::switchSub(int index)
 
 status_t MediaPlayerService::Client::setSubGate(bool showSub)
 {
+    LOGD("MediaPlayerService::Client::setSubGate(): showSub = %d", showSub);
     mSubGate = showSub;
     sp<MediaPlayerBase> p = getPlayer();
     if (p == 0) 
@@ -1942,6 +1970,65 @@ status_t MediaPlayerService::Client::setBlackExtend(int value)
 }
 
 /* add by Gary. end   -----------------------------------}} */
+
+/* add by Gary. start {{----------------------------------- */
+/* 2012-03-07 */
+/* set audio channel mute */
+status_t MediaPlayerService::Client::setChannelMuteMode(int muteMode)
+{
+    mMuteMode = muteMode;
+    sp<MediaPlayerBase> p = getPlayer();
+    if (p == 0) 
+        return OK;
+    return p->setChannelMuteMode(muteMode);
+}
+
+int MediaPlayerService::Client::getChannelMuteMode()
+{
+    sp<MediaPlayerBase> p = getPlayer();
+    if (p == 0) 
+        return -1;
+    return p->getChannelMuteMode();
+}
+/* add by Gary. end   -----------------------------------}} */
+
+/* add by Gary. start {{----------------------------------- */
+/* 2012-03-12 */
+/* add the global interfaces to control the subtitle gate  */
+status_t MediaPlayerService::setGlobalSubGate(bool showSub)
+{
+    LOGD("MediaPlayerService::setGlobalSubGate(): enable = %d", showSub);
+    if( showSub == mGlobalSubGate )
+        return OK;
+        
+    status_t ret = OK;
+    for (int i = 0, n = mClients.size(); i < n; ++i) {
+        sp<Client> c = mClients[i].promote();
+        if (c != 0) {
+            status_t temp = c->setSubGate(showSub);
+            if( temp != OK )
+                ret = temp;
+        }
+    }
+    
+    mGlobalSubGate = showSub;
+    
+    if(mGlobalSubGate)
+        property_set(PROP_GLOBAL_SUB_GATE_KEY, PROP_ENABLE_GLOBAL_SUB);
+    else
+        property_set(PROP_GLOBAL_SUB_GATE_KEY, PROP_DISABLE_GLOBAL_SUB);
+    char prop_value[PROPERTY_VALUE_MAX];
+    property_get(PROP_GLOBAL_SUB_GATE_KEY, prop_value, "no showSub");
+
+    return ret;
+}
+
+bool MediaPlayerService::getGlobalSubGate()
+{
+    return mGlobalSubGate;
+}
+/* add by Gary. end   -----------------------------------}} */
+
 void MediaPlayerService::Client::notify(
         void* cookie, int msg, int ext1, int ext2, const Parcel *obj)
 {
