@@ -2386,7 +2386,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
         if (mStatusBar != null) {
             if (DEBUG_LAYOUT) Log.i(TAG, "force=" + mForceStatusBar
-                    + " top=" + mTopFullscreenOpaqueWindowState);
+                    + " top=" + mTopFullscreenOpaqueWindowState);        
             if (mForceStatusBar) {
                 if (DEBUG_LAYOUT) Log.v(TAG, "Showing status bar: forced");
                 if (mStatusBar.showLw(true)) changes |= FINISH_LAYOUT_REDO_LAYOUT;
@@ -2423,7 +2423,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 						{
                         	Log.v(TAG, "Preventing status bar from hiding by policy");
                     	}
-
 						if(FULLSCREEN_HIDESTATUSBAR)
 						{
 							if(MediaPlayer.isPlayingVideo())
@@ -2440,7 +2439,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 										mStatusBarShow = false;
 										mHandler.removeCallbacks(mStatusBarHide);
 									}
-									
 								}
 								else
 								{
@@ -2467,8 +2465,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                                     	changes |= FINISH_LAYOUT_REDO_LAYOUT;
                                     }
                                 	mStatusBarShow = true;
-                                	mStatusBarWillHide = false;
-                                	mStatusBarReqShow  = false;
                                 }
 							}
 						}
@@ -3220,6 +3216,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
     @Override
     public int rotationForOrientationLw(int orientation, int lastRotation) {
+        boolean  sensorChanged = true;
         if (false) {
             Slog.v(TAG, "rotationForOrientationLw(orient="
                         + orientation + ", last=" + lastRotation
@@ -3244,6 +3241,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 			}
             
             if (sensorRotation < 0) {
+				sensorChanged = false;
                 sensorRotation = lastRotation;
             }
 
@@ -3292,6 +3290,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                         || orientation == ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR) {
                     preferredRotation = sensorRotation;
                 } else {
+                    sensorChanged = false;
                     preferredRotation = lastRotation;
                 }
             } else if (mUserRotationMode == WindowManagerPolicy.USER_ROTATION_LOCKED) {
@@ -3355,7 +3354,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 default:
                     // For USER, UNSPECIFIED, NOSENSOR, SENSOR and FULL_SENSOR,
                     // just return the preferred orientation we already calculated.
-                    if (preferredRotation >= 0) {
+                    if (preferredRotation >= 0 && sensorChanged) {
                         return preferredRotation;
                     }
                     return Surface.ROTATION_0;
@@ -3839,7 +3838,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 		synchronized (this) 
 		{
 			mStatusBarReqShow = true;
-			Log.d(TAG,"statusbarShow mStatusBarShow = " + mStatusBarShow);
 			if(mStatusBarShow == false)
 			{
 				return true;

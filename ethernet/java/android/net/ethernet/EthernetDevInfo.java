@@ -39,7 +39,6 @@ public class EthernetDevInfo implements Parcelable {
      */
     public static final int ETHERNET_CONN_MODE_MANUAL = 0;
 
-    private String boot_name;
     private String dev_name;
     private String ipaddr;
     private String netmask;
@@ -49,7 +48,6 @@ public class EthernetDevInfo implements Parcelable {
 	private String hwaddr;
 
     public EthernetDevInfo () {
-		boot_name = null;
         dev_name = null;
         ipaddr = null;
         dns = null;
@@ -57,21 +55,6 @@ public class EthernetDevInfo implements Parcelable {
         netmask = null;
         mode = ETHERNET_CONN_MODE_DHCP;
 		hwaddr = null;
-    }
-
-    /**
-     * save interface name into the configuration
-     */
-    public void setBootName(String ifname) {
-        this.boot_name = ifname;
-    }
-
-    /**
-     * Returns the interface name from the saved configuration
-     * @return interface name
-     */
-    public String getBootName() {
-        return this.boot_name;
     }
 
     /**
@@ -147,7 +130,6 @@ public class EthernetDevInfo implements Parcelable {
     }
 
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(this.boot_name);
         dest.writeString(this.dev_name);
         dest.writeString(this.ipaddr);
         dest.writeString(this.netmask);
@@ -161,7 +143,6 @@ public class EthernetDevInfo implements Parcelable {
     public static final Creator<EthernetDevInfo> CREATOR = new Creator<EthernetDevInfo>() {
         public EthernetDevInfo createFromParcel(Parcel in) {
             EthernetDevInfo info = new EthernetDevInfo();
-            info.setBootName(in.readString());
             info.setIfName(in.readString());
             info.setIpAddress(in.readString());
             info.setNetMask(in.readString());

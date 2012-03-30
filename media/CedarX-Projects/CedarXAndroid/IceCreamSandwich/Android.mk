@@ -49,6 +49,7 @@ LOCAL_STATIC_LIBRARIES += \
 	libcedarxdemuxers \
 	libcedarxsftdemux \
 	libcedarxstream \
+	libthirdpartstream \
 	libcedarxrender \
 	libdemux_cedarm \
 	libsub \
@@ -69,6 +70,7 @@ LOCAL_LDFLAGS += \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarxdemuxers.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarxsftdemux.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarxstream.a \
+	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libthirdpartstream.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libcedarxrender.a	\
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libdemux_cedarm.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDARX_CHIP_VERSION)/libsub.a \

@@ -40,6 +40,7 @@ typedef enum MEDIA_3DMODE_TYPE{
 }MEDIA_3DMODE_TYPE;
 
 typedef struct CedarXDataSourceDesc{
+	CEDARX_THIRDPART_STREAMTYPE thirdpart_stream_type;
 	CEDARX_STREAMTYPE stream_type;
 	CEDARX_SOURCETYPE source_type;
 	CEDARX_MEDIA_TYPE media_type;

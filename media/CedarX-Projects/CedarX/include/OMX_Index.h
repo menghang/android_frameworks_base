@@ -235,6 +235,7 @@ typedef enum OMX_INDEXTYPE {
     OMX_IndexVendorSetVolume,
     OMX_IndexVendorSetVideoPortDef,
 
+    OMX_IdexVendorStreamFormatFile,
     OMX_IndexVendorDisable3D,
     OMX_IndexVendorSet3DSourceFormat,
     OMX_IndexVendorGet3DSourceFormat,
@@ -263,6 +264,7 @@ typedef enum OMX_INDEXTYPE {
     OMX_IndexVendorGetSysTime,
 
     OMX_IndexVendorDropBFrameInDecoder,
+    OMX_IndexVendorKeyFrameDecoded,
 
     OMX_IndexVendorSetSoftChipVersion,
 

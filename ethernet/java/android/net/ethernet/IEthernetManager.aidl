@@ -32,4 +32,5 @@ interface IEthernetManager
 	boolean isDhcp();
 	void addInterfaceToService(String name);
 	void removeInterfaceFormService(String name);
+	int CheckLink(String ifname);
 }

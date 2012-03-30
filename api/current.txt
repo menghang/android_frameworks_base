@@ -12146,7 +12146,6 @@ package android.net.ethernet {
   public class EthernetDevInfo implements android.os.Parcelable {
     ctor public EthernetDevInfo();
     method public int describeContents();
-    method public java.lang.String getBootName();
     method public int getConnectMode();
     method public java.lang.String getDnsAddr();
     method public java.lang.String getGateWay();
@@ -12154,7 +12153,6 @@ package android.net.ethernet {
     method public java.lang.String getIfName();
     method public java.lang.String getIpAddress();
     method public java.lang.String getNetMask();
-    method public void setBootName(java.lang.String);
     method public void setConnectMode(int);
     method public void setDnsAddr(java.lang.String);
     method public void setGateWay(java.lang.String);
@@ -12169,6 +12167,7 @@ package android.net.ethernet {
 
   public class EthernetManager {
     ctor public EthernetManager(android.net.ethernet.IEthernetManager, android.os.Handler);
+    method public int CheckLink(java.lang.String);
     method public void addInterfaceToService(java.lang.String);
     method public java.util.List<android.net.ethernet.EthernetDevInfo> getDeviceNameList();
     method public android.net.ethernet.EthernetDevInfo getSavedConfig();
@@ -12199,6 +12198,7 @@ package android.net.ethernet {
   }
 
   public abstract interface IEthernetManager implements android.os.IInterface {
+    method public abstract int CheckLink(java.lang.String) throws android.os.RemoteException;
     method public abstract void addInterfaceToService(java.lang.String) throws android.os.RemoteException;
     method public abstract java.util.List<android.net.ethernet.EthernetDevInfo> getDeviceNameList() throws android.os.RemoteException;
     method public abstract android.net.ethernet.EthernetDevInfo getSavedConfig() throws android.os.RemoteException;

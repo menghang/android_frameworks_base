@@ -423,6 +423,7 @@ typedef enum OMX_EVENTTYPE
     OMX_EventResourcesAcquired,   /**< component has been granted resources and is
                                        automatically starting the state change from
                                        OMX_StateWaitForResources to OMX_StateIdle. */
+    OMX_EventKeyFrameDecoded,
     OMX_EventBufferPrefilled,
     OMX_EventBufferMayAvaiable,
 

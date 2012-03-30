@@ -199,4 +199,12 @@ public class EthernetManager {
         } catch (RemoteException e) {
         }
     }
+
+    public int CheckLink(String ifname) {
+        try {
+            return mService.CheckLink(ifname);
+        } catch (RemoteException e) {
+			return 0;
+        }
+    }
 }

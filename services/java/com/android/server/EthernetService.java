@@ -103,8 +103,8 @@ public class EthernetService extends IEthernetManager.Stub {
         mNMService = INetworkManagementService.Stub.asInterface(b);
 		mTracker = EthernetDataTracker.getInstance();
 		mEthStateReceiver = new BroadcastReceiver(){
-			@Override
-			public void onReceive(Context context, Intent intent) {
+		@Override
+		public void onReceive(Context context, Intent intent) {
 				handleReceive(context, intent);
 			}
 		};
@@ -125,7 +125,6 @@ public class EthernetService extends IEthernetManager.Stub {
 	public boolean isConfigured() {
 		final ContentResolver cr = mContext.getContentResolver();
 		return (Settings.Secure.getInt(cr, Settings.Secure.ETHERNET_CONF, 0) == ETHERNET_HAS_CONFIG);
-
 	}
 
 	/**
@@ -143,8 +142,7 @@ public class EthernetService extends IEthernetManager.Stub {
 			info.setConnectMode(Settings.Secure.getInt(cr, Settings.Secure.ETHERNET_MODE));
 		} catch (Settings.SettingNotFoundException e) {
 		}
-		info.setIfName(ETH_USED);
-		info.setBootName(Settings.Secure.getString(cr, Settings.Secure.ETHERNET_IFNAME));
+		info.setIfName(Settings.Secure.getString(cr, Settings.Secure.ETHERNET_IFNAME));
 		info.setIpAddress(Settings.Secure.getString(cr, Settings.Secure.ETHERNET_IP));
 		info.setDnsAddr(Settings.Secure.getString(cr, Settings.Secure.ETHERNET_DNS));
 		info.setNetMask(Settings.Secure.getString(cr, Settings.Secure.ETHERNET_MASK));
@@ -173,19 +171,24 @@ public class EthernetService extends IEthernetManager.Stub {
 	public synchronized void updateDevInfo(EthernetDevInfo info) {
 		final ContentResolver cr = mContext.getContentResolver();
 		Settings.Secure.putInt(cr, Settings.Secure.ETHERNET_CONF, 1);
-		Settings.Secure.putString(cr, Settings.Secure.ETHERNET_IFNAME, info.getBootName());
+		Settings.Secure.putString(cr, Settings.Secure.ETHERNET_IFNAME, info.getIfName());
 		Settings.Secure.putString(cr, Settings.Secure.ETHERNET_IP, info.getIpAddress());
 		Settings.Secure.putInt(cr, Settings.Secure.ETHERNET_MODE, info.getConnectMode());
 		Settings.Secure.putString(cr, Settings.Secure.ETHERNET_DNS, info.getDnsAddr());
 		Settings.Secure.putString(cr, Settings.Secure.ETHERNET_ROUTE, info.getGateWay());
 		Settings.Secure.putString(cr, Settings.Secure.ETHERNET_MASK, info.getNetMask());
-		exChangeEth(info); 
 		if (mEthState == EthernetManager.ETHERNET_STATE_ENABLED) {
+			mTracker.reconnect();
+			/*
 			try {
-				mNMService.setInterfaceUp(ETH_USED);
+				mNMService.setInterfaceUp(info.getIfName());
 			} catch (RemoteException e) {
 				Log.e(TAG, "setInterfaceUp is error: " + e);
 			}
+			*/
+		}
+		if ((info != null) && mDeviceMap.containsKey(info.getIfName())){
+			mDeviceMap.put(info.getIfName(), info);
 		}
 	}
 
@@ -211,7 +214,6 @@ public class EthernetService extends IEthernetManager.Stub {
 				if(isEth(iface)){
 					EthernetDevInfo value = new EthernetDevInfo();
 					InterfaceConfiguration config = mNMService.getInterfaceConfig(iface);
-					value.setBootName(iface);
 					value.setIfName(iface);
 					value.setHwaddr(config.hwAddr);
 					value.setIpAddress(config.addr.getAddress().getHostAddress());
@@ -307,64 +309,8 @@ public class EthernetService extends IEthernetManager.Stub {
 	 * @return the state of the ethernet service
 	 */
 	public int getState( ) {
-		return mEthState;
-	}
-
-	/**
-	 * update HashMap for device list
-	 * @param info  the interface infomation
-	 */
-	private void exChangeEth(EthernetDevInfo info) {
-		synchronized(mDeviceMap) {
-			InterfaceConfiguration ifcg = null;
-			mDeviceMap.remove(info.getIfName());
-			if(mDeviceMap.containsKey(ETH_USED)){
-				try{
-                    ifcg = mNMService.getInterfaceConfig(ETH_USED);
-					ifcg.interfaceFlags = "[down]";
-					mNMService.setInterfaceConfig(ETH_USED, ifcg);
-					//mNMService.setInterfaceDown(ETH_USED);
-				} catch (Exception e) {
-				}
-				//NetworkUtils.disableInterface(ETH_USED);
-				EthernetDevInfo devchange = mDeviceMap.get(ETH_USED);
-				mDeviceMap.remove(ETH_USED);
-
-				if(devchange.getBootName().equals(ETH_USED)){
-					try{
-						mNMService.renameInterface(ETH_USED, "ett0");
-					} catch (Exception e) {
-						Log.e(TAG, "renameInterface wrong " + e);
-					}
-					devchange.setIfName("ett0");
-					mDeviceMap.put(devchange.getIfName(), devchange);
-				}else{
-					try{
-						mNMService.renameInterface(ETH_USED, devchange.getBootName());
-					} catch (Exception e) {
-						Log.e(TAG, "renameInterface wrong " + e);
-					}
-					devchange.setIfName(devchange.getBootName());
-					mDeviceMap.put(devchange.getIfName(), devchange);
-				}
-			}
-
-			try{
-				ifcg = mNMService.getInterfaceConfig(info.getIfName());
-				ifcg.interfaceFlags = "[down]";
-				mNMService.setInterfaceConfig(info.getIfName(), ifcg);
-				//mNMService.setInterfaceDown(info.getIfName();
-			} catch (Exception e) {
-			}
-			//NetworkUtils.disableInterface(info.getIfName());
-			try{
-				mNMService.renameInterface(info.getIfName(), ETH_USED);
-			} catch (Exception e) {
-				Log.e(TAG, "RenameInterface wrong " + e);
-			}
-			info.setIfName(ETH_USED);
-			mDeviceMap.put(ETH_USED, info);
-		}
+		return mEthState = isOn() ? EthernetManager.ETHERNET_STATE_ENABLED
+									: EthernetManager.ETHERNET_STATE_DISABLED;
 	}
 
     private void sendChangedBroadcast(EthernetDevInfo info, int event) {
@@ -392,7 +338,6 @@ public class EthernetService extends IEthernetManager.Stub {
 				if(!mDeviceMap.containsKey(iface)){
 					EthernetDevInfo value = new EthernetDevInfo();
 					InterfaceConfiguration config = mNMService.getInterfaceConfig(iface);
-					value.setBootName(iface);
 					value.setIfName(iface);
 					value.setHwaddr(config.hwAddr);
 					value.setIpAddress(config.addr.getAddress().getHostAddress());
@@ -417,16 +362,6 @@ public class EthernetService extends IEthernetManager.Stub {
 				sendChangedBroadcast(mDeviceMap.get(name), EthernetManager.EVENT_DEVREM);
 				mDeviceMap.remove(name);
 			}
-		}
-		if(name.equals(ETH_USED) && mDeviceMap.containsKey("ett0")){
-			EthernetDevInfo value = mDeviceMap.get("ett0");
-			mDeviceMap.remove("ett0");
-			try{
-				mNMService.renameInterface(value.getIfName(), value.getBootName());
-			} catch (RemoteException e) {
-			}
-			value.setIfName(value.getBootName());
-			mDeviceMap.put(value.getIfName(), value);
 		}
 	}
 
@@ -454,5 +389,35 @@ public class EthernetService extends IEthernetManager.Stub {
 		} catch (Settings.SettingNotFoundException e) {
 			return false;
 		}
+	}
+
+	/**
+	 * Checkout if the interface linkup or not.
+	 */
+	public int CheckLink(String ifname) {
+		int ret = 0;
+		File filefd = null;
+		FileInputStream fstream = null;
+		String s = null;
+		try{
+			if(!(new File(SYS_NET + ifname).exists()))
+				return -1;
+			fstream = new FileInputStream(SYS_NET + ifname + "/carrier");
+			DataInputStream in = new DataInputStream(fstream);
+			BufferedReader br = new BufferedReader(new InputStreamReader(in));
+
+			s = br.readLine();
+		} catch (IOException ex) {
+		} finally {
+			if (fstream != null) {
+				try{
+					fstream.close();
+				} catch (IOException ex) {
+				}
+			}
+		}
+		if(s != null && s.equals("1"))
+			ret = 1;
+		return ret;
 	}
 }

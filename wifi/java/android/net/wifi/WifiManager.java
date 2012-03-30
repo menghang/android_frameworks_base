@@ -871,7 +871,8 @@ public class WifiManager {
 			return true;
 		} else if (getWifiApState() == WIFI_AP_STATE_ENABLED) {
 			return true;
-		} else if (!SystemProperties.get("init.svc.wpa_supplicant").equals("stopped")){
+		} else if ( (getWifiState() == WIFI_STATE_DISABLED)
+			&& (!SystemProperties.get("init.svc.wpa_supplicant").equals("stopped")) ){
 			return true;
 		} else {
 			return false;

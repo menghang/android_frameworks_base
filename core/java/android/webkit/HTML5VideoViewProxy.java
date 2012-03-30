@@ -198,6 +198,11 @@ class HTML5VideoViewProxy extends Handler
                     }
                     // release the media player to avoid finalize error
                     mHTML5VideoView.release();
+                    if(AUTO_FULLSCREEN){
+                		if (mHTML5VideoView instanceof HTML5VideoFullScreen && client != null) {
+                    		client.onHideCustomView();
+                		}
+                	}
                 }
                 mCurrentProxy = proxy;
                 if(AUTO_FULLSCREEN){

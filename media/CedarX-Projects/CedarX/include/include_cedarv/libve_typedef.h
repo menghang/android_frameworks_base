@@ -206,7 +206,6 @@ extern "C" {
 
 		_3d_mode_e   			_3d_mode;
 		anaglath_trans_mode_e	anaglath_transform_mode;
-
 		u32             		size_y;
 		u32             		size_u;
 		u32             		size_v;
@@ -226,6 +225,10 @@ extern "C" {
 		u8*             		u2;                      //* pixel data, it is interpreted based on pixel_format;
 		u8*             		v2;                      //* pixel data, it is interpreted based on pixel_format;
 		u8*             		alpha2;                  //* pixel data, it is interpreted based on pixel_format;
+		u32   					flag_addr;//dit maf flag address
+	    u32						flag_stride;//dit maf flag line stride
+	    u8						maf_valid;
+	    u8						pre_frame_valid;
 	}vpicture_t;
 
 	//*******************************************************//

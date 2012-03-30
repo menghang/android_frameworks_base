@@ -342,6 +342,7 @@ sp<MetaData> MPEG4Extractor::getTrackMetaData(
 
     if ((flags & kIncludeExtensiveMetaData)
             && !track->includes_expensive_metadata) {
+
         track->includes_expensive_metadata = true;
 
         const char *mime;
@@ -349,6 +350,7 @@ sp<MetaData> MPEG4Extractor::getTrackMetaData(
         if (!strncasecmp("video/", mime, 6)) {
             uint32_t sampleIndex;
             uint64_t sampleTime;
+
             if (track->sampleTable->findThumbnailSample(&sampleIndex) == OK
                     && track->sampleTable->getMetaDataForSample(
                         sampleIndex, NULL /* offset */, NULL /* size */,
@@ -358,6 +360,23 @@ sp<MetaData> MPEG4Extractor::getTrackMetaData(
                         ((int64_t)sampleTime * 1000000) / track->timescale);
             }
         }
+    }
+
+    if (flags & kIncludeExtensiveMetaDataBitrate) {
+		off64_t maxOffset;
+		int64_t durationUs;
+
+		track->sampleTable->getMetaDataForSample(track->sampleTable->countSamples() - 1, &maxOffset, NULL, NULL);
+
+		if (mLastTrack->meta->findInt64(kKeyDuration, &durationUs)) {
+			durationUs /= 1000000LL;
+			if (durationUs > 0) {
+				int32_t bitRate = (maxOffset * 8) / durationUs;
+				track->meta->setInt32(kKeyBitRate, bitRate);
+			}
+		}
+
+		LOGV("maxOffset:%lld durationUs:%lld",maxOffset,durationUs);
     }
 
     return track->meta;

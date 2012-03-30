@@ -37,7 +37,7 @@ typedef OMX_ERRORTYPE *(*ThirdpartComponentInit)(
 		OMX_HANDLETYPE hComponent);
 
 typedef struct CedarXPlayerContext{
-	CedarXDataSourceDesc data_source_desc;
+	CedarXDataSourceDesc data_src_desc;
 	CDX_S32 init_flags;
 	CDX_S32 flags;
 	CDX_S32 exit_flags;
@@ -81,12 +81,14 @@ typedef struct CedarXPlayerContext{
 	CDX_TUNNELLINKTYPE cdx_tunnels_link;
 
 	pthread_mutex_t cdx_player_mutex;
+	pthread_mutex_t cdx_event_mutex;
 	pthread_t thread_id;
 	message_quene_t  msg_queue;
 	cdx_sem_t cdx_sem_wait_message;
 	pthread_mutex_t msg_sync_mutex;
 	int msg_id_processed;
 	int msg_id_index;
+	int msg_processed_stop_async;
 
 	cdx_sem_t cdx_sem_demux_cmd;
 	cdx_sem_t cdx_sem_video_decoder_cmd;
@@ -119,6 +121,10 @@ typedef struct CedarXPlayerContext{
 
 	OMX_S32     soft_chip_version;
 	OMX_S32		network_engine;
+
+	OMX_S8		player_can_seek;
+	//0:normal foramt; 1:ts, 2:m2ts
+	OMX_S8		container_type;
 }CedarXPlayerContext;
 
 #include "CDX_PlayerAPI.h"
@@ -126,7 +132,7 @@ typedef struct CedarXPlayerContext{
 typedef struct CedarXMediaRetriverContext{
 	int bIsCaptureInit;
 	CedarXMetaData cdx_metadata;
-	CedarXDataSourceDesc data_source_desc;
+	CedarXDataSourceDesc data_src_desc;
 	CEDARV_REQUEST_CONTEXT cedarv_req_ctx;
 }CedarXMediaRetriverContext;
 

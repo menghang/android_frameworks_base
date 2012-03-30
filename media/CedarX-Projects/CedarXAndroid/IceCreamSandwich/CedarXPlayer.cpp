@@ -6,7 +6,7 @@
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *  
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,8 +24,9 @@
 #include "CedarXNativeRenderer.h"
 #include "CedarXSoftwareRenderer.h"
 
-#include <libcedarv.h>
 #include <CDX_Config.h>
+#include <libcedarv.h>
+#include <CDX_Fileformat.h>
 
 #include <binder/IPCThreadState.h>
 #include <media/stagefright/CedarXAudioPlayer.h>
@@ -715,19 +716,20 @@ status_t CedarXPlayer::prepareAsync() {
 	int  disable_media_type = 0;
 	char prop_value[4];
 
+	if ((mFlags & PREPARING) || (mPlayer == NULL)) {
+		return UNKNOWN_ERROR; // async prepare already pending
+	}
+
+	property_get(PROP_CHIP_VERSION_KEY, prop_value, "3");
+	mPlayer->control(mPlayer, CDX_CMD_SET_SOFT_CHIP_VERSION, atoi(prop_value), 0);
+
 	if (mSourceType == SOURCETYPE_SFT_STREAM) {
 		notifyListener_l(MEDIA_PREPARED);
 		return OK;
 	}
 
-	if ((mFlags & PREPARING) || (mPlayer == NULL)) {
-		return UNKNOWN_ERROR; // async prepare already pending
-	}
 	mFlags |= PREPARING;
 	mIsAsyncPrepare = true;
-
-	property_get(PROP_CHIP_VERSION_KEY, prop_value, "3");
-	mPlayer->control(mPlayer, CDX_CMD_SET_SOFT_CHIP_VERSION, atoi(prop_value), 0);
 
 	//0: no rotate, 1: 90 degree (clock wise), 2: 180, 3: 270, 4: horizon flip, 5: vertical flig;
 	//mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_ROTATION, 2, 0);
@@ -769,6 +771,9 @@ status_t CedarXPlayer::prepareAsync() {
 	disable_media_type |= CDX_CODEC_TYPE_DISABLE_WMA;
 	mPlayer->control(mPlayer, CDX_CMD_DISABLE_MEDIA_TYPE, disable_media_type, 0);
 #endif
+
+	//mPlayer->control(mPlayer, CDX_SET_THIRDPART_STREAM, CEDARX_THIRDPART_STREAM_USER0, 0);
+	//mPlayer->control(mPlayer, CDX_SET_THIRDPART_STREAM, CEDARX_THIRDPART_STREAM_USER0, CDX_MEDIA_FILE_FMT_AVI);
 
 	return (mPlayer->control(mPlayer, CDX_CMD_PREPARE_ASYNC, 0, 0) == 0 ? OK : UNKNOWN_ERROR);
 }

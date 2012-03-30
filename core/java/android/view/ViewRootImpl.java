@@ -86,6 +86,7 @@ import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+import android.content.pm.ApplicationInfo;
 
 /**
  * The top of a view hierarchy, implementing the needed protocol between View
@@ -94,7 +95,7 @@ import java.util.List;
  *
  * {@hide}
  */
-@SuppressWarnings({"EmptyCatchBlock", "PointlessBooleanExpression"})
+//@SuppressWarnings({"EmptyCatchBlock", "PointlessBooleanExpression"})
 public final class ViewRootImpl extends Handler implements ViewParent,
         View.AttachInfo.Callbacks, HardwareRenderer.HardwareDrawCallbacks {
     private static final String TAG = "ViewRootImpl";
@@ -609,8 +610,28 @@ public final class ViewRootImpl extends Handler implements ViewParent,
         if (mTranslator != null) return;
 
         // Try to enable hardware acceleration if requested
-        final boolean hardwareAccelerated = 
+         boolean hardwareAccelerated = 
                 (attrs.flags & WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED) != 0;
+		
+		if(true)
+		{
+			String  			pckname;
+    		String              substr = "com.aurorasoftworks.quadrant";
+	    	ApplicationInfo   	appInfo;
+	    	int					index;
+	    	
+	    	pckname = mView.getContext().getPackageName();
+	    	
+	    	Log.d(TAG,"pckname = " + pckname);
+	    	
+	    	index  = pckname.indexOf(substr);
+	        if(index >= 0)
+            {
+            	hardwareAccelerated = true;
+            }
+
+    	}
+		
 
         if (hardwareAccelerated) {
             if (!HardwareRenderer.isAvailable()) {
