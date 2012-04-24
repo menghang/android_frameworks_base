@@ -301,9 +301,10 @@ public class NetworkController extends BroadcastReceiver {
                     mContentDescriptionDataType);
         } else {
             // normal mobile data
+            int dataSignalIconId = (mWifiConnected || mEthernetConnected) ? 0 : mDataSignalIconId;
             cluster.setMobileDataIndicators(
                     mHasMobileDataFeature,
-                    mShowPhoneRSSIForData ? mPhoneSignalIconId : mDataSignalIconId,
+                    mShowPhoneRSSIForData ? mPhoneSignalIconId : dataSignalIconId,
                     mMobileActivityIconId,
                     mDataTypeIconId,
                     mContentDescriptionPhoneSignal,

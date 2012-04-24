@@ -38,8 +38,8 @@ typedef OMX_ERRORTYPE *(*ThirdpartComponentInit)(
 
 typedef struct CedarXPlayerContext{
 	CedarXDataSourceDesc data_src_desc;
-	CDX_S32 init_flags;
-	CDX_S32 flags;
+	CDX_S32 comp_exist_flags;
+	CDX_S32 comp_response_flags;
 	CDX_S32 exit_flags;
 	CDX_S32 exit_flags_backup;
 	CDX_S32 eof_flags;

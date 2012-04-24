@@ -166,8 +166,6 @@ public class StorageNotification extends StorageEventListener {
 			String[] list = stmg.getVolumePaths();
 			/* do not show notification for nandflash */
 			String nandflash = Environment.getExternalStorageDirectory().getPath();
-			if(nandflash.equals(path))
-				return;
 			for(int i = 0; i < list.length; i++)
 			{
 				if(path.equals(list[i]))

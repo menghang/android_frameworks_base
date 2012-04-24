@@ -1364,7 +1364,7 @@ public class Activity extends ContextThemeWrapper
     protected void onDestroy() {
         mCalled = true;
 
-		if(true)
+		if(false)
 		{
 			String  			pckname;
 			String              clsname = "com.aurorasoftworks.quadrant.ui.runner.BenchmarkExecutionActivity";

@@ -114,7 +114,8 @@ public class EthernetDataTracker implements NetworkStateTracker {
 
     private void interfaceAdded(String iface) {
 		/**  It will add an new interface to EthernetService and check it.  **/
-		mEthManage.addInterfaceToService(iface);
+		if(!mEthManage.addInterfaceToService(iface))
+			return;
 
 		/**  The first adding interface will be reconnect.  **/
         synchronized(mIface) {
@@ -242,16 +243,19 @@ public class EthernetDataTracker implements NetworkStateTracker {
 	public void ConnectNetwork(boolean up){
 		//Log.d(TAG, "Up is " + up + " mLinkUp is " + mLinkUp +
 		//			" On is " + mEthManage.isOn() + " mIface " + mIface);
-		if(!mEthManage.isConfigured())
+		if(!mEthManage.isConfigured()){
 			return;
+		}
 		if(up && mEthManage.isOn()){
 			EthernetDevInfo ifaceInfo = mEthManage.getSavedConfig();
 			if(ifaceInfo == null)
 				 return;
 			synchronized(mIface){
 				if(!mIface.equals(ifaceInfo.getIfName())){
-					NetworkUtils.stopDhcp("eth_" + mIface);
-					NetworkUtils.disableInterface(mIface);
+					if(!mIface.isEmpty()){
+						NetworkUtils.stopDhcp("eth_" + mIface);
+						NetworkUtils.disableInterface(mIface);
+					}
 					mIface = ifaceInfo.getIfName();
 				}
 			}

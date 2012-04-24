@@ -30,7 +30,7 @@ interface IEthernetManager
     void setMode(int mode);
 	boolean isOn();
 	boolean isDhcp();
-	void addInterfaceToService(String name);
+	boolean addInterfaceToService(String name);
 	void removeInterfaceFormService(String name);
 	int CheckLink(String ifname);
 }

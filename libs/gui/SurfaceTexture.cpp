@@ -1165,6 +1165,9 @@ int SurfaceTexture::setParameter(uint32_t cmd,uint32_t value)
 
 uint32_t SurfaceTexture::getParameter(uint32_t cmd)
 {
+	if(cmd == NATIVE_WINDOW_CMD_GET_SURFACE_TEXTURE_TYPE) {
+		return 0;
+	}
     return 0;
 }
 

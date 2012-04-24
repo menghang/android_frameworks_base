@@ -201,6 +201,7 @@ typedef enum OMX_INDEXTYPE {
     OMX_IndexConfigTimePosition,  /**< reference: OMX_TIME_CONFIG_TIMESTAMPTYPE */
     OMX_IndexConfigTimeSeekMode,  /**< reference: OMX_TIME_CONFIG_SEEKMODETYPE */
     OMX_IndexConfigTimeRelativeMediaTime, /*add by vendor*/
+    OMX_IndexConfigWallTimeBase,
 
 
     /* Reserved Configuration range */

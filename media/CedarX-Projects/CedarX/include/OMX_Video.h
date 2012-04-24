@@ -128,6 +128,7 @@ typedef struct OMX_VIDEO_PORTDEFINITIONTYPE {
     OMX_U32 nFrameHeight;
     OMX_U32 nBitrate;
     OMX_U32 xFramerate;
+    OMX_S32 nRotation;
 
     OMX_VIDEO_CODINGTYPE eCompressionFormat;
     OMX_S32 eCompressionSubFormat; //vendor define by softwinner

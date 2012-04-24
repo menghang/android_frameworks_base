@@ -187,6 +187,10 @@ uint32_t SurfaceTextureLayer::getParameter(uint32_t cmd)
 {
     uint32_t res = 0;
     
+	if(cmd == NATIVE_WINDOW_CMD_GET_SURFACE_TEXTURE_TYPE) {
+		return 1;
+	}
+
     sp<Layer> layer(mLayer.promote());
     if (layer != NULL) 
     {

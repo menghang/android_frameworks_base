@@ -12168,7 +12168,7 @@ package android.net.ethernet {
   public class EthernetManager {
     ctor public EthernetManager(android.net.ethernet.IEthernetManager, android.os.Handler);
     method public int CheckLink(java.lang.String);
-    method public void addInterfaceToService(java.lang.String);
+    method public boolean addInterfaceToService(java.lang.String);
     method public java.util.List<android.net.ethernet.EthernetDevInfo> getDeviceNameList();
     method public android.net.ethernet.EthernetDevInfo getSavedConfig();
     method public int getState();
@@ -12199,7 +12199,7 @@ package android.net.ethernet {
 
   public abstract interface IEthernetManager implements android.os.IInterface {
     method public abstract int CheckLink(java.lang.String) throws android.os.RemoteException;
-    method public abstract void addInterfaceToService(java.lang.String) throws android.os.RemoteException;
+    method public abstract boolean addInterfaceToService(java.lang.String) throws android.os.RemoteException;
     method public abstract java.util.List<android.net.ethernet.EthernetDevInfo> getDeviceNameList() throws android.os.RemoteException;
     method public abstract android.net.ethernet.EthernetDevInfo getSavedConfig() throws android.os.RemoteException;
     method public abstract int getState() throws android.os.RemoteException;
@@ -15372,10 +15372,25 @@ package android.os {
     method public void setWorkSource(android.os.WorkSource);
   }
 
+  public class ProcStat {
+    ctor public ProcStat();
+    method public long getCstime();
+    method public long getCutime();
+    method public java.lang.String getState();
+    method public long getStime();
+    method public long getUtime();
+    method public void setCstime(long);
+    method public void setCutime(long);
+    method public void setState(java.lang.String);
+    method public void setStime(long);
+    method public void setUtime(long);
+  }
+
   public class Process {
     ctor public Process();
     method public static final long getElapsedCpuTime();
     method public static final int getGidForName(java.lang.String);
+    method public static final android.os.ProcStat getProc(int);
     method public static final int getThreadPriority(int) throws java.lang.IllegalArgumentException;
     method public static final int getUidForName(java.lang.String);
     method public static final void killProcess(int);

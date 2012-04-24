@@ -183,10 +183,11 @@ public class EthernetManager {
 		}
 	}
 
-	public void addInterfaceToService(String name) {
+	public boolean addInterfaceToService(String name) {
 		try{
-			mService.addInterfaceToService(name);
+			return mService.addInterfaceToService(name);
 		} catch (RemoteException e) {
+			return false;
 		}
 	}
 

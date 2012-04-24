@@ -6,7 +6,7 @@
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
- *  
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -134,6 +134,7 @@ CedarXPlayer::CedarXPlayer() :
 	mMaxOutputWidth = 0;
 	mMaxOutputHeight = 0;
 	mDisableXXXX = 0;
+	mScreenID = 0;
 
     _3d_mode							= 0;
     display_3d_mode						= 0;
@@ -186,7 +187,7 @@ status_t CedarXPlayer::setDataSource(const char *uri, const KeyedVector<
 	    mUriHeaders = *headers;
 	}
 #if 0
-	const char* dbg_url = "http://192.168.1.147/coby.mp4";
+	const char* dbg_url = "http://192.168.0.101/coby.mp4";
 	//const char* dbg_url = "http://127.0.0.1:5656/play?url='cdn.voole.com:3528/play?fid=ece227876f8944978b119cbd52c02ba6'&time='0'";
 	//const char* dbg_url = "/mnt/extsd/hb.mp4";
 	mPlayer->control(mPlayer, CDX_SET_DATASOURCE_URL, (unsigned int)dbg_url, 0);
@@ -506,35 +507,17 @@ bool CedarXPlayer::isPlaying() const {
 status_t CedarXPlayer::setNativeWindow_l(const sp<ANativeWindow> &native) {
     mNativeWindow = native;
 
-//    if (mVideoSource == NULL) {
-//        return OK;
-//    }
-//
-//    LOGV("attempting to reconfigure to use new surface");
-//
-//    bool wasPlaying = (mFlags & PLAYING) != 0;
-//
-//    pause_l();
+    if (mVideoWidth <= 0) {
+        return OK;
+    }
+
+    LOGV("attempting to reconfigure to use new surface");
+
+    pause();
+
     mVideoRenderer.clear();
 
-//    shutdownVideoDecoder_l();
-//
-//    status_t err = initVideoDecoder();
-//
-//    if (err != OK) {
-//        LOGE("failed to reinstantiate video decoder after surface change.");
-//        return err;
-//    }
-//
-//    if (mLastVideoTimeUs >= 0) {
-//        mSeeking = SEEK;
-//        mSeekTimeUs = mLastVideoTimeUs;
-//        modifyFlags((AT_EOS | AUDIO_AT_EOS | VIDEO_AT_EOS), CLEAR);
-//    }
-//
-//    if (wasPlaying) {
-//        play_l();
-//    }
+    play();
 
     return OK;
 }
@@ -548,9 +531,9 @@ status_t CedarXPlayer::setSurface(const sp<Surface> &surface) {
 }
 
 status_t CedarXPlayer::setSurfaceTexture(const sp<ISurfaceTexture> &surfaceTexture) {
-    Mutex::Autolock autoLock(mLock);
+    //Mutex::Autolock autoLock(mLock);
 
-    mSurface.clear();
+    //mSurface.clear();
 
     LOGV("setSurfaceTexture");
 
@@ -612,7 +595,7 @@ status_t CedarXPlayer::getPosition(int64_t *positionUs) {
 	int64_t nowUs;
 	gettimeofday(&now, NULL);
 	nowUs = now.tv_sec * 1000 + now.tv_usec / 1000; //ms
-	if((uint64_t)(nowUs - mExtendMember->mLastGetPositionTimeUs) < 10) {
+	if((uint64_t)(nowUs - mExtendMember->mLastGetPositionTimeUs) < 15) {
 		*positionUs = mExtendMember->mLastPositionUs;
 		return OK;
 	}
@@ -754,6 +737,15 @@ status_t CedarXPlayer::prepareAsync() {
 		outputSetting |= CEDARX_OUTPUT_SETTING_MODE_PLANNER;
 	}
 
+	if(mNativeWindow != NULL) {
+		if (0 == mNativeWindow->perform(mNativeWindow.get(), NATIVE_WINDOW_GETPARAMETER,NATIVE_WINDOW_CMD_GET_SURFACE_TEXTURE_TYPE, 0)) {
+			LOGI("use GPU render!");
+			outputSetting |= CEDARX_OUTPUT_SETTING_MODE_PLANNER;
+		}
+	}
+
+	//outputSetting |= CEDARX_OUTPUT_SETTING_MODE_PLANNER;
+
 	mExtendMember->mOutputSetting = outputSetting;
 	mPlayer->control(mPlayer, CDX_CMD_SET_VIDEO_OUTPUT_SETTING, outputSetting, 0);
 
@@ -831,7 +823,7 @@ status_t CedarXPlayer::suspend() {
 	SuspensionState *state = &mSuspensionState;
 	getPosition(&state->mPositionUs);
 
-	Mutex::Autolock autoLock(mLock);
+	//Mutex::Autolock autoLock(mLock);
 
 	state->mFlags = mFlags & (PLAYING | AUTO_LOOPING | LOOPING | AT_EOS);
     state->mUri = mUri;
@@ -860,7 +852,7 @@ status_t CedarXPlayer::suspend() {
 
 status_t CedarXPlayer::resume() {
 	LOGD("resume start");
-    Mutex::Autolock autoLock(mLock);
+    //Mutex::Autolock autoLock(mLock);
     SuspensionState *state = &mSuspensionState;
     status_t err;
     if (mSourceType != SOURCETYPE_URL){
@@ -1500,6 +1492,8 @@ int CedarXPlayer::StagefrightVideoRenderInit(int width, int height, int format, 
     meta->setInt32(kKeyWidth, mDisplayWidth);
     meta->setInt32(kKeyHeight, mDisplayHeight);
 
+    LOGV("StagefrightVideoRenderInit mScreenID:%d",mScreenID);
+
     mVideoRenderer.clear();
 
     // Must ensure that mVideoRenderer's destructor is actually executed
@@ -1599,21 +1593,54 @@ void CedarXPlayer::StagefrightVideoRenderData(void *frame_info, int frame_id)
 			mLocalRenderFrameIDCurr = frame_id;
 		}
 	}
+	else {
+		if(mDisplayFormat == HAL_PIXEL_FORMAT_YV12) {
+			mLocalRenderFrameIDCurr = frame_id;
+		}
+
+		LOGV("mNativeWindown!=NULL? %d",mNativeWindow != NULL);
+
+		if (mNativeWindow != NULL) {
+			sp<MetaData> meta = new MetaData;
+			meta->setInt32(kKeyScreenID, mScreenID);
+		    meta->setInt32(kKeyColorFormat, mDisplayFormat);
+		    meta->setInt32(kKeyWidth, mDisplayWidth);
+		    meta->setInt32(kKeyHeight, mDisplayHeight);
+
+		    LOGV("reinit mVideoRenderer");
+		    // Must ensure that mVideoRenderer's destructor is actually executed
+		    // before creating a new one.
+		    IPCThreadState::self()->flushCommands();
+
+		    if(mDisplayFormat != HAL_PIXEL_FORMAT_YV12)
+		    {
+		    	mVideoRenderer = new CedarXDirectHwRenderer(mNativeWindow, meta);
+
+		    	set3DMode(_3d_mode, display_3d_mode);
+		    }
+		    else
+		    {
+		    	mVideoRenderer = new CedarXLocalRenderer(mNativeWindow, meta);
+		    }
+		}
+	}
 }
 
 int CedarXPlayer::StagefrightVideoRenderGetFrameID()
 {
 	int ret = -1;
 
-	if(mVideoRenderer != NULL){
-		if(mDisplayFormat != HAL_PIXEL_FORMAT_YV12) {
+	if(mDisplayFormat != HAL_PIXEL_FORMAT_YV12) {
+		if(mVideoRenderer != NULL) {
 			ret = mVideoRenderer->control(VIDEORENDER_CMD_GETCURFRAMEPARA, 0);
-			//LOGV("get disp frame id:%d",ret);
 		}
-		else {
-			ret = mLocalRenderFrameIDCurr;
-		}
+		//LOGV("get disp frame id:%d",ret);
 	}
+	else {
+		ret = mLocalRenderFrameIDCurr;
+	}
+
+	//LOGV("get disp frame id:%d",ret);
 
 	return ret;
 }

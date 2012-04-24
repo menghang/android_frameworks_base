@@ -326,13 +326,13 @@ public class EthernetService extends IEthernetManager.Stub {
 	 * add the ethernet interface to Service Managing
 	 * @param the name of ethernet interface
 	 */
-	public void addInterfaceToService(String iface) {
+	public boolean addInterfaceToService(String iface) {
 		if(!isEth(iface))
-			return ;
+			return false;
 		if(ETH_USED.isEmpty())
 			ETH_USED = iface;
 		if(!(new File(SYS_NET + iface + "/ifindex").exists()))
-			return ;
+			return false;
 		synchronized(mDeviceMap) {
 			try{
 				if(!mDeviceMap.containsKey(iface)){
@@ -348,6 +348,7 @@ public class EthernetService extends IEthernetManager.Stub {
 				Log.e(TAG, "Can't get the Interface Configure" + e);
 			}
 		}
+		return true;
 	}
 
 	/**
