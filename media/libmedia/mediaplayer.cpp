@@ -1364,4 +1364,28 @@ status_t MediaPlayer::setGlobalSubGate(bool showSub)
 }
 /* add by Gary. end   -----------------------------------}} */
 
+/* add by Gary. start {{----------------------------------- */
+/* 2012-4-24 */
+/* add two general interfaces for expansibility */
+status_t MediaPlayer::generalInterface(int cmd, int int1, int int2, int int3, void *p)
+{
+    Mutex::Autolock lock(mLock);
+    if (mPlayer == NULL) {
+        return NO_INIT;
+    }
+    return mPlayer->generalInterface(cmd, int1, int2, int3, p);
+}
+
+status_t MediaPlayer::generalGlobalInterface(int cmd, int int1, int int2, int int3, void *p)
+{
+    const sp<IMediaPlayerService>& service(getMediaPlayerService());
+    if (service != 0) {
+        return service->generalGlobalInterface(cmd, int1, int2, int3, p);
+    }else {
+        return NO_INIT;
+    }
+}
+
+/* add by Gary. end   -----------------------------------}} */
+
 }; // namespace android

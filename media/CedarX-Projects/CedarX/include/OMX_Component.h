@@ -385,7 +385,7 @@ typedef enum OMX_TUNNEL_TYPE{
 typedef struct OMX_TUNNELINFOTYPE{
 	OMX_U32 nPortIndex;
 	OMX_HANDLETYPE hTunnel;
-	OMX_S32 nTunnelPortIndex;
+	OMX_U32 nTunnelPortIndex;
 	OMX_TUNNEL_TYPE eTunnelType;
 }OMX_TUNNELINFOTYPE;
 

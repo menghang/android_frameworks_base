@@ -42,7 +42,8 @@ cp $SRCDIR0/../../system/lib/libcedarxosal.so ./
 cp $SRCDIR0/../../system/lib/libcedarxbase.so ./
 cp $SRCDIR0/../../system/lib/libcedarxsftdemux.so ./
 cp $SRCDIR0/../../system/lib/libcedarv.so ./
-cp $SRCDIR0/../../system/lib/libswa.so ./
+cp $SRCDIR0/../../system/lib/libswa1.so ./
+cp $SRCDIR0/../../system/lib/libaw_audio.so ./
 cp $SRCDIR0/../../system/lib/libswdrm.so ./
 
 arm-linux-androideabi-strip -g *.a

@@ -1347,6 +1347,36 @@ android_media_MediaPlayer_getGlobalSubGate(JNIEnv *env, jobject thiz)
 }
 /* add by Gary. end   -----------------------------------}} */
 
+/* add by Gary. start {{----------------------------------- */
+/* 2012-4-24 */
+/* add two general interfaces for expansibility */
+static jint
+android_media_MediaPlayer_setBdFolderPlayMode(JNIEnv *env, jobject thiz, jboolean enable)
+{
+    sp<MediaPlayer> mp = getMediaPlayer(env, thiz);
+    if (mp == NULL ) {
+        jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return -1;
+    }
+    int input = enable? 1 : 0;
+    return mp->generalInterface(MEDIAPLAYER_CMD_SET_BD_FOLDER_PLAY_MODE, input, 0, 0, NULL);
+}
+
+static jboolean
+android_media_MediaPlayer_getBdFolderPlayMode(JNIEnv *env, jobject thiz)
+{
+    sp<MediaPlayer> mp = getMediaPlayer(env, thiz);
+    if (mp == NULL ) {
+        jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return false;
+    }
+    
+    int enable = 0;
+    mp->generalInterface(MEDIAPLAYER_CMD_GET_BD_FOLDER_PLAY_MODE, 0, 0, 0, &enable);
+    return enable == 1;
+}
+/* add by Gary. end   -----------------------------------}} */
+
 // This function gets some field IDs, which in turn causes class initialization.
 // It is called from a static block in MediaPlayer, which won't run until the
 // first time an instance of this class is used.
@@ -1632,6 +1662,8 @@ static JNINativeMethod gMethods[] = {
     {"getGlobalSubGate",        "()Z",                          (void *)android_media_MediaPlayer_getGlobalSubGate},
     {"setGlobalSubGate",        "(Z)I",                         (void *)android_media_MediaPlayer_setGlobalSubGate},
     /* add by Gary. end   -----------------------------------}} */
+    {"getBdFolderPlayMode",     "()Z",                          (void *)android_media_MediaPlayer_getBdFolderPlayMode},
+    {"setBdFolderPlayMode",     "(Z)I",                         (void *)android_media_MediaPlayer_setBdFolderPlayMode},
 };
 
 static const char* const kClassPathName = "android/media/MediaPlayer";

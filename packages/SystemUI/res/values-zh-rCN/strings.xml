@@ -149,4 +149,13 @@
 	<string name="usb_mounted_message">"USB设备接入"</string>
 	<string name="sd_mounted_title">"SD卡设备接入"</string>
 	<string name="sd_mounted_message">"SD卡设备接入"</string>
+	<string name="usb_unmountable_notification_title">"USB 存储设备已损坏"</string>
+	<string name="usb_unmountable_notification_message">"USB 存储设备已损坏，您可能需要对其重新格式化。"</string>
+	<string name="usb_badremoval_notification_title">"USB 存储设备已意外移除"</string>
+	<string name="usb_badremoval_notification_message">"请先卸载 USB 存储设备，再将其移除，以防数据丢失。"</string>
+	<string name="usb_nomedia_notification_title">"已移除 USB 设备"</string>
+	<string name="usb_nomedia_notification_message">"USB 设备已移除。"</string>
+	
+  <string name="notifications_off_title" msgid="1860117696034775851">"通知功能已停用"</string>
+  <string name="notifications_off_text" msgid="1439152806320786912">"点按此处可重新启用通知功能。"</string>
 </resources>

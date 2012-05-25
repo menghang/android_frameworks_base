@@ -1,4 +1,4 @@
-#define LOG_NDEBUG 0
+// #define LOG_NDEBUG 0
 #define LOG_TAG "CedarXRecorder"
 #include <utils/Log.h>
 
@@ -524,6 +524,7 @@ status_t CedarXRecorder::prepare()
 	vInfo.geo_available		= mGeoAvailable;
 	vInfo.latitudex10000	= mLatitudex10000;
 	vInfo.longitudex10000	= mLongitudex10000;
+	vInfo.rotate_degree		= mRotationDegrees;
 #else
 	vInfo.src_width			= srcWidth;
 	vInfo.src_height		= srcHeight;
@@ -536,6 +537,7 @@ status_t CedarXRecorder::prepare()
 	vInfo.geo_available		= mGeoAvailable;
 	vInfo.latitudex10000	= mLatitudex10000;
 	vInfo.longitudex10000	= mLongitudex10000;
+	vInfo.rotate_degree		= mRotationDegrees;
 #endif
 	if (mVideoWidth == 0
 		|| mVideoHeight == 0
@@ -596,6 +598,10 @@ status_t CedarXRecorder::start()
 	
 	CHECK(mOutputFd >= 0);
 
+	mLatencyStartUs = systemTime() / 1000;
+	LOGV("mLatencyStartUs: %lldus", mLatencyStartUs);
+	LOGV("VIDEO_LATENCY_TIME: %dus, AUDIO_LATENCY_TIME: %dus", VIDEO_LATENCY_TIME, AUDIO_LATENCY_TIME);
+
 	// audio start
 	if ((mRecModeFlag & RECORDER_MODE_AUDIO)
 		&& mRecord != NULL)
@@ -625,9 +631,6 @@ status_t CedarXRecorder::start()
 	mStarted = true;
 	CDXRecorder_Control(CDX_CMD_START, 0, 0);
 
-	mLatencyStartUs = systemTime() / 1000;
-	LOGV("mLatencyStartUs: %lldus", mLatencyStartUs);
-	LOGV("VIDEO_LATENCY_TIME: %dus, AUDIO_LATENCY_TIME: %dus", VIDEO_LATENCY_TIME, AUDIO_LATENCY_TIME);
 	LOGV("CedarXRecorder::start OK\n");
     return OK;
 }

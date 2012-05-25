@@ -2558,4 +2558,27 @@ public class MediaPlayer
     public static native boolean getGlobalSubGate();
     
     /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2012-4-24 */
+    /* add two general interfaces for expansibility */
+    
+    /**
+     * show or hide a subitle.
+     * <p>
+     * 
+     * @param enable  whether to start the BD folder play mode.
+     * @return ==0 means successful, !=0 means failed.
+     */
+    public native int setBdFolderPlayMode(boolean enable); 
+    
+    /**
+     * check whether is in BD folder play mode.
+     * <p>
+     * 
+     * @return true if is in BD folder play mode, false otherwise.
+     */
+    public native boolean getBdFolderPlayMode();
+    /* add by Gary. end   -----------------------------------}} */
 }
+

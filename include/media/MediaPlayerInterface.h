@@ -399,6 +399,15 @@ public:
     };
     /* add by Gary. end   -----------------------------------}} */
     
+    /* add by Gary. start {{----------------------------------- */
+    /* 2012-4-24 */
+    /* add two general interfaces for expansibility */
+    virtual status_t generalInterface(int cmd, int int1, int int2, int int3, void *p)
+    {
+        return OK;
+    }
+    /* add by Gary. end   -----------------------------------}} */
+
     // Invoke a generic method on the player by using opaque parcels
     // for the request and reply.
     //

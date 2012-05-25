@@ -29,6 +29,7 @@ extern "C" {
 #include <CDX_Common.h>
 #include <CDX_PlayerAPI.h>
 #include <CDX_Resource_Manager.h>
+#include <include_system/cedarx_avs_counter.h>
 
 typedef struct CedarXRecorderContext{
 	CDX_S32 init_flags;
@@ -41,6 +42,7 @@ typedef struct CedarXRecorderContext{
 	OMX_PTR pAppData;
 	RECORDER_MODE mode;
 	CEDARV_REQUEST_CONTEXT cedarv_req_ctx;
+	CedarxAvscounterContext *avs_counter;
 
 	cdx_sem_t cdx_sem_recorder_source_cmd;
 	cdx_sem_t cdx_sem_video_encoder_cmd;

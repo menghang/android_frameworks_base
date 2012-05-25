@@ -161,8 +161,8 @@ LOCAL_LDFLAGS += \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDAR_AUDIOLIB_PATH)/libdts.a
 else
 LOCAL_LDFLAGS += \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDAR_AUDIOLIB_PATH)/libac3_hw.a \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDAR_AUDIOLIB_PATH)/libdts_hw.a
+	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDAR_AUDIOLIB_PATH)/libac3.a \
+	$(CEDARX_TOP)/../CedarAndroidLib/LIB_ICS_$(CEDAR_AUDIOLIB_PATH)/libdts.a
 endif	
 endif
 

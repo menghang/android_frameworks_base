@@ -63,7 +63,7 @@ namespace android
 		enum
 		{
 			kMaxNumQueuedFragments = 3,
-			kMaxNumRetries         = 5,
+			kMaxNumRetries         = 10,
 		};
 
 		enum
@@ -115,6 +115,12 @@ namespace android
 		bool								mLastDownloadTobeContinue;
 		int32_t								mLastDownloadOffset;
 		int32_t								mLastSubSeqNumber;
+
+		int32_t								mLastSeqNumberBase;
+
+
+		bool								mIsPlaylistRedirected;
+		char*								mPlaylistRedirectURL;
 
 
 		enum RefreshState

@@ -109,6 +109,12 @@ public:
     virtual int             getChannelMuteMode() = 0;
     /* add by Gary. end   -----------------------------------}} */
 
+    /* add by Gary. start {{----------------------------------- */
+    /* 2012-4-24 */
+    /* add two general interfaces for expansibility */
+    virtual status_t        generalInterface(int cmd, int int1, int int2, int int3, void *p) = 0;
+    /* add by Gary. end   -----------------------------------}} */
+
     virtual status_t        setParameter(int key, const Parcel& request) = 0;
     virtual status_t        getParameter(int key, Parcel* reply) = 0;
 

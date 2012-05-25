@@ -19,6 +19,7 @@
 #define HTTP_BASE_H_
 
 #include <media/stagefright/foundation/ABase.h>
+#include <media/stagefright/foundation/AString.h>
 #include <media/stagefright/DataSource.h>
 #include <media/stagefright/MediaErrors.h>
 #include <utils/threads.h>
@@ -56,6 +57,33 @@ struct HTTPBase : public DataSource {
 
     static void RegisterSocketUserTag(int sockfd, uid_t uid, uint32_t kTag);
     static void UnRegisterSocketUserTag(int sockfd);
+
+    //* add by chenxiaochuan for QQ live stream.
+    virtual AString getRedirectUri()
+    {
+    	return AString("");
+    }
+
+    virtual bool isRedirected()
+    {
+    	return false;
+    }
+
+    virtual void setRedirectHost(const char* host)
+    {
+    	return;
+    }
+
+    virtual void setRedirectPort(const char* port)
+    {
+    	return;
+    }
+
+    virtual void setRedirectPath(const char* path)
+    {
+    	return;
+    }
+    //* end.
 
 protected:
     void addBandwidthMeasurement(size_t numBytes, int64_t delayUs);

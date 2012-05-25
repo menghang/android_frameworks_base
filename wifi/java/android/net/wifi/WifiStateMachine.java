@@ -948,6 +948,11 @@ public class WifiStateMachine extends StateMachine {
         sendMessage(msg);
     }
 
+     //patch for wps
+    public boolean isDoingWps() {
+        return getCurrentState() == mWaitForWpsCompletionState;
+    }
+
     public void enableRssiPolling(boolean enabled) {
        sendMessage(obtainMessage(CMD_ENABLE_RSSI_POLL, enabled ? 1 : 0, 0));
     }

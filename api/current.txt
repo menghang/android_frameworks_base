@@ -6615,6 +6615,7 @@ package android.content.res {
     method public int getDimensionPixelSize(int) throws android.content.res.Resources.NotFoundException;
     method public android.util.DisplayMetrics getDisplayMetrics();
     method public android.graphics.drawable.Drawable getDrawable(int) throws android.content.res.Resources.NotFoundException;
+    method public android.graphics.drawable.Drawable getDrawableForDensity(int, int) throws android.content.res.Resources.NotFoundException;
     method public float getFraction(int, int, int);
     method public int getIdentifier(java.lang.String, java.lang.String, java.lang.String);
     method public int[] getIntArray(int) throws android.content.res.Resources.NotFoundException;
@@ -6637,6 +6638,7 @@ package android.content.res {
     method public java.lang.CharSequence[] getTextArray(int) throws android.content.res.Resources.NotFoundException;
     method public void getValue(int, android.util.TypedValue, boolean) throws android.content.res.Resources.NotFoundException;
     method public void getValue(java.lang.String, android.util.TypedValue, boolean) throws android.content.res.Resources.NotFoundException;
+    method public void getValueForDensity(int, int, android.util.TypedValue, boolean) throws android.content.res.Resources.NotFoundException;
     method public android.content.res.XmlResourceParser getXml(int) throws android.content.res.Resources.NotFoundException;
     method public final android.content.res.Resources.Theme newTheme();
     method public android.content.res.TypedArray obtainAttributes(android.util.AttributeSet, int[]);
@@ -10743,6 +10745,7 @@ package android.media {
     method public java.lang.String getAudioEncode();
     method public int getAudioSampleRate();
     method public int getAudioSessionId();
+    method public boolean getBdFolderPlayMode();
     method public static int getBlackExtend();
     method public int getChannelMuteMode();
     method public static int getChromaSharp();
@@ -10783,6 +10786,7 @@ package android.media {
     method public void setAudioSessionId(int) throws java.lang.IllegalArgumentException, java.lang.IllegalStateException;
     method public void setAudioStreamType(int);
     method public void setAuxEffectSendLevel(float);
+    method public int setBdFolderPlayMode(boolean);
     method public static int setBlackExtend(int);
     method public int setChannelMuteMode(int);
     method public static int setChromaSharp(int);
@@ -14663,6 +14667,7 @@ package android.os {
     field public static final java.lang.String PRODUCT;
     field public static final deprecated java.lang.String RADIO;
     field public static final java.lang.String SERIAL;
+    field public static final java.lang.String TABLETUI;
     field public static final java.lang.String TAGS;
     field public static final long TIME;
     field public static final java.lang.String TYPE;

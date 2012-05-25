@@ -28,6 +28,10 @@
 #include <gui/ISurfaceTexture.h>
 #include <utils/String8.h>
 
+#undef LOG_TAG
+#define LOG_TAG "IMediaPlayer"
+#include <utils/Log.h>
+
 namespace android {
 
 enum {
@@ -103,7 +107,13 @@ enum {
     /* 2012-03-07 */
     /* set audio channel mute */
     SET_CHANNEL_MUTE_MODE,
-    GET_CHANNEL_MUTE_MODE
+    GET_CHANNEL_MUTE_MODE,
+    /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2012-4-24 */
+    /* add two general interfaces for expansibility */
+    GENERAL_INTERFACE,
     /* add by Gary. end   -----------------------------------}} */
 };
 
@@ -701,6 +711,34 @@ public:
         return reply.readInt32();
     }
     /* add by Gary. end   -----------------------------------}} */
+    
+    /* add by Gary. start {{----------------------------------- */
+    /* 2012-4-24 */
+    /* add two general interfaces for expansibility */
+    status_t generalInterface(int cmd, int int1, int int2, int int3, void *p)
+    {
+        Parcel data, reply;
+        status_t ret;
+        data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+        
+        data.writeInt32(cmd);                               // the first input value MUST be always the command.
+        switch(cmd){
+            case MEDIAPLAYER_CMD_SET_BD_FOLDER_PLAY_MODE:{
+                data.writeInt32(int1);
+                remote()->transact(GENERAL_INTERFACE, data, &reply);
+                ret = reply.readInt32();
+            }break;
+            case MEDIAPLAYER_CMD_GET_BD_FOLDER_PLAY_MODE:{
+                remote()->transact(GENERAL_INTERFACE, data, &reply);
+                ret = reply.readInt32();
+                *((int *)p) = reply.readInt32();
+            }break;
+            default:
+                return BAD_VALUE;
+        }
+        return ret;
+    }
+    /* add by Gary. end   -----------------------------------}} */
 };
 
 IMPLEMENT_META_INTERFACE(MediaPlayer, "android.media.IMediaPlayer");
@@ -1136,6 +1174,38 @@ status_t BnMediaPlayer::onTransact(
         case GET_CHANNEL_MUTE_MODE: {      
             CHECK_INTERFACE(IMediaPlayer, data, reply);
             reply->writeInt32(getChannelMuteMode());
+            return NO_ERROR;
+        } break;
+        /* add by Gary. end   -----------------------------------}} */
+        /* add by Gary. start {{----------------------------------- */
+        /* 2012-4-24 */
+        /* add two general interfaces for expansibility */
+        case GENERAL_INTERFACE: {      
+            CHECK_INTERFACE(IMediaPlayer, data, reply);
+            int cmd;
+            int int1 = 0;
+            int int2 = 0;
+            int int3 = 0;
+            void *p  = NULL;
+            status_t ret;
+            
+            cmd = data.readInt32();
+            switch(cmd){
+                case MEDIAPLAYER_CMD_SET_BD_FOLDER_PLAY_MODE:{
+                    int1 = data.readInt32();
+                    ret = generalInterface(cmd, int1, int2, int3, p);
+                    reply->writeInt32(ret);
+                }break;
+                case MEDIAPLAYER_CMD_GET_BD_FOLDER_PLAY_MODE:{
+                    int play_mode;
+                    p = &play_mode;
+                    ret = generalInterface(cmd, int1, int2, int3, p);
+                    reply->writeInt32(ret);
+                    reply->writeInt32(play_mode);
+                }break;
+                default:
+                    return BAD_VALUE;
+            }
             return NO_ERROR;
         } break;
         /* add by Gary. end   -----------------------------------}} */

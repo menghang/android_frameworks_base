@@ -13,6 +13,9 @@ typedef struct PREVIEWINFO_t
 typedef struct V4L2BUF_t
 {
 	unsigned int	addrPhyY;		// physical Y address of this frame
+	unsigned int	addrVirY;		// virtual Y address of this frame
+	unsigned int	width;
+	unsigned int	height;
 	int 			index;			// DQUE id number
 	long long		timeStamp;		// time stamp of this frame
 	RECT_t			crop_rect;
@@ -32,6 +35,9 @@ typedef struct VIDEOINFO_t
 	int geo_available;
 	int latitudex10000;
 	int longitudex10000;
+
+	// rotate
+	int rotate_degree;		// only support 0, 90, 180 and 270
 }VIDEOINFO_t;
 
 typedef struct AUDIOINFO_t

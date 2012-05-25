@@ -128,4 +128,15 @@ typedef struct _MediaPlayer_TrackInfo{
 /* add by Gary. end   -----------------------------------}} */
 
 
+/* add by Gary. start {{----------------------------------- */
+/* 2012-4-24 */
+/* add two general interfaces for expansibility */
+// mediaplayer interface list
+#define MEDIAPLAYER_CMD_SET_BD_FOLDER_PLAY_MODE   0
+#define MEDIAPLAYER_CMD_GET_BD_FOLDER_PLAY_MODE   1
+// mediaplayer global interface list
+#define MEDIAPLAYER_GLOBAL_CMD_TEST               0
+/* add by Gary. end   -----------------------------------}} */
+
+
 #endif // ANDROID_MEDIAPLAYER_H

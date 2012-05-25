@@ -15,8 +15,8 @@
  */
 
 //#define LOG_NDEBUG 0
-#define LOG_TAG "ChromiumHTTPDataSourceSupport"
-#include <utils/Log.h>
+#define LOG_TAG "support"
+#include <media/stagefright/foundation/ADebug.h>
 
 #include <media/stagefright/foundation/AString.h>
 
@@ -257,6 +257,11 @@ bool SfDelegate::getUID(uid_t *uid) const {
 void SfDelegate::OnReceivedRedirect(
             net::URLRequest *request, const GURL &new_url, bool *defer_redirect) {
     MY_LOGV("OnReceivedRedirect");
+    //* add by chenxiaochuan for QQ live stream.
+    mOwner->setRedirectHost(new_url.host().c_str());
+    mOwner->setRedirectPort(new_url.port().c_str());
+    mOwner->setRedirectPath(new_url.path().c_str());
+    //* end.
 }
 
 void SfDelegate::OnAuthRequired(

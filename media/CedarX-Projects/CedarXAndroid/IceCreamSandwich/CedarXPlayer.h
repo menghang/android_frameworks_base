@@ -89,6 +89,7 @@ typedef struct CedarXPlayerExtendMember_{
 	int64_t mLastGetPositionTimeUs;
 	int64_t mLastPositionUs;
 	int32_t mOutputSetting;
+	int32_t mUseHardwareLayer;
 }CedarXPlayerExtendMember;
 
 struct CedarXPlayer { //don't touch this struct any more, you can extend members in CedarXPlayerExtendMember
@@ -180,7 +181,10 @@ struct CedarXPlayer { //don't touch this struct any more, you can extend members
     status_t setChromaSharp(int value);
     status_t setWhiteExtend(int value);
     status_t setBlackExtend(int value);
+    status_t setChannelMuteMode(int muteMode);
+    int getChannelMuteMode();
     status_t extensionControl(int command, int para0, int para1);
+    status_t generalInterface(int cmd, int int1, int int2, int int3, void *p);
 #endif
     // This is a mask of MediaExtractor::Flags.
     uint32_t flags() const;
@@ -193,6 +197,7 @@ private:
     friend struct CedarXEvent;
 
     mutable Mutex mLock;
+    mutable Mutex mLockNativeWindow;
     Mutex mMiscStateLock;
 
     CDXPlayer *mPlayer;

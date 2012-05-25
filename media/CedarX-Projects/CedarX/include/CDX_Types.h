@@ -13,6 +13,10 @@ typedef signed long long CDX_S64;
 typedef char CDX_BOOL;
 typedef void* CDX_PTR;
 
+#ifndef NULL
+#define NULL ((void*)0)
+#endif
+
 #define CDX_ERROR -1
 #define CDX_OK     0
 #define CDX_FALSE  0

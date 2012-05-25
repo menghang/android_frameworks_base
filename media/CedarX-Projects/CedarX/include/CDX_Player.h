@@ -50,7 +50,8 @@ typedef struct CedarXPlayerContext{
 	CEDARX_STATES states;
 	CEDARX_STATES transient_states;
 	CEDARX_AUDIO_OUT_TYPE audio_out_type;
-	CDX_S64 pause_position;
+	CDX_S64 temp_position;
+	CDX_S32 is_pausing;
 	CDX_S32 is_manual_pause;
 
 	ThirdpartComponentInit thirdpart_component_init;
@@ -125,6 +126,7 @@ typedef struct CedarXPlayerContext{
 	OMX_S8		player_can_seek;
 	//0:normal foramt; 1:ts, 2:m2ts
 	OMX_S8		container_type;
+    OMX_U8     play_bd_file;
 }CedarXPlayerContext;
 
 #include "CDX_PlayerAPI.h"
@@ -134,6 +136,7 @@ typedef struct CedarXMediaRetriverContext{
 	CedarXMetaData cdx_metadata;
 	CedarXDataSourceDesc data_src_desc;
 	CEDARV_REQUEST_CONTEXT cedarv_req_ctx;
+	void *vd_thumb_ctx;
 }CedarXMediaRetriverContext;
 
 #endif

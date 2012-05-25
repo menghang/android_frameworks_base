@@ -75,9 +75,6 @@ class HTML5VideoViewProxy extends Handler
     // Timer thread -> UI thread
     private static final int TIMEUPDATE = 300;
 
-	//add by Bevis
-	private static final boolean AUTO_FULLSCREEN = true;
-
     // The C++ MediaPlayerPrivateAndroid object.
     int mNativePointer;
     // The handler for WebCore thread messages;
@@ -91,6 +88,12 @@ class HTML5VideoViewProxy extends Handler
     private PosterDownloader mPosterDownloader;
     // The seek position.
     private int mSeekPosition;
+    
+    //add by Bevis
+    private static final boolean AUTO_FULLSCREEN_PLAY = true;
+    private boolean enterFullScreen = false;
+    private static String ignoredUrl = "";
+    
     // A helper class to control the playback. This executes on the UI thread!
     private static final class VideoPlayer {
     	private static final String TAG = "VideoPlayer";
@@ -104,7 +107,7 @@ class HTML5VideoViewProxy extends Handler
         // By using the baseLayer and the current video Layer ID, we can
         // identify the exact layer on the UI thread to use the SurfaceTexture.
         private static int mBaseLayer = 0;
-		
+
         private static void setPlayerBuffering(boolean playerBuffering) {
             mHTML5VideoView.setPlayerBuffering(playerBuffering);
         }
@@ -163,7 +166,7 @@ class HTML5VideoViewProxy extends Handler
                     }
                     mHTML5VideoView.pauseAndDispatch(mCurrentProxy);
                     mHTML5VideoView.release();
-                }                
+                }
                 mHTML5VideoView = new HTML5VideoFullScreen(proxy.getContext(),
                         layerId, savePosition, savedIsPlaying);
                 mCurrentProxy = proxy;
@@ -171,6 +174,35 @@ class HTML5VideoViewProxy extends Handler
                 mHTML5VideoView.setVideoURI(url, mCurrentProxy);
 
                 mHTML5VideoView.enterFullScreenVideoState(layerId, proxy, webView);
+                if(AUTO_FULLSCREEN_PLAY){
+                	ignoredUrl = "";
+            	}
+        }
+        
+        //add by Bevis
+        private static void AutoFullScreenAndPlay(int layerId, String url, HTML5VideoViewProxy proxy, WebView webView) {
+        	// Save the inline video info and inherit it in the full screen
+        	int savePosition = 0;
+        	boolean savedIsPlaying = false;
+        	if (mHTML5VideoView != null) {
+        	    // If we are playing the same video, then it is better to
+        	    // save the current position.
+        	    if (layerId == mHTML5VideoView.getVideoLayerId()) {
+        	        savePosition = mHTML5VideoView.getCurrentPosition();
+        	        savedIsPlaying = mHTML5VideoView.isPlaying();
+        	    }
+        	    mHTML5VideoView.pauseAndDispatch(mCurrentProxy);
+        	    mHTML5VideoView.release();
+        	}
+        	mHTML5VideoView = new HTML5VideoFullScreen(proxy.getContext(),
+        	        layerId, savePosition, true);
+        	mCurrentProxy = proxy;
+        	
+        	mHTML5VideoView.setVideoURI(url, mCurrentProxy);
+        	
+        	mHTML5VideoView.enterFullScreenVideoState(layerId, proxy, webView);
+        	
+        	ignoredUrl = "";
         }
         
         // This is on the UI thread.
@@ -184,6 +216,7 @@ class HTML5VideoViewProxy extends Handler
                 currentVideoLayerId = mHTML5VideoView.getVideoLayerId();
                 backFromFullScreenMode = mHTML5VideoView.fullScreenExited();
             }
+
             if (backFromFullScreenMode
                 || currentVideoLayerId != videoLayerId
                 || mHTML5VideoView.surfaceTextureDeleted()) {
@@ -192,29 +225,22 @@ class HTML5VideoViewProxy extends Handler
                 // For switching videos within a WebView or across the WebView,
                 // we need to pause the old one and re-create a new media player
                 // inside the HTML5VideoView.
+                if(AUTO_FULLSCREEN_PLAY){
+                	ignoredUrl = url;
+            		return;
+            	}
                 if (mHTML5VideoView != null) {
                     if (!backFromFullScreenMode) {
                         mHTML5VideoView.pauseAndDispatch(mCurrentProxy);
                     }
                     // release the media player to avoid finalize error
                     mHTML5VideoView.release();
-                    if(AUTO_FULLSCREEN){
-                		if (mHTML5VideoView instanceof HTML5VideoFullScreen && client != null) {
-                    		client.onHideCustomView();
-                		}
-                	}
                 }
                 mCurrentProxy = proxy;
-                if(AUTO_FULLSCREEN){
-                	mHTML5VideoView = new HTML5VideoFullScreen(mCurrentProxy.getContext(), videoLayerId, time, true);
-                	mHTML5VideoView.setVideoURI(url, mCurrentProxy);
-               	 	mHTML5VideoView.enterFullScreenVideoState(videoLayerId, mCurrentProxy, mCurrentProxy.getWebView());
-                }
-                else{
-                	mHTML5VideoView = new HTML5VideoInline(videoLayerId, time, false);
-                	mHTML5VideoView.setVideoURI(url, mCurrentProxy);
-                	mHTML5VideoView.prepareDataAndDisplayMode(proxy);
-                }
+                mHTML5VideoView = new HTML5VideoInline(videoLayerId, time, false);
+
+                mHTML5VideoView.setVideoURI(url, mCurrentProxy);
+                mHTML5VideoView.prepareDataAndDisplayMode(proxy);
             } else if (mCurrentProxy == proxy) {
                 // Here, we handle the case when we keep playing with one video
                 if (!mHTML5VideoView.isPlaying()) {
@@ -264,12 +290,10 @@ class HTML5VideoViewProxy extends Handler
 
         public static void end() {
             if (mCurrentProxy != null) {
-                if (isVideoSelfEnded){
-                	mCurrentProxy.dispatchOnEnded();
-                }
-                else{
-            		mCurrentProxy.dispatchOnPaused();
-            	}
+                if (isVideoSelfEnded)
+                    mCurrentProxy.dispatchOnEnded();
+                else
+                    mCurrentProxy.dispatchOnPaused();
             }
             isVideoSelfEnded = false;
         }
@@ -312,7 +336,7 @@ class HTML5VideoViewProxy extends Handler
         Message msg = Message.obtain(mWebCoreHandler, PAUSED);
         mWebCoreHandler.sendMessage(msg);
     }
-     
+
     public void dispatchOnStopFullScreen() {
         Message msg = Message.obtain(mWebCoreHandler, STOPFULLSCREEN);
         mWebCoreHandler.sendMessage(msg);
@@ -339,6 +363,20 @@ class HTML5VideoViewProxy extends Handler
                 String url = (String) msg.obj;
                 WebChromeClient client = mWebView.getWebChromeClient();
                 int videoLayerID = msg.arg1;
+                
+                if(AUTO_FULLSCREEN_PLAY){
+                	if(!enterFullScreen){
+                		if(VideoPlayer.mHTML5VideoView == null || VideoPlayer.mHTML5VideoView.fullScreenExited())
+                		{
+                			if(!url.equals(ignoredUrl)){
+                				VideoPlayer.AutoFullScreenAndPlay(videoLayerID, url, this, mWebView);
+            					enterFullScreen = true;
+                			}
+            				return;
+                		}
+            		}                
+                }
+                
                 if (client != null) {
                     VideoPlayer.play(url, mSeekPosition, this, client, videoLayerID);
                 }
@@ -354,7 +392,7 @@ class HTML5VideoViewProxy extends Handler
                 VideoPlayer.pause(this);
                 break;
             }
-            case ENDED:
+            case ENDED: {
                 if (msg.arg1 == 1){
                		if(HTML5VideoView.BREAKPOINT_ON){
             			if(VideoPlayer.mHTML5VideoView != null){
@@ -362,16 +400,19 @@ class HTML5VideoViewProxy extends Handler
                 			deleteBreakpoint(url);
             			}
                 	}
-                	if(AUTO_FULLSCREEN){
-                		WebChromeClient client = mWebView.getWebChromeClient();
-                		if (client != null) {
-                    		client.onHideCustomView();
-                		}
-                	}
             		VideoPlayer.isVideoSelfEnded = true;
             	}                    
                 VideoPlayer.end();
+                
+                if(AUTO_FULLSCREEN_PLAY){
+                	WebChromeClient client = mWebView.getWebChromeClient();
+                	if (client != null) {
+                    	client.onHideCustomView();
+                	}
+                }
+                
                 break;
+            }                    
             case ERROR: {
                 WebChromeClient client = mWebView.getWebChromeClient();
                 if (client != null) {
@@ -602,6 +643,11 @@ class HTML5VideoViewProxy extends Handler
                         break;
                     case STOPFULLSCREEN:
                         nativeOnStopFullscreen(mNativePointer);
+                        
+                        if(AUTO_FULLSCREEN_PLAY){
+                        	enterFullScreen = false;
+                        }
+                        
                         break;
                 }
             }
@@ -638,7 +684,7 @@ class HTML5VideoViewProxy extends Handler
         if (url == null) {
             return;
         }
-
+		
         if (position > 0) {
             seek(position);
         }
@@ -708,6 +754,10 @@ class HTML5VideoViewProxy extends Handler
 
     public void enterFullScreenVideo(int layerId, String url) {
         VideoPlayer.enterFullScreenVideo(layerId, url, this, mWebView);
+        
+        if(AUTO_FULLSCREEN_PLAY){
+        	enterFullScreen = true;
+        }
     }
 
     /**

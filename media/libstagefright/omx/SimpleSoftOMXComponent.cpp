@@ -523,6 +523,8 @@ void SimpleSoftOMXComponent::onPortFlush(
         return;
     }
 
+    internalSetParameter(OMX_IndexParamVendorFlushBuffer, 0);
+
     CHECK_LT(portIndex, mPorts.size());
 
     PortInfo *port = &mPorts.editItemAt(portIndex);

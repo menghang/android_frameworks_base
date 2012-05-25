@@ -170,8 +170,8 @@ extern "C" {
 		ANAGLAGH_NONE,
 	}anaglath_trans_mode_e;
 
-#define CEDARV_PICT_PROP_NO_SYNC   0x1
-#define CEDARV_FLAG_DECODE_NO_DELAY     0x40000000
+#define CEDARV_PICT_PROP_NO_SYNC    0x1
+#define CEDARV_FLAG_DECODE_NO_DELAY 0x40000000
 
 	//*******************************************************//
 	//************ Define Video Frame Structure. ************//

@@ -112,7 +112,6 @@ class MediaPlayerService : public BnMediaPlayerService
         float                   mLeftVolume;
         float                   mRightVolume;
         float                   mMsecsPerFrame;
-        uint32_t                mLatency;
         int                     mSessionId;
         float                   mSendLevel;
         int                     mAuxEffectId;
@@ -270,6 +269,12 @@ public:
     virtual bool                getGlobalSubGate();
     /* add by Gary. end   -----------------------------------}} */
 
+    /* add by Gary. start {{----------------------------------- */
+    /* 2012-4-24 */
+    /* add two general interfaces for expansibility */
+    virtual status_t            generalGlobalInterface(int cmd, int int1, int int2, int int3, void *p);
+    /* add by Gary. end   -----------------------------------}} */
+
 private:
 
     class Client : public BnMediaPlayer {
@@ -370,6 +375,12 @@ private:
         /* set audio channel mute */
         virtual status_t        setChannelMuteMode(int muteMode);
         virtual int             getChannelMuteMode();
+        /* add by Gary. end   -----------------------------------}} */
+
+        /* add by Gary. start {{----------------------------------- */
+        /* 2012-4-24 */
+        /* add two general interfaces for expansibility */
+        virtual status_t        generalInterface(int cmd, int int1, int int2, int int3, void *p);
         /* add by Gary. end   -----------------------------------}} */
 
         sp<MediaPlayerBase>     createPlayer(player_type playerType);

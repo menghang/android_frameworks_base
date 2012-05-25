@@ -329,7 +329,7 @@ extern "C" {
 cedarv_decoder_t* libcedarv_init(s32 *ret);
 s32 libcedarv_exit(cedarv_decoder_t* p);
 
-void libcedarv_free_vbs_buffer_sem(void);
+void libcedarv_free_vbs_buffer_sem(void* vdecoder);
 
 #endif
 

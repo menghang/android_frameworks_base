@@ -298,6 +298,14 @@ public:
     static  status_t        setGlobalSubGate(bool showSub);
     static  bool            getGlobalSubGate();
     /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2012-4-24 */
+    /* add two general interfaces for expansibility */
+            status_t        generalInterface(int cmd, int int1, int int2, int int3, void *p);
+    static  status_t        generalGlobalInterface(int cmd, int int1, int int2, int int3, void *p);
+    /* add by Gary. end   -----------------------------------}} */
+
 private:
             void            clear_l();
             status_t        seekTo_l(int msec);

@@ -91,6 +91,8 @@ typedef enum CDX_DEMUX_COMMANDS
     CDX_DMX_CMD_DISABLE_AUDIO_TRACK,
     CDX_DMX_CMD_DISABLE_SUBTITLE_TRACK,
     CDX_DMX_CMD_SUPPORT_AUDIO_SEAMELESS_SWITCH,
+    CDX_DMX_CMD_SET_QUERY_BUFFER_STATUS_CALLBACK,
+    CDX_DMX_CMD_SET_PLAY_BD_FILE,
 
 } CDX_DEMUX_COMMANDS;
 
@@ -254,10 +256,16 @@ typedef struct CedarXDemuxerAPI {
   const char *name;
   const char *subname;
   const char *shortdesc;
-  int  file_format;
+  void  *use_sft_demux_handle;
 
-  void *reserved_0;
-  void *reserved_1;
+  //below reserved are only used by cedarx internal
+  void *reserved_0; //demux_epdk_wrapper
+  void *reserved_1; //demux_epdk_wrapper
+  void *reserved_2; //demux_http
+
+  //below reserved are used by customer
+  void *reserved_usr_0;
+  void *reserved_usr_1;
 
   /* base interface for demuxer plugins */
   int  (*open)(struct CedarXDemuxerAPI *handle, CedarXMediainfo *pMediaInfo, CedarXDataSourceDesc *datasrc_desc);
@@ -269,5 +277,6 @@ typedef struct CedarXDemuxerAPI {
 } CedarXDemuxerAPI;
 
 CedarXDemuxerAPI *cedarx_demux_create(int demux_type);
+void cedarx_demux_destory(CedarXDemuxerAPI *handle);
 
 #endif /* CEDAR_DEMUX_H_ */

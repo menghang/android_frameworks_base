@@ -454,13 +454,12 @@ static int aac_probe(media_probe_data_t *p)
 	return 0;
 }
 
-#define MAX_FTYPE_SIZE 64
+#define MAX_FTYPE_SIZE 5
 
 static int mp4_probe(media_probe_data_t *p) {
 	unsigned int offset;
 	unsigned int tag;
 	int score = 0;
-	int ftyp_size;
 	char ftype_data[MAX_FTYPE_SIZE];
 
 	/* check file header */
@@ -486,11 +485,11 @@ static int mp4_probe(media_probe_data_t *p) {
 		case MKTAG('p','i','c','t'):
 			return AVPROBE_SCORE_MAX - 5;
 		case MKTAG('f','t','y','p'):
-			ftyp_size = AV_RB32(p->buf+offset) - 8;
-			ftyp_size = ftyp_size > MAX_FTYPE_SIZE ? MAX_FTYPE_SIZE-1 : ftyp_size;
-			memcpy(ftype_data, p->buf+offset+8, ftyp_size);
-			ftype_data[ftyp_size] = '\0';
-			if(strstr(ftype_data,"3gp") != NULL) {
+
+			memcpy(ftype_data, p->buf+offset+8, MAX_FTYPE_SIZE-1);
+			ftype_data[MAX_FTYPE_SIZE-1] = '\0';
+			//LOGD("ftype_data:%s",ftype_data);
+			if(strcasestr(ftype_data,"3gp") != NULL || strcasestr(ftype_data,"isom") != NULL) {
 				return 77;
 			}
 			return AVPROBE_SCORE_MAX;

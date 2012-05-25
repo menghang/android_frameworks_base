@@ -150,9 +150,8 @@ public class MultiWaveView extends View {
     public MultiWaveView(Context context, AttributeSet attrs) {
         super(context, attrs);
         Resources res = context.getResources();
-
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MultiWaveView);
-        mOuterRadius = a.getDimension(R.styleable.MultiWaveView_outerRadius, mOuterRadius);
+       // mOuterRadius = a.getDimension(R.styleable.MultiWaveView_outerRadius, mOuterRadius);
         mHorizontalOffset = a.getDimension(R.styleable.MultiWaveView_horizontalOffset,
                 mHorizontalOffset);
         mVerticalOffset = a.getDimension(R.styleable.MultiWaveView_verticalOffset,
@@ -163,11 +162,13 @@ public class MultiWaveView extends View {
                 mVibrationDuration);
         mFeedbackCount = a.getInt(R.styleable.MultiWaveView_feedbackCount,
                 mFeedbackCount);
-        mHandleDrawable = new TargetDrawable(res,
-                a.getDrawable(R.styleable.MultiWaveView_handleDrawable));
+        mHandleDrawable = new TargetDrawable(res,a.getDrawable(R.styleable.MultiWaveView_handleDrawable));
+        Drawable dwHandle = this.getResources().getDrawable(R.drawable.ic_lockscreen_handle);
+		mHandleDrawable = new TargetDrawable(res,dwHandle); 
         mTapRadius = mHandleDrawable.getWidth()/2;
-        mOuterRing = new TargetDrawable(res, a.getDrawable(R.styleable.MultiWaveView_waveDrawable));
-
+		Drawable dwOuterRing = this.getResources().getDrawable(R.drawable.unlock_ring);
+        mOuterRing = new TargetDrawable(res,dwOuterRing);
+		mOuterRadius = (float)dwOuterRing.getMinimumWidth()/2;
         // Read chevron animation drawables
         final int chevrons[] = { R.styleable.MultiWaveView_leftChevronDrawable,
                 R.styleable.MultiWaveView_rightChevronDrawable,
@@ -542,6 +543,19 @@ public class MultiWaveView extends View {
         }
     }
 
+	public void setTargetResources(ArrayList<Drawable> drawables)
+	{
+       Resources res = getContext().getResources();
+       int count = drawables.size();
+       ArrayList<TargetDrawable> targetDrawables = new ArrayList<TargetDrawable>(count);
+        for (int i = 0; i < count; i++) {
+            Drawable drawable = drawables.get(i);
+            targetDrawables.add(new TargetDrawable(res, drawable));
+        }
+        mTargetDrawables = targetDrawables;
+        updateTargetPositions();
+	}
+	
     public int getTargetResourceId() {
         return mTargetResourceId;
     }

@@ -61,6 +61,9 @@ public class Build {
     /** The system bootloader version number. */
     public static final String BOOTLOADER = getString("ro.bootloader");
 
+	/**a property to tablet systemUI */
+	public static final String TABLETUI = getString("ro.property.tabletUI");
+
     /**
      * The radio firmware version number.
      *

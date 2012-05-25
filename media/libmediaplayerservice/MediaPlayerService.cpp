@@ -240,6 +240,7 @@ extmap FILE_EXTS [] =  {
 		{".amr", STAGEFRIGHT_PLAYER},
 		{".flac", STAGEFRIGHT_PLAYER},
 		{".m4a", STAGEFRIGHT_PLAYER},
+		{".m4r", STAGEFRIGHT_PLAYER},
 		{".out", STAGEFRIGHT_PLAYER},
 		{".mp3?nolength", STAGEFRIGHT_PLAYER},
 		{".ogg?nolength", STAGEFRIGHT_PLAYER},
@@ -346,7 +347,7 @@ MediaPlayerService::MediaPlayerService()
     /* 2012-03-12 */
     /* add the global interfaces to control the subtitle gate  */
     property_get(PROP_GLOBAL_SUB_GATE_KEY, prop_value, PROP_GLOBAL_SUB_GATE_DEFAULT_VALUE);
-    LOGD("prop_value of PROP_GLOBAL_SUB_GATE_KEY = %s", prop_value);
+    LOGV("prop_value of PROP_GLOBAL_SUB_GATE_KEY = %s", prop_value);
     String8 global_sub_value(prop_value);
     if(global_sub_value == PROP_ENABLE_GLOBAL_SUB)
         mGlobalSubGate = true;
@@ -463,7 +464,7 @@ status_t MediaPlayerService::AudioOutput::dump(int fd, const Vector<String16>& a
             mStreamType, mLeftVolume, mRightVolume);
     result.append(buffer);
     snprintf(buffer, 255, "  msec per frame(%f), latency (%d)\n",
-            mMsecsPerFrame, mLatency);
+            mMsecsPerFrame, (mTrack != 0) ? mTrack->latency() : -1);
     result.append(buffer);
     snprintf(buffer, 255, "  aux effect id(%d), send level (%f)\n",
             mAuxEffectId, mSendLevel);
@@ -633,7 +634,7 @@ MediaPlayerService::Client::Client(
 
     /* add by Gary. start {{----------------------------------- */
     mHasSurface = 0;
-    LOGD("mHasSurface is inited as 0");
+    LOGV("mHasSurface is inited as 0");
     /* add by Gary. end   -----------------------------------}} */
     /* add by Gary. start {{----------------------------------- */
     /* 2011-9-28 16:28:24 */
@@ -658,7 +659,7 @@ MediaPlayerService::Client::Client(
     mScaleHeight = 0;
     /* add by Gary. end   -----------------------------------}} */
 #if CALLBACK_ANTAGONIZER
-    LOGD("create Antagonizer");
+    LOGV("create Antagonizer");
     mAntagonizer = new Antagonizer(notify, this);
 #endif
 }
@@ -692,7 +693,7 @@ void MediaPlayerService::Client::disconnect()
     if (p != 0) {
         p->setNotifyCallback(0, 0);
 #if CALLBACK_ANTAGONIZER
-        LOGD("kill Antagonizer");
+        LOGV("kill Antagonizer");
         mAntagonizer->kill();
 #endif
         p->reset();
@@ -935,7 +936,7 @@ status_t MediaPlayerService::Client::setDataSource(
         /* add by Gary. start {{----------------------------------- */
         /* 2011-11-30 */
         /* fix the bug about setting global attibute */
-        LOGD("MediaPlayerService::Client::setDataSource() : screen = %d", mScreen);
+        LOGV("MediaPlayerService::Client::setDataSource() : screen = %d", mScreen);
         p->setScreen(mScreen);
         p->setVppGate(mVppGate);
         p->setLumaSharp(mLumaSharp);
@@ -1044,7 +1045,7 @@ status_t MediaPlayerService::Client::setDataSource(
     /* add by Gary. start {{----------------------------------- */
     /* 2011-11-30 */
     /* fix the bug about setting global attibute */
-	LOGD("MediaPlayerService::Client::setDataSource() : screen = %d", mScreen);
+	LOGV("MediaPlayerService::Client::setDataSource() : screen = %d", mScreen);
     p->setScreen(mScreen);
     p->setVppGate(mVppGate);
     p->setLumaSharp(mLumaSharp);
@@ -1079,7 +1080,7 @@ void MediaPlayerService::Client::disconnectNativeWindow() {
 status_t MediaPlayerService::Client::setVideoSurfaceTexture(
         const sp<ISurfaceTexture>& surfaceTexture)
 {
-    LOGD("[%d] setVideoSurfaceTexture(%p)", mConnId, surfaceTexture.get());
+    LOGV("[%d] setVideoSurfaceTexture(%p)", mConnId, surfaceTexture.get());
     sp<MediaPlayerBase> p = getPlayer();
     if (p == 0) return UNKNOWN_ERROR;
 
@@ -1115,7 +1116,7 @@ status_t MediaPlayerService::Client::setVideoSurfaceTexture(
 
     /* add by Gary. start {{----------------------------------- */
     mHasSurface = 1;
-    LOGD("mHasSurface is set as 1");
+    LOGV("mHasSurface is set as 1");
     /* add by Gary. end   -----------------------------------}} */
 
     disconnectNativeWindow();
@@ -1205,7 +1206,7 @@ status_t MediaPlayerService::Client::prepareAsync()
     if (p == 0) return UNKNOWN_ERROR;
     status_t ret = p->prepareAsync();
 #if CALLBACK_ANTAGONIZER
-    LOGD("start Antagonizer");
+    LOGV("start Antagonizer");
     if (ret == NO_ERROR) mAntagonizer->start();
 #endif
     return ret;
@@ -1467,7 +1468,7 @@ status_t MediaPlayerService::Client::switchSub(int index)
 
 status_t MediaPlayerService::Client::setSubGate(bool showSub)
 {
-    LOGD("MediaPlayerService::Client::setSubGate(): showSub = %d", showSub);
+    LOGV("MediaPlayerService::Client::setSubGate(): showSub = %d", showSub);
     mSubGate = showSub;
     sp<MediaPlayerBase> p = getPlayer();
     if (p == 0) 
@@ -1997,7 +1998,7 @@ int MediaPlayerService::Client::getChannelMuteMode()
 /* add the global interfaces to control the subtitle gate  */
 status_t MediaPlayerService::setGlobalSubGate(bool showSub)
 {
-    LOGD("MediaPlayerService::setGlobalSubGate(): enable = %d", showSub);
+    LOGV("MediaPlayerService::setGlobalSubGate(): enable = %d", showSub);
     if( showSub == mGlobalSubGate )
         return OK;
         
@@ -2028,6 +2029,34 @@ bool MediaPlayerService::getGlobalSubGate()
     return mGlobalSubGate;
 }
 /* add by Gary. end   -----------------------------------}} */
+
+/* add by Gary. start {{----------------------------------- */
+/* 2012-4-24 */
+/* add two general interfaces for expansibility */
+status_t MediaPlayerService::generalGlobalInterface(int cmd, int int1, int int2, int int3, void *p)
+{
+    switch(cmd){
+        case MEDIAPLAYER_GLOBAL_CMD_TEST:{
+            LOGD("MEDIAPLAYER_GLOBAL_CMD_TEST: int1 = %d", int1);
+            *((int *)p) = 111;
+            LOGD("*p = %d", *((int *)p));
+        }break;
+        default:{
+            LOGW("cmd %d is NOT defined.", cmd);
+        }break;
+    }
+    return OK;
+}
+/* add by Gary. end   -----------------------------------}} */
+
+
+status_t MediaPlayerService::Client::generalInterface(int cmd, int int1, int int2, int int3, void *p)
+{
+    sp<MediaPlayerBase> mp = getPlayer();
+    if (mp == 0) 
+        return UNKNOWN_ERROR;
+    return mp->generalInterface(cmd, int1, int2, int3, p);
+}
 
 void MediaPlayerService::Client::notify(
         void* cookie, int msg, int ext1, int ext2, const Parcel *obj)
@@ -2093,7 +2122,7 @@ void Antagonizer::kill()
 
 int Antagonizer::callbackThread(void* user)
 {
-    LOGD("Antagonizer started");
+    LOGV("Antagonizer started");
     Antagonizer* p = reinterpret_cast<Antagonizer*>(user);
     while (!p->mExit) {
         if (p->mActive) {
@@ -2104,7 +2133,7 @@ int Antagonizer::callbackThread(void* user)
     }
     Mutex::Autolock _l(p->mLock);
     p->mCondition.signal();
-    LOGD("Antagonizer stopped");
+    LOGV("Antagonizer stopped");
     return 0;
 }
 #endif
@@ -2122,7 +2151,7 @@ sp<IMemory> MediaPlayerService::decode(const char* url, uint32_t *pSampleRate, i
     // If the application wants to decode those, it should open a
     // filedescriptor for them and use that.
     if (url != NULL && strncmp(url, "http://", 7) != 0) {
-        LOGD("Can't decode %s by path, use filedescriptor instead", url);
+        LOGV("Can't decode %s by path, use filedescriptor instead", url);
         return mem;
     }
 
@@ -2230,7 +2259,6 @@ MediaPlayerService::AudioOutput::AudioOutput(int sessionId)
     mStreamType = AUDIO_STREAM_MUSIC;
     mLeftVolume = 1.0;
     mRightVolume = 1.0;
-    mLatency = 0;
     mMsecsPerFrame = 0;
     mAuxEffectId = 0;
     mSendLevel = 0.0;
@@ -2289,7 +2317,8 @@ ssize_t MediaPlayerService::AudioOutput::frameSize() const
 
 uint32_t MediaPlayerService::AudioOutput::latency () const
 {
-    return mLatency;
+    if (mTrack == 0) return 0;
+    return mTrack->latency();
 }
 
 float MediaPlayerService::AudioOutput::msecsPerFrame() const
@@ -2312,7 +2341,7 @@ status_t MediaPlayerService::AudioOutput::open(
 
     // Check argument "bufferCount" against the mininum buffer count
     if (bufferCount < mMinBufferCount) {
-        LOGD("bufferCount (%d) is too small and increased to %d", bufferCount, mMinBufferCount);
+        LOGV("bufferCount (%d) is too small and increased to %d", bufferCount, mMinBufferCount);
         bufferCount = mMinBufferCount;
 
     }
@@ -2368,7 +2397,6 @@ status_t MediaPlayerService::AudioOutput::open(
     t->setVolume(mLeftVolume, mRightVolume);
 
     mMsecsPerFrame = 1.e3 / (float) sampleRate;
-    mLatency = t->latency();
     mTrack = t;
 
     t->setAuxEffectSendLevel(mSendLevel);

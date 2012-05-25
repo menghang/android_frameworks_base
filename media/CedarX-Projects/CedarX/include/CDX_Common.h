@@ -62,6 +62,8 @@ typedef struct CedarXDataSourceDesc{
 	int  demux_type;
 
 	int  mp_stream_cache_size; //unit KByte used for mplayer cache size setting
+	char* bd_source_url;
+    int   playBDFile;
 }CedarXDataSourceDesc;
 
 typedef enum CDX_AUDIO_CODEC_TYPE {

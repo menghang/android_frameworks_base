@@ -45,7 +45,15 @@ typedef struct cdx_stream_info {
   reqdata_from_dram  	request_data;
   cdx_data_buf_t    	data_buf;
   int					isReqData;
-  CedarXDataSourceDesc data_src_desc;
+  CedarXDataSourceDesc  data_src_desc;
+
+  //below reserved are only used by cedarx internal
+  void *reserved_0;
+  void *reserved_1;
+
+  //below reserved are used by customer
+  void *reserved_usr_0;
+  void *reserved_usr_1;
 
   FILE  *file_handle;
 #ifdef __OS_ANDROID

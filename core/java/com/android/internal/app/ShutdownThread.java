@@ -39,6 +39,7 @@ import android.os.SystemProperties;
 import android.os.Vibrator;
 import android.os.storage.IMountService;
 import android.os.storage.IMountShutdownObserver;
+import android.telephony.TelephonyManager;
 
 import com.android.internal.telephony.ITelephony;
 import android.util.Log;
@@ -306,18 +307,27 @@ public final class ShutdownThread extends Thread {
         }
 
         try {
-            radioOff = phone == null || !phone.isRadioOn();
+            radioOff = phone == null || !phone.isRadioOn();	
+			
             if (!radioOff) {
                 Log.w(TAG, "Turning off radio...");
                 phone.setRadio(false);
             }
+			
         } catch (RemoteException ex) {
             Log.e(TAG, "RemoteException during radio shutdown", ex);
             radioOff = true;
         }
 
+		
         Log.i(TAG, "Waiting for Bluetooth and Radio...");
-        
+		
+		if( TelephonyManager.getDefault().getNetworkOperator().equals("") ) {
+			radioOff = true;
+		}
+
+		Log.i(TAG, "bluetoothOff="+bluetoothOff+" ;"+"radioOff="+radioOff);
+		
         // Wait a max of 32 seconds for clean shutdown
         for (int i = 0; i < MAX_NUM_PHONE_STATE_READS; i++) {
             if (!bluetoothOff) {

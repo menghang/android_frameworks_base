@@ -268,6 +268,7 @@ typedef enum OMX_INDEXTYPE {
     OMX_IndexVendorKeyFrameDecoded,
 
     OMX_IndexVendorSetSoftChipVersion,
+    OMX_IndexVendorSetCedarvContext,
 
     OMX_IndexVendorSwitchSubtilte = 0xFF001000,
     OMX_IndexVendorDisableSubtilte,
@@ -277,6 +278,7 @@ typedef enum OMX_INDEXTYPE {
 	OMX_IndexVendorSwitchDiffStyleSubtitle,
     OMX_IndexVendorSwitchSeamlessAudio,
     OMX_IndexVendorDisableMediaType,
+    OMX_IndexVendorPlayBDFile,
 
 	// star add for recorder
 	OMX_IndexVendorSetFP = 0xFF100000,
@@ -287,6 +289,7 @@ typedef enum OMX_INDEXTYPE {
 	OMX_IndexVendorGetFileSize,
 	OMX_IndexVendorSetRecMode,
 	OMX_IndexVendorSetTimeLapse,
+	OMX_IndexVendorSetAvsCounter,
 	
     /* Vendor specific structures should be in the range of 0xFF000000 
        to 0xFFFFFFFF.  This range is not broken out by vendor, so
