@@ -11,6 +11,7 @@ typedef struct CedarxAvscounterContext {
 	long long sample_time;
 	long long base_time;
 	int adjust_ratio;
+	long long system_base_time;
 
 	pthread_mutex_t mutex;
 

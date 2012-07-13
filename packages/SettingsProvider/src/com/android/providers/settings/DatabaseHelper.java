@@ -1427,6 +1427,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     R.bool.def_smart_brightness_enable);
 			loadBooleanSetting(stmt, Settings.System.SMART_BRIGHTNESS_PREVIEW_ENABLE,
                     R.bool.def_smart_brightness_preview_enable);
+			loadIntegerSetting(stmt, Settings.System.HDMI_OUTPUT_MODE,
+				    R.integer.def_hdmi_output_mode);
         } finally {
             if (stmt != null) stmt.close();
         }
@@ -1588,6 +1590,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             loadBooleanSetting(stmt, Settings.Secure.ACCESSIBILITY_SPEAK_PASSWORD,
                     R.bool.def_accessibility_speak_password);
+
+            // add for facelock
+            loadStringSetting(stmt,"lockscreen.options",
+                    R.string.def_lockscreen_options);
         } finally {
             if (stmt != null) stmt.close();
         }

@@ -56,6 +56,7 @@ struct MediaRecorderBase {
     virtual status_t getMaxAmplitude(int *max) = 0;
     virtual status_t dump(int fd, const Vector<String16>& args) const = 0;
     virtual sp<ISurfaceTexture> querySurfaceMediaSource() const = 0;
+    virtual status_t queueBuffer(int index, int addr_y, int addr_c, int64_t timestamp);
 
 private:
     MediaRecorderBase(const MediaRecorderBase &);

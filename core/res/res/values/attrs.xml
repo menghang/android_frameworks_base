@@ -5285,6 +5285,10 @@
 
         <!-- Used to shift center of pattern horizontally. -->
         <attr name="horizontalOffset" format="dimension" />
+		<!-- The max application icon number -->
+		<attr name="maxAppIconNum" format="integer" />
+		<!-- The  icon size -->
+		<attr name="iconSize" format="integer" />
     </declare-styleable>
 
     <!-- =============================== -->

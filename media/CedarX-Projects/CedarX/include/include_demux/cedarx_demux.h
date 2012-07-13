@@ -94,6 +94,7 @@ typedef enum CDX_DEMUX_COMMANDS
     CDX_DMX_CMD_SET_QUERY_BUFFER_STATUS_CALLBACK,
     CDX_DMX_CMD_SET_PLAY_BD_FILE,
 
+    CDX_DMX_CMD_SNIFF_SFT_MIME,
 } CDX_DEMUX_COMMANDS;
 
 typedef enum CDX_DEMUX_FLAGS{
@@ -263,6 +264,9 @@ typedef struct CedarXDemuxerAPI {
   void *reserved_1; //demux_epdk_wrapper
   void *reserved_2; //demux_http
 
+  //for dynamic library
+  void *dl_handle;
+  int httplive_use_mplayer;
   //below reserved are used by customer
   void *reserved_usr_0;
   void *reserved_usr_1;

@@ -177,8 +177,14 @@ public class InputManager implements Watchdog.Monitor {
         }
         
         if (DEBUG) {
+			
             Slog.d(TAG, "Setting display #" + displayId + " orientation to " + rotation);
         }
+		if(SystemProperties.getInt("ro.sf.hwrotation",0)==270)
+		{			
+			rotation =(rotation+3)%4;
+		}
+
         nativeSetDisplayOrientation(displayId, rotation);
     }
     

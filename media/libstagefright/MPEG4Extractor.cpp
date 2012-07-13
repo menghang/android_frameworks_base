@@ -43,6 +43,8 @@
 
 namespace android {
 
+#define LOGH LOGV("H/%s line:%d\n",__FILE__,__LINE__)
+
 class MPEG4Source : public MediaSource {
 public:
     // Caller retains ownership of both "dataSource" and "sampleTable".
@@ -266,6 +268,7 @@ static const char *FourCC2MIME(uint32_t fourcc) {
 MPEG4Extractor::MPEG4Extractor(const sp<DataSource> &source)
     : mDataSource(source),
       mInitCheck(NO_INIT),
+      mIsQtff(false),
       mHasVideo(false),
       mFirstTrack(NULL),
       mLastTrack(NULL),
@@ -621,9 +624,12 @@ static void convertTimeToDate(int64_t time_1904, String8 *s) {
 
 status_t MPEG4Extractor::parseChunk(off64_t *offset, int depth) {
     uint32_t hdr[2];
+
     if (mDataSource->readAt(*offset, hdr, 8) < 8) {
         return ERROR_IO;
     }
+
+    LOGV("*offset:0x%llx",*offset);
     uint64_t chunk_size = ntohl(hdr[0]);
     uint32_t chunk_type = ntohl(hdr[1]);
     off64_t data_offset = *offset + 8;
@@ -663,6 +669,12 @@ status_t MPEG4Extractor::parseChunk(off64_t *offset, int depth) {
     }
 
     hexdump(buffer, n);
+#endif
+
+#if 0
+    static const char kWhitespace[] = "                                        ";
+    const char *indent = &kWhitespace[sizeof(kWhitespace) - 1 - 2 * depth];
+    LOGV("%sfound chunk '%s' of size %lld\n", indent, chunk, chunk_size);
 #endif
 
     PathAdder autoAdder(&mPath, chunk_type);
@@ -742,10 +754,16 @@ status_t MPEG4Extractor::parseChunk(off64_t *offset, int depth) {
             off64_t stop_offset = *offset + chunk_size;
             *offset = data_offset;
             while (*offset < stop_offset) {
-                status_t err = parseChunk(offset, depth + 1);
-                if (err != OK) {
-                    return err;
-                }
+            	//LOGV("*offset=0x%llx,stop_offset=0x%llx",*offset,stop_offset);
+                if (*offset < stop_offset-8) {
+                	status_t err = parseChunk(offset, depth + 1);
+					if (err != OK) {
+						return err;
+					}
+				}
+				else {
+					*offset = stop_offset;
+				}
             }
 
             if (*offset != stop_offset) {
@@ -772,7 +790,6 @@ status_t MPEG4Extractor::parseChunk(off64_t *offset, int depth) {
                 }
 
                 status_t err = verifyTrack(mLastTrack);
-
                 if (err != OK) {
                     return err;
                 }
@@ -935,6 +952,13 @@ status_t MPEG4Extractor::parseChunk(off64_t *offset, int depth) {
         }
 
         case FOURCC('m', 'p', '4', 'a'):
+		{
+        	if (chunk_data_size < 20 + 8) {
+        		*offset += chunk_size;
+        		break;
+        	}
+        	//.lys!!no break here
+		}
         case FOURCC('s', 'a', 'm', 'r'):
         case FOURCC('s', 'a', 'w', 'b'):
         {
@@ -949,6 +973,7 @@ status_t MPEG4Extractor::parseChunk(off64_t *offset, int depth) {
                 return ERROR_IO;
             }
 
+            uint16_t version = U16_AT(&buffer[8]);
             uint16_t data_ref_index = U16_AT(&buffer[6]);
             uint16_t num_channels = U16_AT(&buffer[16]);
 
@@ -968,7 +993,7 @@ status_t MPEG4Extractor::parseChunk(off64_t *offset, int depth) {
             }
 
 #if 0
-            printf("*** coding='%s' %d channels, size %d, rate %d\n",
+            LOGV("*** coding='%s' %d channels, size %d, rate %d\n",
                    chunk, num_channels, sample_size, sample_rate);
 #endif
 
@@ -978,11 +1003,27 @@ status_t MPEG4Extractor::parseChunk(off64_t *offset, int depth) {
 
             off64_t stop_offset = *offset + chunk_size;
             *offset = data_offset + sizeof(buffer);
+
+            LOGV("mIsQtff:%d version:%d",mIsQtff,version);
+			if (mIsQtff) {
+				if (version==1) {
+					*offset += 4*4;
+				}
+				else if (version==2) {
+					*offset += 4*9;
+				}
+			}
+
             while (*offset < stop_offset) {
-                status_t err = parseChunk(offset, depth + 1);
-                if (err != OK) {
-                    return err;
-                }
+            	if (*offset < stop_offset-8) {
+					status_t err = parseChunk(offset, depth + 1);
+					if (err != OK) {
+						return err;
+					}
+				}
+				else {
+					*offset = stop_offset;
+				}
             }
 
             if (*offset != stop_offset) {
@@ -1031,10 +1072,15 @@ status_t MPEG4Extractor::parseChunk(off64_t *offset, int depth) {
             off64_t stop_offset = *offset + chunk_size;
             *offset = data_offset + sizeof(buffer);
             while (*offset < stop_offset) {
-                status_t err = parseChunk(offset, depth + 1);
-                if (err != OK) {
-                    return err;
-                }
+            	if (*offset < stop_offset-8) {
+					status_t err = parseChunk(offset, depth + 1);
+					if (err != OK) {
+						return err;
+					}
+            	}
+            	else {
+            		*offset = stop_offset;
+            	}
             }
 
             if (*offset != stop_offset) {
@@ -1457,9 +1503,54 @@ status_t MPEG4Extractor::parseChunk(off64_t *offset, int depth) {
             break;
         }
 
+        case FOURCC('w', 'a', 'v', 'e'):
+		{
+			off64_t stop_offset = *offset + chunk_size;
+			*offset = data_offset;
+			while (*offset < stop_offset) {
+				status_t err = parseChunk(offset, depth + 1);
+				if (err != OK) {
+					if (err == INFO_VENDOR_LEAF_ATOM) {
+						*offset = stop_offset;
+						break;
+					}
+					return err;
+				}
+			}
+
+			if (*offset != stop_offset) {
+				return ERROR_MALFORMED;
+			}
+			break;
+		}
+
+        case FOURCC('f', 't', 'y', 'p'):
+		{
+			uint32_t brand;
+			if (mDataSource->readAt(data_offset, &brand, 4) < 4) {
+				return false;
+			}
+
+			brand = ntohl(brand);
+
+			if (brand == FOURCC('q', 't', ' ', ' ')) {
+				mIsQtff = true;
+			}
+
+			*offset += chunk_size;
+
+			break;
+		}
+
+        case 0: //leaf atom
+		{
+        	return INFO_VENDOR_LEAF_ATOM;
+		}
+
         default:
         {
             *offset += chunk_size;
+            LOGV("skip parser chunk");
             break;
         }
     }

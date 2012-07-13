@@ -233,6 +233,7 @@ typedef struct {
     const char *extension;
     const player_type playertype;
 } extmap;
+
 extmap FILE_EXTS [] =  {
 		{".ogg", STAGEFRIGHT_PLAYER},
 		{".mp3", STAGEFRIGHT_PLAYER},
@@ -262,6 +263,12 @@ extmap FILE_EXTS [] =  {
         {".aac", CEDARA_PLAYER},
         {".mp2", CEDARA_PLAYER},
         {".mp1", CEDARA_PLAYER},
+};
+
+extmap MP4A_FILE_EXTS [] =  {
+	{".m4a", CEDARX_PLAYER},
+	{".m4r", CEDARX_PLAYER},
+	{".3gpp", CEDARX_PLAYER},
 };
 
 // TODO: Find real cause of Audio/Video delay in PV framework and remove this workaround
@@ -709,6 +716,9 @@ static player_type getDefaultPlayerType() {
     //return STAGEFRIGHT_PLAYER;
 }
 
+extern int MovAudioOnlyDetect0(const char *url);
+extern int MovAudioOnlyDetect1(int fd, int64_t offset, int64_t length);
+
 player_type getPlayerType(int fd, int64_t offset, int64_t length, bool check_cedar)
 {
 	int r_size;
@@ -745,17 +755,27 @@ player_type getPlayerType(int fd, int64_t offset, int64_t length, bool check_ced
 		file_format = audio_format_detect((unsigned char*)buf, r_size);
 		LOGV("getPlayerType: %d",file_format);
 
-		if(file_format < MEDIA_FORMAT_STAGEFRIGHT_MAX && file_format > MEDIA_FORMAT_STAGEFRIGHT_MIN){
-			LOGV("use STAGEFRIGHT_PLAYER");
-			return STAGEFRIGHT_PLAYER;
+		if (file_format == MEDIA_FORMAT_3GP) {
+			int audio_only;
+			audio_only = MovAudioOnlyDetect1(fd, offset, length);
+			lseek(fd, offset, SEEK_SET);
+
+			return audio_only ? STAGEFRIGHT_PLAYER : CEDARX_PLAYER;
 		}
-		else if(file_format < MEDIA_FORMAT_CEDARA_MAX && file_format > MEDIA_FORMAT_CEDARA_MIN){
-			LOGV("use CEDARA_PLAYER");
-			return CEDARA_PLAYER;
-		}
-		else if(file_format < MEDIA_FORMAT_CEDARX_MAX && file_format > MEDIA_FORMAT_CEDARX_MIN){
-			LOGV("use CEDARX_PLAYER");
-			return CEDARX_PLAYER;
+		else
+		{
+			if(file_format < MEDIA_FORMAT_STAGEFRIGHT_MAX && file_format > MEDIA_FORMAT_STAGEFRIGHT_MIN){
+				LOGV("use STAGEFRIGHT_PLAYER");
+				return STAGEFRIGHT_PLAYER;
+			}
+			else if(file_format < MEDIA_FORMAT_CEDARA_MAX && file_format > MEDIA_FORMAT_CEDARA_MIN){
+				LOGV("use CEDARA_PLAYER");
+				return CEDARA_PLAYER;
+			}
+			else if(file_format < MEDIA_FORMAT_CEDARX_MAX && file_format > MEDIA_FORMAT_CEDARX_MIN){
+				LOGV("use CEDARX_PLAYER");
+				return CEDARX_PLAYER;
+			}
 		}
     }
 
@@ -764,6 +784,8 @@ player_type getPlayerType(int fd, int64_t offset, int64_t length, bool check_ced
 
 player_type getPlayerType(const char* url)
 {
+	char *strpos;
+
     if (TestPlayerStub::canBeUsed(url)) {
         return TEST_PLAYER;
     }
@@ -784,16 +806,40 @@ player_type getPlayerType(const char* url)
         return NU_PLAYER;
     }
 #endif
+
+    if (!strncasecmp("http://", url, 7) || !strncasecmp("https://", url, 8)) {
+		if((strpos = strrchr(url,'?')) != NULL) {
+			if(!strncasecmp(".mp3", strpos-4, 4) || !strncasecmp(".ogg", strpos-4, 4))
+				return STAGEFRIGHT_PLAYER;
+		}
+	}
+
     // use MidiFile for MIDI extensions
     int lenURL = strlen(url);
+    int len;
+    int start;
     for (int i = 0; i < NELEM(FILE_EXTS); ++i) {
-        int len = strlen(FILE_EXTS[i].extension);
-        int start = lenURL - len;
+        len = strlen(FILE_EXTS[i].extension);
+        start = lenURL - len;
         if (start > 0) {
             if (!strncasecmp(url + start, FILE_EXTS[i].extension, len)) {
                 return FILE_EXTS[i].playertype;
             }
         }
+    }
+
+    //MP4 AUDIO ONLY DETECT
+    if (strstr(url, "://") == NULL) {
+		for (int i = 0; i < NELEM(MP4A_FILE_EXTS); ++i) {
+			len = strlen(MP4A_FILE_EXTS[i].extension);
+			start = lenURL - len;
+			if (start > 0) {
+				if (!strncasecmp(url + start, MP4A_FILE_EXTS[i].extension, len)) {
+					if (MovAudioOnlyDetect0(url))
+						return STAGEFRIGHT_PLAYER;
+				}
+			}
+		}
     }
 
     return getDefaultPlayerType();
@@ -1060,6 +1106,70 @@ status_t MediaPlayerService::Client::setDataSource(
     if (mStatus == OK) {
         mPlayer = p;
     }
+
+    return mStatus;
+}
+
+status_t MediaPlayerService::Client::setDataSource(
+        const sp<IStreamSource> &source, int type) {
+    // create the right type of player
+    sp<MediaPlayerBase> p = createPlayer(CEDARX_PLAYER);
+
+    if (p == NULL) {
+        return NO_INIT;
+    }
+
+    if (!p->hardwareOutput()) {
+        mAudioOutput = new AudioOutput(mAudioSessionId);
+        static_cast<MediaPlayerInterface*>(p.get())->setAudioSink(mAudioOutput);
+    }
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-9-28 16:28:24 */
+    /* save properties before creating the real player */
+    p->setSubGate(mSubGate);
+    p->setSubColor(mSubColor);
+    p->setSubFrameColor(mSubFrameColor);
+    p->setSubPosition(mSubPosition);
+    p->setSubDelay(mSubDelay);
+    p->setSubFontSize(mSubFontSize);
+    p->setSubCharset(mSubCharset);
+	p->switchSub(mSubIndex);
+	p->switchTrack(mTrackIndex);
+    p->setChannelMuteMode(mMuteMode); // 2012-03-07, set audio channel mute
+    /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-10-9 8:54:30 */
+    /* add callback for parsing 3d source */
+    p->setParse3dFileCallback(this, parse3dFile);
+    /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-11-14 */
+    /* support scale mode */
+    p->enableScaleMode(mEnableScaleMode, mScaleWidth, mScaleHeight);
+    /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-11-30 */
+    /* fix the bug about setting global attibute */
+	LOGV("MediaPlayerService::Client::setDataSource() : screen = %d", mScreen);
+    p->setScreen(mScreen);
+    p->setVppGate(mVppGate);
+    p->setLumaSharp(mLumaSharp);
+    p->setChromaSharp(mChromaSharp);
+    p->setWhiteExtend(mWhiteExtend);
+    p->setBlackExtend(mBlackExtend);
+    /* add by Gary. end   -----------------------------------}} */
+
+    // now set data source
+    mStatus = p->setDataSource(source);
+
+    if (mStatus == OK) {
+        mPlayer = p;
+    }
+
+    generalInterface(MEDIAPLAYER_CMD_SET_STREAMING_TYPE, type, 0, 0, NULL);
 
     return mStatus;
 }
@@ -1423,7 +1533,15 @@ status_t MediaPlayerService::Client::isPlayingVideo(int *playing)
     	*playing = 0;
         return OK;
     }
+
     *playing = mHasSurface && (p->getMeidaPlayerState() != PLAYER_STATE_SUSPEND);
+
+    if (*playing) {
+    	generalInterface(MEDIAPLAYER_CMD_QUERY_HWLAYER_RENDER, 0, 0, 0, playing);
+    }
+
+    LOGV("isPlayingVideo:%d",*playing);
+
     return OK;
 }
 

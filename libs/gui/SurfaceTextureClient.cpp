@@ -273,7 +273,7 @@ int SurfaceTextureClient::query(int what, int* value) const {
 }
 
 int SurfaceTextureClient::perform(int operation, va_list args)
-{
+{    
     int res = NO_ERROR;
     switch (operation) {
     case NATIVE_WINDOW_CONNECT:
@@ -388,14 +388,11 @@ int SurfaceTextureClient::dispatchSetBuffersGeometry(va_list args) {
         return err;
     }
 
-    LOGD("dispatchSetBuffersGeometry1!\n");
     err = setBuffersFormat(f);
     if (err != 0) 
     {
         return err;
     }
-
-    LOGD("dispatchSetBuffersGeometry2!\n");
     
     layer_info.w 			= w;
     layer_info.h 			= h;

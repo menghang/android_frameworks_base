@@ -775,10 +775,11 @@ void ACodec::configureCodec(
         // These are PCM-like formats with a fixed sample rate but
         // a variable number of channels.
 
-        int32_t numChannels;
+        int32_t numChannels, sampleRate;
         CHECK(msg->findInt32("channel-count", &numChannels));
+        CHECK(msg->findInt32("sample-rate", &sampleRate));
 
-        CHECK_EQ(setupG711Decoder(numChannels), (status_t)OK);
+        CHECK_EQ(setupG711Decoder(numChannels, sampleRate), (status_t)OK);
     }
 
     int32_t maxInputSize;
@@ -870,9 +871,10 @@ status_t ACodec::setupAMRDecoder(bool isWAMR) {
     return mOMX->setParameter(mNode, OMX_IndexParamAudioAmr, &def, sizeof(def));
 }
 
-status_t ACodec::setupG711Decoder(int32_t numChannels) {
+status_t ACodec::setupG711Decoder(int32_t numChannels,int32_t sampleRate) {
     return setupRawAudioFormat(
-            kPortIndexInput, 8000 /* sampleRate */, numChannels);
+            //kPortIndexInput, 8000 /* sampleRate */, numChannels);
+            kPortIndexInput,  sampleRate , numChannels);
 }
 
 status_t ACodec::setupRawAudioFormat(

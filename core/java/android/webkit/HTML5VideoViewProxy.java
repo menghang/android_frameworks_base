@@ -90,7 +90,7 @@ class HTML5VideoViewProxy extends Handler
     private int mSeekPosition;
     
     //add by Bevis
-    private static final boolean AUTO_FULLSCREEN_PLAY = true;
+    private static final boolean AUTO_FULLSCREEN_PLAY = false;
     private boolean enterFullScreen = false;
     private static String ignoredUrl = "";
     
@@ -133,7 +133,7 @@ class HTML5VideoViewProxy extends Handler
                     boolean foundInTree = nativeSendSurfaceTexture(surfTexture,
                             layer, currentVideoLayerId, textureName,
                             playerState);
-                    if (playerState >= HTML5VideoView.STATE_PREPARED
+                    if (playerState > HTML5VideoView.STATE_PLAYING
                             && !foundInTree) {
                         mHTML5VideoView.pauseAndDispatch(mCurrentProxy);
                         mHTML5VideoView.deleteSurfaceTexture();

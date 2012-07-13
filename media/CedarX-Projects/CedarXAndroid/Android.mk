@@ -10,3 +10,5 @@ include $(LOCAL_PATH)/IceCreamSandwich/Android.mk
 endif
 
 $(info CEDARX_PRODUCTOR: $(CEDARX_PRODUCTOR))
+
+include $(call all-makefiles-under,$(LOCAL_PATH))

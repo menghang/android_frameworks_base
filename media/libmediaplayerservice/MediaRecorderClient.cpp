@@ -70,7 +70,16 @@ sp<ISurfaceTexture> MediaRecorderClient::querySurfaceMediaSource()
     return mRecorder->querySurfaceMediaSource();
 }
 
-
+status_t MediaRecorderClient::queueBuffer(int index, int addr_y, int addr_c, int64_t timestamp)
+{
+    LOGV("queueBuffer");
+    Mutex::Autolock lock(mLock);
+    if (mRecorder == NULL) {
+        LOGE("recorder is not initialized");
+        return NO_INIT;
+    }
+    return mRecorder->queueBuffer(index, addr_y, addr_c, timestamp);
+}
 
 status_t MediaRecorderClient::setCamera(const sp<ICamera>& camera,
                                         const sp<ICameraRecordingProxy>& proxy)

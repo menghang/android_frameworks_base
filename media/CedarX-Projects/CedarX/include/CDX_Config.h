@@ -25,4 +25,6 @@
 #define CDX_CODEC_TYPE_DISABLE_WMA       (1<<26)
 #define CDX_CODEC_TYPE_DISABLE_AAC       (1<<27)
 
+#define OMX_VIDEO_CodingMPEG4_DIVX		 (1<<30)
+
 #endif

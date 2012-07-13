@@ -22,6 +22,8 @@ import android.os.RemoteException;
 import android.os.Handler;
 import android.os.Message;
 import android.os.ServiceManager;
+import android.os.SystemProperties;
+
 import android.util.Log;
 import android.util.SparseArray;
 import android.util.SparseBooleanArray;
@@ -611,10 +613,22 @@ public class SensorManager
             final float[] v = t.values;			
 			String  str = Settings.System.getString(mContext.getContentResolver(), Settings.System.ACCELEROMETER_COORDINATE);
 			int stype = sensor.getType();
-			
-			t.originalValue[0]	= values[0];
-			t.originalValue[1]	= values[1];
-			t.originalValue[2]	= values[2];	
+			if(SystemProperties.getInt("ro.sf.hwrotation",0)==270)
+			{	
+				t.originalValue[0]	= values[1];
+				t.originalValue[1]	= -values[0];
+				t.originalValue[2]	= values[2];	
+				v[0] = values[1];
+				v[1] = -values[0];
+				v[2] = values[2];
+				
+			}
+			else
+			{
+				t.originalValue[0]	= values[0];
+				t.originalValue[1]	= values[1];
+				t.originalValue[2]	= values[2];
+			}
 			
 			if(str!=null && str.equals("special")&&((stype == sensor.TYPE_ACCELEROMETER)||(stype == sensor.TYPE_GRAVITY)))
 	        {
@@ -1717,7 +1731,7 @@ public class SensorManager
             return true;
         }
 
-        @SuppressWarnings("deprecation")
+      //  @SuppressWarnings("deprecation")
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
             try {
                 mTarget.onAccuracyChanged(sensor.getLegacyType(), accuracy);
@@ -1727,7 +1741,7 @@ public class SensorManager
             }
         }
 
-        @SuppressWarnings("deprecation")
+//        @SuppressWarnings("deprecation")
         public void onSensorChanged(SensorEvent event) {
             final float v[] = mValues;
             v[0] = event.values[0];

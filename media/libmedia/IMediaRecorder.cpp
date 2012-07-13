@@ -51,7 +51,9 @@ enum {
     SET_PARAMETERS,
     SET_PREVIEW_SURFACE,
     SET_CAMERA,
-    SET_LISTENER
+    SET_LISTENER,
+
+    QUEUE_BUFFER = RELEASE + 200,
 };
 
 class BpMediaRecorder: public BpInterface<IMediaRecorder>
@@ -85,6 +87,20 @@ public:
         }
         return interface_cast<ISurfaceTexture>(reply.readStrongBinder());
     }
+
+    status_t queueBuffer(int index, int addr_y, int addr_c, int64_t timestamp)
+    {
+		LOGV("queueBuffer(%d)", index);
+		Parcel data, reply;
+		data.writeInterfaceToken(IMediaRecorder::getInterfaceDescriptor());
+		data.writeInt32(index);
+		data.writeInt32(addr_y);
+		data.writeInt32(addr_c);
+		data.writeInt64(timestamp);
+		remote()->transact(QUEUE_BUFFER, data, &reply);
+		return reply.readInt32();
+    }
+
 
     status_t setPreviewSurface(const sp<Surface>& surface)
     {
@@ -451,6 +467,16 @@ status_t BnMediaRecorder::onTransact(
             if (!returnedNull) {
                 reply->writeStrongBinder(surfaceMediaSource->asBinder());
             }
+            return NO_ERROR;
+        } break;
+        case QUEUE_BUFFER: {
+        	LOGV("QUEUE_BUFFER");
+			CHECK_INTERFACE(IMediaRecorder, data, reply);
+			int32_t index  = data.readInt32();
+			int32_t addr_y = data.readInt32();
+			int32_t addr_c = data.readInt32();
+			int64_t timestamp = data.readInt64();
+			reply->writeInt32(queueBuffer(index, addr_y, addr_c, timestamp));
             return NO_ERROR;
         } break;
         default:

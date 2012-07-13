@@ -76,6 +76,8 @@ typedef struct cdx_stream_info {
 
 extern struct cdx_stream_info *create_stream_handle(CedarXDataSourceDesc *datasource_desc);
 extern void destory_stream_handle(struct cdx_stream_info *stm_info);
+extern struct cdx_stream_info *create_outstream_handle(CedarXDataSourceDesc *datasource_desc);
+void destroy_outstream_handle(struct cdx_stream_info *stm_info);
 
 static inline int cdx_seek(struct cdx_stream_info *stream, cdx_off_t offset, int whence)
 {

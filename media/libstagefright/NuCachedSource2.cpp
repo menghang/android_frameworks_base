@@ -187,6 +187,7 @@ NuCachedSource2::NuCachedSource2(
       mCache(new PageCache(kPageSize)),
       mCacheOffset(0),
       mFinalStatus(OK),
+      mForceReconnect(false),
       mLastAccessPos(0),
       mFetching(true),
       mLastFetchTimeUs(-1),
@@ -289,6 +290,11 @@ void NuCachedSource2::fetchInternal() {
             --mNumRetriesLeft;
 
             reconnect = true;
+        }
+        else if (mForceReconnect) {
+        	LOGD("ForceReconnect!!!");
+        	mForceReconnect = false;
+        	reconnect = true;
         }
     }
 
@@ -590,6 +596,10 @@ status_t NuCachedSource2::seekInternal_l(off64_t offset) {
 
     size_t totalSize = mCache->totalSize();
     CHECK_EQ(mCache->releaseFromStart(totalSize), totalSize);
+
+    if(mFinalStatus < 0) {
+       	mForceReconnect = true;
+    }
 
     mFinalStatus = OK;
     mFetching = true;

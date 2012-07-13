@@ -60,6 +60,7 @@ typedef struct CedarXDataSourceDesc{
 	CDX_S64 sft_stream_lenght;
 
 	int  demux_type;
+	int  httplive_use_mplayer;
 
 	int  mp_stream_cache_size; //unit KByte used for mplayer cache size setting
 	char* bd_source_url;

@@ -28,6 +28,11 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
+import android.graphics.PixelFormat;
+import android.graphics.Bitmap.Config;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Vibrator;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -97,6 +102,8 @@ public class MultiWaveView extends View {
     private int mVibrationDuration = 0;
     private int mGrabbedState;
     private int mActiveTarget = -1;
+	private int mIconSize = 50;
+	private int mMaxAppIconNum = 7;
     private float mTapRadius;
     private float mWaveCenterX;
     private float mWaveCenterY;
@@ -162,6 +169,8 @@ public class MultiWaveView extends View {
                 mVibrationDuration);
         mFeedbackCount = a.getInt(R.styleable.MultiWaveView_feedbackCount,
                 mFeedbackCount);
+		mIconSize = a.getInt(R.styleable.MultiWaveView_iconSize,mIconSize);
+		mMaxAppIconNum = a.getInt(R.styleable.MultiWaveView_maxAppIconNum,mMaxAppIconNum);
         mHandleDrawable = new TargetDrawable(res,a.getDrawable(R.styleable.MultiWaveView_handleDrawable));
         Drawable dwHandle = this.getResources().getDrawable(R.drawable.ic_lockscreen_handle);
 		mHandleDrawable = new TargetDrawable(res,dwHandle); 
@@ -543,14 +552,49 @@ public class MultiWaveView extends View {
         }
     }
 
+    private Bitmap drawableToBitmap(Drawable drawable)
+    {
+         int width = drawable.getIntrinsicWidth();
+         int height = drawable.getIntrinsicHeight();
+         Bitmap.Config config = drawable.getOpacity() != PixelFormat.OPAQUE ? Bitmap.Config.ARGB_8888:Bitmap.Config.RGB_565;
+         Bitmap bitmap = Bitmap.createBitmap(width, height, config);
+         Canvas canvas = new Canvas(bitmap);
+         drawable.setBounds(0, 0, width, height);
+         drawable.draw(canvas);
+         return bitmap;
+    }
+
+   private Drawable zoomDrawable(Drawable drawable, int w, int h)
+   {
+         int width = drawable.getIntrinsicWidth();
+         int height= drawable.getIntrinsicHeight();
+         Bitmap oldbmp = drawableToBitmap(drawable);
+         Matrix matrix = new Matrix();
+         float scaleWidth = ((float)w / width);
+         float scaleHeight = ((float)h / height);
+         matrix.postScale(scaleWidth, scaleHeight);
+         Bitmap newbmp = Bitmap.createBitmap(oldbmp, 0, 0, width, height, matrix, true);
+         return new BitmapDrawable(newbmp);
+   }
+   
 	public void setTargetResources(ArrayList<Drawable> drawables)
 	{
        Resources res = getContext().getResources();
        int count = drawables.size();
+	   Drawable drawable = null;
        ArrayList<TargetDrawable> targetDrawables = new ArrayList<TargetDrawable>(count);
+	   if(count > mMaxAppIconNum)
+	   		count = mMaxAppIconNum;
         for (int i = 0; i < count; i++) {
-            Drawable drawable = drawables.get(i);
+			if(i!=0)
+			{
+            	drawable = zoomDrawable(drawables.get(i),mIconSize,mIconSize);
+			}else
+			{
+			    drawable = drawables.get(i);
+			}
             targetDrawables.add(new TargetDrawable(res, drawable));
+			
         }
         mTargetDrawables = targetDrawables;
         updateTargetPositions();

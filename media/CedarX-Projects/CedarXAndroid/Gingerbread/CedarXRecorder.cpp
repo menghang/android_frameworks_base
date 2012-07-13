@@ -840,6 +840,8 @@ status_t CedarXRecorder::stop()
 		&& mRecord != NULL)
 	{
 		mRecord->stop();
+		delete mRecord;
+		mRecord = NULL;
 	}
 
 	LOGV("stopped\n");

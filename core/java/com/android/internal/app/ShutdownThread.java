@@ -44,6 +44,10 @@ import android.telephony.TelephonyManager;
 import com.android.internal.telephony.ITelephony;
 import android.util.Log;
 import android.view.WindowManager;
+import android.media.MediaPlayer;
+import java.io.IOException;
+
+
 
 public final class ShutdownThread extends Thread {
     // constants
@@ -172,6 +176,17 @@ public final class ShutdownThread extends Thread {
             }
             sIsStarted = true;
         }
+
+		MediaPlayer mediaplayer =new MediaPlayer();
+		try
+		{
+			mediaplayer.setDataSource("/system/media/shutdown.mp3");
+			mediaplayer.prepare();
+			mediaplayer.start();
+		}catch (IOException e)
+		{
+			
+		}		
 
         // throw up an indeterminate system dialog to indicate radio is
         // shutting down.

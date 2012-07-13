@@ -57,7 +57,8 @@ LOCAL_STATIC_LIBRARIES += \
 	libh264enc \
 	libmp4_muxer \
 	libjpgenc \
-	libcedarx_rtsp
+	libcedarx_rtsp	\
+	libuserdemux
 else
 LOCAL_LDFLAGS += \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_$(CEDARX_CHIP_VERSION)/libcedarxplayer.a \
@@ -74,7 +75,8 @@ LOCAL_LDFLAGS += \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_$(CEDARX_CHIP_VERSION)/libh264enc.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_$(CEDARX_CHIP_VERSION)/libmp4_muxer.a \
 	$(CEDARX_TOP)/../CedarAndroidLib/LIB_$(CEDARX_CHIP_VERSION)/libjpgenc.a \
-	$(CEDARX_TOP)/../CedarAndroidLib/LIB_$(CEDARX_CHIP_VERSION)/libcedarx_rtsp.a
+	$(CEDARX_TOP)/../CedarAndroidLib/LIB_$(CEDARX_CHIP_VERSION)/libcedarx_rtsp.a \
+	$(CEDARX_TOP)/../CedarAndroidLib/LIB_$(CEDARX_CHIP_VERSION)/libuserdemux.a
 endif
 
 ifeq ($(CEDARX_DEBUG_DEMUXER),Y)

@@ -50,6 +50,8 @@ import android.util.Pair;
 import android.util.Slog;
 import android.os.PowerManager;
 import android.os.DynamicPManager;
+import android.text.format.Time;
+
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -92,7 +94,7 @@ public class UsbDeviceManager {
     // Delay for debouncing USB disconnects.
     // We often get rapid connect/disconnect events when enabling USB functions,
     // which need debouncing.
-    private static final int UPDATE_DELAY = 1000;
+    private static final int UPDATE_DELAY = 5000;
 
     private static final String BOOT_MODE_PROPERTY = "ro.bootmode";
 
@@ -175,7 +177,7 @@ public class UsbDeviceManager {
         mNotificationManager = (NotificationManager)
                 mContext.getSystemService(Context.NOTIFICATION_SERVICE);
 
-        // We do not show the USB notification if the primary volume supports mass storage.
+        // We  show the USB notification if the primary volume supports mass storage.
         // The legacy mass storage UI will be used instead.
         boolean massStorageSupported = false;
         StorageManager storageManager = (StorageManager)
@@ -184,7 +186,7 @@ public class UsbDeviceManager {
         if (volumes.length > 0) {
             massStorageSupported = volumes[0].allowMassStorage();
         }
-        mUseUsbNotification = !massStorageSupported;
+        mUseUsbNotification = massStorageSupported;
 
         // make sure the ADB_ENABLED setting value matches the current state
         Settings.Secure.putInt(mContentResolver, Settings.Secure.ADB_ENABLED, mAdbEnabled ? 1 : 0);
@@ -399,6 +401,17 @@ public class UsbDeviceManager {
             Message msg = Message.obtain(this, MSG_UPDATE_STATE);
             msg.arg1 = connected;
             msg.arg2 = configured;
+
+			Time time=new Time();
+		    time.set(System.currentTimeMillis());
+		    String strtime=time.format("%b %d %I:%M:%S:%s %p");
+			Slog.v(TAG,"now time is "+strtime);
+            if(connected == 0){
+			    time.set(System.currentTimeMillis()+UPDATE_DELAY);
+				strtime=time.format("%b %d %I:%M:%S:%s %p");
+				Slog.v(TAG,"Delay time at "+strtime+"  to send DISCONNECTED massage");
+				}
+			
             // debounce disconnects to avoid problems bringing up USB tethering
             sendMessageDelayed(msg, (connected == 0) ? UPDATE_DELAY : 0);
         }
@@ -549,6 +562,11 @@ public class UsbDeviceManager {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_UPDATE_STATE:
+					Time time=new Time();
+		            time.set(System.currentTimeMillis());
+		            String strtime=time.format("%b %d %I:%M:%S:%s %p");
+			        Slog.v(TAG,"now time is "+strtime);
+					
                     mConnected = (msg.arg1 == 1);
                     mConfigured = (msg.arg2 == 1);
 					

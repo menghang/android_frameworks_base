@@ -48,6 +48,8 @@
 #include <errno.h>
 #include <limits.h>
 #include <math.h>
+#include <cutils/properties.h>
+
 
 #define INDENT "  "
 #define INDENT2 "    "
@@ -2975,7 +2977,16 @@ void TouchInputMapper::configureSurface(nsecs_t when, bool* outResetNeeded) {
         height = mRawPointerAxes.y.maxValue - mRawPointerAxes.y.minValue + 1;
         orientation = DISPLAY_ORIENTATION_0;
     }
-
+    char property[PROPERTY_VALUE_MAX];
+    if (property_get("ro.sf.hwrotation", property, NULL) > 0) {
+        //displayOrientation
+        switch (atoi(property)) {
+        case 270:
+             width =mAssociatedDisplayHeight ;
+             height = mAssociatedDisplayWidth;
+            break;
+        }
+    }
     // If moving between pointer modes, need to reset some state.
     bool deviceModeChanged;
     if (mDeviceMode != oldDeviceMode) {

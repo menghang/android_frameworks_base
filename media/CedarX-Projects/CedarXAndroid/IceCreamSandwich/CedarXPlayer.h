@@ -33,7 +33,6 @@
 #include <CDX_PlayerAPI.h>
 
 #include <include_sft/NuPlayerSource.h>
-#include <include_sft/StreamingSource.h>
 
 namespace android {
 
@@ -46,6 +45,7 @@ struct NuCachedSource2;
 struct ISurfaceTexture;
 
 struct ALooper;
+struct AwesomePlayer;
 
 struct CedarXRenderer : public RefBase {
     CedarXRenderer() {}
@@ -201,6 +201,7 @@ private:
     Mutex mMiscStateLock;
 
     CDXPlayer *mPlayer;
+    AwesomePlayer *mAwesomePlayer;
     int mStreamType;
 
     bool mQueueStarted;

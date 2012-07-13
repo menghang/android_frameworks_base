@@ -17,7 +17,8 @@ LOCAL_SRC_FILES:=               \
     StagefrightPlayer.cpp       \
     StagefrightRecorder.cpp		\
     CedarAPlayerWrapper.cpp		\
-    SimpleMediaFormatProbe.cpp
+    SimpleMediaFormatProbe.cpp	\
+    MovAvInfoDetect.cpp
 
 LOCAL_SHARED_LIBRARIES :=     		\
 	libcutils             			\

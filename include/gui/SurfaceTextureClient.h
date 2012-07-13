@@ -84,8 +84,6 @@ protected:
     virtual int setSwapInterval(int interval);
 
     virtual int connect(int api);
-    virtual int setParameter(uint32_t cmd,uint32_t value);
-    virtual int getParameter(uint32_t cmd);
     virtual int disconnect(int api);
     virtual int setBufferCount(int bufferCount);
     virtual int setBuffersDimensions(int w, int h);
@@ -101,6 +99,8 @@ protected:
     enum { MIN_UNDEQUEUED_BUFFERS = SurfaceTexture::MIN_UNDEQUEUED_BUFFERS };
     enum { NUM_BUFFER_SLOTS = SurfaceTexture::NUM_BUFFER_SLOTS };
     enum { DEFAULT_FORMAT = PIXEL_FORMAT_RGBA_8888 };
+    virtual int setParameter(uint32_t cmd,uint32_t value);
+    virtual int getParameter(uint32_t cmd);
 
 private:
     void freeAllBuffers();

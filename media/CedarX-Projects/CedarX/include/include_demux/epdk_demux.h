@@ -25,7 +25,6 @@ extern CedarXDemuxerAPI cdx_dmxs_epdk;
 extern EPDKDemuxerAPI epdk_demux_mov;
 extern EPDKDemuxerAPI epdk_demux_mkv;
 extern EPDKDemuxerAPI epdk_demux_asf;
-extern EPDKDemuxerAPI epdk_demux_rmvb;
 extern EPDKDemuxerAPI epdk_demux_mpg;
 extern EPDKDemuxerAPI epdk_demux_ts;
 extern EPDKDemuxerAPI epdk_demux_avi;

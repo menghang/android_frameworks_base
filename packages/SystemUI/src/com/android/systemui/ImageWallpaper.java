@@ -276,11 +276,7 @@ public class ImageWallpaper extends WallpaperService {
                 return;
             }
 
-            if (mBackgroundWidth < 0 || mBackgroundHeight < 0) {
-                // If we don't yet know the size of the wallpaper bitmap,
-                // we need to get it now.
-                updateWallpaperLocked();
-            }
+            updateWallpaperLocked();   
 
             SurfaceHolder sh = getSurfaceHolder();
             final Rect frame = sh.getSurfaceFrame();

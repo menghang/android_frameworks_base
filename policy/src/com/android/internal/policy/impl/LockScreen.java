@@ -25,6 +25,7 @@ import com.android.internal.widget.multiwaveview.MultiWaveView;
 import java.util.List;
 import java.util.ArrayList;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.BitmapDrawable;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.content.pm.ApplicationInfo;
@@ -237,10 +238,7 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
 			final ActivityManager am = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);			
 			final PackageManager pm = context.getPackageManager();			
 			drawableAl.add(getView().getResources().getDrawable(R.drawable.ic_lockscreen_unlock));
-			int maxAppIconNum = getView().getResources().getInteger(R.integer.config_lockscreenMaxAppIconNum);
-			if(maxAppIconNum<0||maxAppIconNum>7)
-				maxAppIconNum = 7;
-			List<ActivityManager.RecentTaskInfo> recentLs = am.getRecentTasks(maxAppIconNum, ActivityManager.RECENT_IGNORE_UNAVAILABLE);
+			List<ActivityManager.RecentTaskInfo> recentLs = am.getRecentTasks(100, ActivityManager.RECENT_IGNORE_UNAVAILABLE);
 			for(int i=0;i<recentLs.size();i++)
 			{
 				try

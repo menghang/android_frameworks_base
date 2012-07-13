@@ -143,6 +143,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import android.os.SystemProperties;
+
 
 /**
  * WindowManagerPolicy implementation for the Android phone UI.  This
@@ -879,7 +881,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 / DisplayMetrics.DENSITY_DEVICE;
 		String tabeltUI=Build.TABLETUI;
 		if(tabeltUI.equals("true"))
-			mStatusBarCanHide = shortSizeDp < 480;
+			mStatusBarCanHide = false;
           else mStatusBarCanHide = shortSizeDp < 600;
         mStatusBarHeight = mContext.getResources().getDimensionPixelSize(
                 mStatusBarCanHide
@@ -3250,7 +3252,14 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 			if(MediaPlayer.isPlayingVideo())
 			{
 				Log.i(TAG, "MediaPlayer.isPlayingVideo");
-				sensorRotation = Surface.ROTATION_0;
+				if(SystemProperties.getInt("ro.sf.hwrotation",0)==270)
+				{
+					sensorRotation = Surface.ROTATION_90;
+				}
+				else
+				{
+					sensorRotation = Surface.ROTATION_0;
+				}
 			}
 			else
 			{
@@ -3313,7 +3322,14 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 }
             } else if (mUserRotationMode == WindowManagerPolicy.USER_ROTATION_LOCKED) {
                 // Apply rotation lock.
-                preferredRotation = mUserRotation;
+               	if(MediaPlayer.isPlayingVideo()) 
+               	{
+               		preferredRotation =sensorRotation;
+               	}
+				else
+				{
+					preferredRotation = mUserRotation;
+				}
             } else {
                 // No overriding preference.
                 // We will do exactly what the application asked us to do.
@@ -3375,7 +3391,14 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     if (preferredRotation >= 0 && sensorChanged) {
                         return preferredRotation;
                     }
-                    return Surface.ROTATION_0;
+				if(SystemProperties.getInt("ro.sf.hwrotation",0)==270)
+				{
+					return  Surface.ROTATION_90;
+				}
+				else
+				{
+					return  Surface.ROTATION_0;
+				}
             }
         }
     }

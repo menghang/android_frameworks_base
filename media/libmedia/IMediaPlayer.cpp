@@ -115,6 +115,8 @@ enum {
     /* add two general interfaces for expansibility */
     GENERAL_INTERFACE,
     /* add by Gary. end   -----------------------------------}} */
+
+    SET_DATA_SOURCE_STREAM2,
 };
 
 class BpMediaPlayer: public BpInterface<IMediaPlayer>
@@ -170,6 +172,15 @@ public:
         remote()->transact(SET_DATA_SOURCE_STREAM, data, &reply);
         return reply.readInt32();
     }
+
+    status_t setDataSource(const sp<IStreamSource> &source, int type) {
+		Parcel data, reply;
+		data.writeInterfaceToken(IMediaPlayer::getInterfaceDescriptor());
+		data.writeStrongBinder(source->asBinder());
+		data.writeInt32(type);
+		remote()->transact(SET_DATA_SOURCE_STREAM2, data, &reply);
+		return reply.readInt32();
+	}
 
     // pass the buffered ISurfaceTexture to the media player service
     status_t setVideoSurfaceTexture(const sp<ISurfaceTexture>& surfaceTexture)
@@ -782,6 +793,14 @@ status_t BnMediaPlayer::onTransact(
             reply->writeInt32(setDataSource(source));
             return NO_ERROR;
         }
+        case SET_DATA_SOURCE_STREAM2: {
+			CHECK_INTERFACE(IMediaPlayer, data, reply);
+			sp<IStreamSource> source =
+				interface_cast<IStreamSource>(data.readStrongBinder());
+			int32_t type = data.readInt32();
+			reply->writeInt32(setDataSource(source, type));
+			return NO_ERROR;
+		}
         case SET_VIDEO_SURFACETEXTURE: {
             CHECK_INTERFACE(IMediaPlayer, data, reply);
             sp<ISurfaceTexture> surfaceTexture =

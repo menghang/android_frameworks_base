@@ -96,9 +96,7 @@ status_t CedarAPlayer::setDataSource(const char *uri, const KeyedVector<
 		String8, String8> *headers) {
 	//Mutex::Autolock autoLock(mLock);
 	LOGV("CedarAPlayer::setDataSource (%s)", uri);
-	mPlayer->control(mPlayer, CDA_SET_DATASOURCE_URL, (unsigned int)uri, 0);
-
-	return OK;
+	return mPlayer->control(mPlayer, CDA_SET_DATASOURCE_URL, (unsigned int)uri, 0);
 }
 
 status_t CedarAPlayer::setDataSource(int fd, int64_t offset, int64_t length) {
@@ -108,8 +106,7 @@ status_t CedarAPlayer::setDataSource(int fd, int64_t offset, int64_t length) {
 	ext_fd_desc.fd = fd;
 	ext_fd_desc.offset = offset;
 	ext_fd_desc.length = length;
-	mPlayer->control(mPlayer, CDA_SET_DATASOURCE_FD, (unsigned int)&ext_fd_desc, 0);
-	return OK;
+	return mPlayer->control(mPlayer, CDA_SET_DATASOURCE_FD, (unsigned int)&ext_fd_desc, 0);
 }
 
 #ifndef __ANDROID_VERSION_2_3_4
@@ -188,7 +185,8 @@ status_t CedarAPlayer::play_l(int command) {
 		mAudioPlayer->resume();
 	}
 
-	if (!(mFlags & PAUSING)) {
+	//if (!(mFlags & PAUSING)) {
+	if(1){
 		LOGV("CedarAPlayer::play_l start cedara...");
 		mPlayer->control(mPlayer, CDA_CMD_PLAY, (unsigned int)&mSuspensionPositionUs, 0);
 	}
@@ -244,6 +242,7 @@ status_t CedarAPlayer::pause_l(bool at_eos) {
 			mAudioPlayer->pause();
 		}
 	}
+    mPlayer->control(mPlayer, CDA_CMD_PAUSE, 0, 0);
 
 	mFlags &= ~PLAYING;
 	mFlags |= PAUSING;

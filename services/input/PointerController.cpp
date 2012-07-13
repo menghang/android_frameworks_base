@@ -30,6 +30,7 @@
 #include <SkColor.h>
 #include <SkPaint.h>
 #include <SkXfermode.h>
+#include <cutils/properties.h>
 
 namespace android {
 
@@ -121,6 +122,19 @@ bool PointerController::getBoundsLocked(float* outMinX, float* outMinY,
         *outMaxY = mLocked.displayHeight - 1;
         break;
     }
+    char property[PROPERTY_VALUE_MAX];
+    if (property_get("ro.sf.hwrotation", property, NULL) > 0) {
+		float temp ;
+        //displayOrientation
+        switch (atoi(property)) {
+        case 270:
+			temp =*outMaxX ;
+			*outMaxX =*outMaxY;
+			*outMaxY =temp;
+            break;
+        }
+    }
+
     return true;
 }
 

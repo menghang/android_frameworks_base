@@ -70,6 +70,10 @@ public class DisplayManager
 	public static final int DISPLAY_MODE_DUALLCD				 = 1;
 	public static final int DISPLAY_MODE_DUALDIFF				 = 2;
 	public static final int DISPLAY_MODE_DUALSAME				 = 3;
+	public static final int DISPLAY_MODE_DUALSAME_TWO_VIDEO	     = 4;
+    public static final int DISPLAY_MODE_SINGLE_VAR              = 5;
+    public static final int DISPLAY_MODE_SINGLE_VAR_BE           = 6;
+    public static final int DISPLAY_MODE_SINGLE_FB_VAR           = 7;
 
 	public static final int DISPLAY_TVDAC_NONE					 = 0;
 	public static final int DISPLAY_TVDAC_YPBPR					 = 1;
@@ -113,7 +117,13 @@ public class DisplayManager
     public static final int DISPLAY_VGA_H1920_V1080_RB 			 = 0x20;
     public static final int DISPLAY_VGA_H1920_V1080    			 = 0x21;
     public static final int DISPLAY_VGA_H1280_V720     			 = 0x22;
-    
+
+    public static final int DISPLAY_TVFORMAT_1080P_25HZ          = 0x23;
+    public static final int DISPLAY_TVFORMAT_1080P_30HZ          = 0x24;
+    public static final int DISPLAY_TVFORMAT_1080P_24HZ_3D_FP    = 0x25;
+    public static final int DISPLAY_TVFORMAT_720P_50HZ_3D_FP     = 0x26;
+    public static final int DISPLAY_TVFORMAT_720P_60HZ_3D_FP     = 0x27;
+
     private IDisplayManager mService;
     private IBinder mToken = new Binder();
 	
@@ -217,7 +227,7 @@ public class DisplayManager
 	{
 		try 
 		{
-			Log.d(TAG,"setDisplayParameter");
+			//Log.d(TAG,"setDisplayParameter");
             return  mService.getDisplayPixelFormat(mDisplay);
         } 
         catch (RemoteException ex) 
@@ -231,7 +241,7 @@ public class DisplayManager
 	{
 		try 
 		{
-			Log.d(TAG,"setDisplayParameter");
+			//Log.d(TAG,"setDisplayParameter");
             return  mService.setDisplayParameter(mDisplay,param0,param1);
         } 
         catch (RemoteException ex) 
@@ -245,7 +255,7 @@ public class DisplayManager
 	{
 		try 
 		{
-			Log.d(TAG,"setDisplayMode");
+			//Log.d(TAG,"setDisplayMode");
 			setDisplayBacklightMode(1);
             return  mService.setDisplayMode(mode);
         } 
@@ -260,7 +270,7 @@ public class DisplayManager
 	{
 		try 
 		{
-			Log.d(TAG,"setDisplayParameter");
+			//Log.d(TAG,"setDisplayParameter");
             return  mService.getDisplayMode();
         } 
         catch (RemoteException ex) 
@@ -274,7 +284,7 @@ public class DisplayManager
 	{
 		try 
 		{
-			Log.d(TAG,"setDisplayParameter");
+			//Log.d(TAG,"setDisplayParameter");
             return  mService.setDisplayOutputType(mDisplay,type,format);
         } 
         catch (RemoteException ex) 
@@ -288,7 +298,7 @@ public class DisplayManager
 	{
 		try 
 		{
-			Log.d(TAG,"setDisplayParameter");
+			//Log.d(TAG,"setDisplayParameter");
             return  mService.openDisplay(mDisplay);
         } 
         catch (RemoteException ex) 
@@ -302,7 +312,7 @@ public class DisplayManager
 	{
 		try 
 		{
-			Log.d(TAG,"setDisplayParameter");
+			//Log.d(TAG,"setDisplayParameter");
             return  mService.closeDisplay(mDisplay);
         } 
         catch (RemoteException ex) 
@@ -316,7 +326,7 @@ public class DisplayManager
 	{
 		try
 		{
-			Log.d(TAG,"11111111111111111111111111111111111111111111111111111111111111111111111111111111111");
+			//Log.d(TAG,"11111111111111111111111111111111111111111111111111111111111111111111111111111111111");
 			return mService.setDisplayBacklightMode(mode);
 		}
 		catch (RemoteException ex)
@@ -329,7 +339,7 @@ public class DisplayManager
 	{
 		try 
 		{
-			Log.d(TAG,"setDisplayParameter");
+			//Log.d(TAG,"setDisplayParameter");
             return  mService.setDisplayMaster(mDisplay);
         } 
         catch (RemoteException ex) 
@@ -343,7 +353,7 @@ public class DisplayManager
 	{
 		try 
 		{
-			Log.d(TAG,"setDisplayParameter");
+			//Log.d(TAG,"setDisplayParameter");
             return  mService.getDisplayMaster();
         } 
         catch (RemoteException ex) 
@@ -357,7 +367,7 @@ public class DisplayManager
 	{
 		try 
 		{
-			Log.d(TAG,"getMaxWidthDisplay");
+			//Log.d(TAG,"getMaxWidthDisplay");
 			
             return  mService.getMaxWidthDisplay();
         } 
@@ -372,7 +382,7 @@ public class DisplayManager
 	{
 		try 
 		{
-			Log.d(TAG,"getMaxHdmiMode");
+			//Log.d(TAG,"getMaxHdmiMode");
 			
             return  mService.getMaxHdmiMode();
         } 

@@ -134,6 +134,8 @@ typedef struct _MediaPlayer_TrackInfo{
 // mediaplayer interface list
 #define MEDIAPLAYER_CMD_SET_BD_FOLDER_PLAY_MODE   0
 #define MEDIAPLAYER_CMD_GET_BD_FOLDER_PLAY_MODE   1
+#define MEDIAPLAYER_CMD_SET_STREAMING_TYPE        2
+#define MEDIAPLAYER_CMD_QUERY_HWLAYER_RENDER	  3
 // mediaplayer global interface list
 #define MEDIAPLAYER_GLOBAL_CMD_TEST               0
 /* add by Gary. end   -----------------------------------}} */

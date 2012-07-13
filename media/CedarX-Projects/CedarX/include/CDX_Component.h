@@ -126,6 +126,8 @@ OMX_API OMX_ERRORTYPE ClockComponentInit(OMX_IN OMX_HANDLETYPE hComponent);
 OMX_API OMX_ERRORTYPE DemuxComponentInit(OMX_IN OMX_HANDLETYPE hComponent);
 OMX_API OMX_ERRORTYPE DemuxNetworkComponentInit(OMX_IN OMX_HANDLETYPE hComponent);
 OMX_API OMX_ERRORTYPE DemuxSftNetworkComponentInit(OMX_IN OMX_HANDLETYPE hComponent);
+OMX_API OMX_ERRORTYPE DemuxStreammingSourceComponentInit(OMX_IN OMX_HANDLETYPE hComponent);
+OMX_API OMX_ERRORTYPE aw_demux_component_init(OMX_IN OMX_HANDLETYPE hComponent);
 OMX_API OMX_ERRORTYPE VideoDecComponentInit(OMX_IN OMX_HANDLETYPE hComponent);
 OMX_API OMX_ERRORTYPE VideoRenderComponentInit(OMX_IN OMX_HANDLETYPE hComponent);
 OMX_API OMX_ERRORTYPE AudioDecComponentInit(OMX_IN OMX_HANDLETYPE hComponent);

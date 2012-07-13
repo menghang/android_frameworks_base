@@ -14,13 +14,14 @@ cp $SRCDIR0/libdemux_ogg_intermediates/libdemux_ogg.a   ./
 cp $SRCDIR0/libdemux_mov_intermediates/libdemux_mov.a   ./
 cp $SRCDIR0/libdemux_flv_intermediates/libdemux_flv.a   ./
 cp $SRCDIR0/libdemux_mpg_intermediates/libdemux_mpg.a   ./
-cp $SRCDIR0/libdemux_rmvb_intermediates/libdemux_rmvb.a ./
 cp $SRCDIR0/libdemux_pmp_intermediates/libdemux_pmp.a ./
 cp $SRCDIR0/libdemux_idxsub_intermediates/libdemux_idxsub.a ./
+cp $SRCDIR0/libdemux_awts_intermediates/libdemux_awts.a ./
 cp $SRCDIR0/libcedarxdemuxers_intermediates/libcedarxdemuxers.a ./
 cp $SRCDIR0/libcedarxsftdemux_intermediates/libcedarxsftdemux.a ./
 cp $SRCDIR0/libcedarxstream_intermediates/libcedarxstream.a ./
 cp $SRCDIR0/libthirdpartstream_intermediates/libthirdpartstream.a ./
+cp $SRCDIR0/libuserdemux_intermediates/libuserdemux.a ./
 cp $SRCDIR0/libcedarxrender_intermediates/libcedarxrender.a ./
 cp $SRCDIR0/libcedarxcomponents_intermediates/libcedarxcomponents.a ./
 cp $SRCDIR0/libcedarxalloc_intermediates/libcedarxalloc.a ./
@@ -30,7 +31,9 @@ cp $SRCDIR0/libdemux_cedarm_intermediates/libdemux_cedarm.a             ./
 cp $SRCDIR0/libsub_intermediates/libsub.a             ./
 cp $SRCDIR0/libsub_inline_intermediates/libsub_inline.a             ./
 cp $SRCDIR0/libh264enc_intermediates/libh264enc.a ./
+cp $SRCDIR0/libmuxers_intermediates/libmuxers.a ./
 cp $SRCDIR0/libmp4_muxer_intermediates/libmp4_muxer.a ./
+cp $SRCDIR0/libawts_muxer_intermediates/libawts_muxer.a ./
 cp $SRCDIR0/libm3u_intermediates/libm3u.a ./
 cp $SRCDIR0/libcedara_decoder_intermediates/libcedara_decoder.a ./
 
@@ -40,11 +43,19 @@ cp $SRCDIR0/../../system/lib/libstagefright_soft_cedar_h264dec.so ./
 
 cp $SRCDIR0/../../system/lib/libcedarxosal.so ./
 cp $SRCDIR0/../../system/lib/libcedarxbase.so ./
-cp $SRCDIR0/../../system/lib/libcedarxsftdemux.so ./
+#cp $SRCDIR0/../../system/lib/libcedarxsftdemux.so ./
 cp $SRCDIR0/../../system/lib/libcedarv.so ./
-cp $SRCDIR0/../../system/lib/libswa1.so ./
+#cp $SRCDIR0/../../system/lib/libswa1.so ./
 cp $SRCDIR0/../../system/lib/libaw_audio.so ./
+#cp $SRCDIR0/../../system/lib/libswa2.so ./
+cp $SRCDIR0/../../system/lib/libaw_audioa.so ./
 cp $SRCDIR0/../../system/lib/libswdrm.so ./
+
+cp $SRCDIR0/../../system/lib/libcedarv_base.so ./
+cp $SRCDIR0/../../system/lib/libcedarv_adapter.so ./
+cp $SRCDIR0/../../system/lib/libve.so ./
+
+cp $SRCDIR0/../../system/lib/libfacedetection.so ./
 
 arm-linux-androideabi-strip -g *.a
 

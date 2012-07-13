@@ -152,4 +152,9 @@
     <bool name="def_smart_brightness_enable">false</bool>
     <!-- Default for enable smart brightness in nuclear-->
     <bool name="def_smart_brightness_preview_enable">false</bool>
+
+    <!-- Default for enable face unlock -->
+    <string name="def_lockscreen_options" translatable="false">enable_facelock</string>
+    <!-- Default for hdmi output mode -->
+    <integer name="def_hdmi_output_mode">0xff</integer>
 </resources>

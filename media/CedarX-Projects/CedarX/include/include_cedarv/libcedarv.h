@@ -31,7 +31,8 @@ extern "C" {
         CEDARV_STREAM_FORMAT_VC1,
         CEDARV_STREAM_FORMAT_AVS,
         CEDARV_STREAM_FORMAT_MJPEG,  
-        CEDARV_STREAM_FORMAT_VP8
+        CEDARV_STREAM_FORMAT_VP8,
+        CEDARV_STREAM_FORMAT_NETWORK
     }cedarv_stream_format_e;
     
     typedef enum CEDARV_SUB_FORMAT
@@ -48,7 +49,9 @@ extern "C" {
         CEDARV_MPEG4_SUB_FORMAT_RMG2,		//* H263 coded video stream muxed in '.rm' file.
         CEDARV_MPEG4_SUB_FORMAT_VP6,
         CEDARV_MPEG4_SUB_FORMAT_WMV1,
-        CEDARV_MPEG4_SUB_FORMAT_WMV2
+        CEDARV_MPEG4_SUB_FORMAT_WMV2,
+        CEDARV_MPEG4_SUB_FORMAT_DIVX2,		//MSMPEGV2
+        CEDARV_MPEG4_SUB_FORMAT_DIVX1		//MSMPEGV1
     }cedarv_sub_format_e;
     
     typedef enum CEDARV_CONTAINER_FORMAT
@@ -281,7 +284,8 @@ extern "C" {
         CEDARV_COMMAND_GET_CHIP_VERSION,
 
         CEDARV_COMMAND_FLUSH,
-        CEDARV_COMMAND_CLOSE_MAF
+        CEDARV_COMMAND_CLOSE_MAF,
+        CEDARV_COMMAND_SET_DEMUX_TYPE
     }cedarv_io_cmd_e;
     
     

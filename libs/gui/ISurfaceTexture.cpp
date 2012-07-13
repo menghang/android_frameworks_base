@@ -226,12 +226,7 @@ public:
         data.writeInt32(cmd);
         if(cmd == HWC_LAYER_SETINITPARA)
         {
-        	layerinitpara_t  *layer_info = (layerinitpara_t  *)value;
-        	LOGD("layer_info.w = %d\n",layer_info->w);
-        	LOGD("layer_info.h = %d\n",layer_info->h);
-        	LOGD("layer_info.format = %d\n",layer_info->format);
-        	LOGD("layer_info.screenid = %d\n",layer_info->screenid);
-	        	
+        	layerinitpara_t  *layer_info = (layerinitpara_t  *)value;	        	
         	data.write((void *)value,sizeof(layerinitpara_t));
         }
         else if(cmd == HWC_LAYER_SETFRAMEPARA)
@@ -399,11 +394,6 @@ status_t BnSurfaceTexture::onTransact(
 	        	data.read((void *)&layer_info,sizeof(layerinitpara_t));
 	        	
 	        	value = (uint32_t)&layer_info;
-	        	
-	        	LOGD("layer_info.w = %d\n",layer_info.w);
-	        	LOGD("layer_info.h = %d\n",layer_info.h);
-	        	LOGD("layer_info.format = %d\n",layer_info.format);
-	        	LOGD("layer_info.screenid = %d\n",layer_info.screenid);
 	        }
 	        else if(cmd == HWC_LAYER_SETFRAMEPARA)
 	        {

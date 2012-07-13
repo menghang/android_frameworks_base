@@ -19,10 +19,12 @@ typedef struct V4L2BUF_t
 	int 			index;			// DQUE id number
 	long long		timeStamp;		// time stamp of this frame
 	RECT_t			crop_rect;
+	int				format;
 }V4L2BUF_t;
 
 typedef struct VIDEOINFO_t
 {
+	int video_source;
 	int src_height;
 	int src_width;
 	int height;			// camcorder video frame height
@@ -47,6 +49,12 @@ typedef struct AUDIOINFO_t
 	int bitRate;
 	int bitsPerSample;
 }AUDIOINFO_t;
+
+typedef struct ENCEXTRADATAINFO_t //don't touch it, because it also defined in type.h
+{
+	char *data;
+	int length;
+}ENCEXTRADATAINFO_t;
 
 typedef struct ENC_BUFFER_t
 {
@@ -96,7 +104,8 @@ typedef struct JPEG_ENC_t
 	double			gps_longitude;
 	long        	gps_altitude;  
 	long        	gps_timestamp;
-	char			gps_processing_method[100]; 
+	char			gps_processing_method[100];
+	int 			whitebalance;
 }JPEG_ENC_t;
 
 #endif // __LIB__CAMERA__TYPE__H__

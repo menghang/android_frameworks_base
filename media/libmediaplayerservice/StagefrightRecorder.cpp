@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 #define LOG_TAG "StagefrightRecorder"
 #include <utils/Log.h>
 
@@ -117,6 +117,17 @@ status_t StagefrightRecorder::init() {
 sp<ISurfaceTexture> StagefrightRecorder::querySurfaceMediaSource() const {
     LOGV("Get SurfaceMediaSource");
     return mSurfaceMediaSource;
+}
+
+status_t StagefrightRecorder::queueBuffer(int index, int addr_y, int addr_c, int64_t timestamp)
+{
+    LOGV("queueBuffer");
+    if (mbHWEncoder)
+	{
+		return mpCedarXRecorder->queueBuffer(index, addr_y, addr_c, timestamp);
+	}
+
+    return UNKNOWN_ERROR;
 }
 
 status_t StagefrightRecorder::setAudioSource(audio_source_t as) {
@@ -768,17 +779,37 @@ status_t StagefrightRecorder::prepare() {
 
 	if (mbHWEncoder)
 	{
-		mpCedarXRecorder->setPreviewSurface(mPreviewSurface);
-		
-		error = mpCedarXRecorder->setCamera(mCamera, mCameraProxy);
-		if (error != OK)
-		{
-			goto ERROR;
+		if (mVideoSource <= VIDEO_SOURCE_CAMERA) {
+			mpCedarXRecorder->setPreviewSurface(mPreviewSurface);
+
+			error = mpCedarXRecorder->setCamera(mCamera, mCameraProxy);
+			if (error != OK)
+			{
+				goto ERROR;
+			}
 		}
+		else if (mVideoSource == VIDEO_SOURCE_PUSH_BUFFER) {
+			LOGD("VIDEO_SOURCE_PUSH_BUFFER");
+		} else if (mVideoSource == VIDEO_SOURCE_GRALLOC_BUFFER) {
+		    sp<MediaSource> mediaSource;
+		    status_t err = setupMediaSource(&mediaSource);
+			if (err != OK) {
+				return err;
+			}
+
+			error = mpCedarXRecorder->setMediaSource(mediaSource, CDX_RECORDER_MEDIATYPE_VIDEO);
+			if (error != OK)
+			{
+				goto ERROR;
+			}
+		} else {
+		    return INVALID_OPERATION;
+		}
+		
 		mpCedarXRecorder->setListener(mListener);
 
 		// audio
-		if (mAudioSource != AUDIO_SOURCE_CNT)
+		if (mAudioSource < AUDIO_SOURCE_CNT)
 		{
 			mpCedarXRecorder->setAudioSource(mAudioSource);
 			mpCedarXRecorder->setAudioEncoder(mAudioEncoder);
@@ -788,7 +819,7 @@ status_t StagefrightRecorder::prepare() {
 		}
 
 		// video
-		if (mVideoSource != VIDEO_SOURCE_LIST_END)
+		if (mVideoSource < VIDEO_SOURCE_LIST_END)
 		{
 			mpCedarXRecorder->setVideoSource(mVideoSource);
 			mpCedarXRecorder->setVideoEncoder(mVideoEncoder);
@@ -828,7 +859,7 @@ status_t StagefrightRecorder::start() {
     CHECK(mOutputFd >= 0);
 	
     status_t status = OK;
-	
+
 	if (mbHWEncoder)
 	{
 		status = mpCedarXRecorder->start();

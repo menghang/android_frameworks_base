@@ -450,7 +450,7 @@ public class WindowManagerService extends IWindowManager.Stub
     int mAppDisplayWidth = 0;
     int mAppDisplayHeight = 0;
 
-    int mRotation = 0;
+    int mRotation = -1;
     int mForcedAppOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
     boolean mAltOrientation = false;
     ArrayList<IRotationWatcher> mRotationWatchers
@@ -5140,6 +5140,11 @@ public class WindowManagerService extends IWindowManager.Stub
 
             // The screenshot API does not apply the current screen rotation.
             rot = mDisplay.getRotation();
+			if(SystemProperties.getInt("ro.sf.hwrotation",0)==270)
+			{			
+				 rot =( rot+3)%4;
+			}
+
             int fw = frame.width();
             int fh = frame.height();
 

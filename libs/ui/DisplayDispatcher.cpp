@@ -519,7 +519,7 @@ namespace android
         	}
         }
         
-        if(mode == DISPLAY_MODE_DUALSAME)
+        if(mode == DISPLAY_MODE_DUALSAME || mode == DISPLAY_MODE_DUALSAME_TWO_VIDEO || mode == DISPLAY_MODE_SINGLE_VAR_BE)
         {
             master_bufid    = mDevice->getdisplaybufid(mDevice,master_display);
 

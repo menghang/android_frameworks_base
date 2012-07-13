@@ -781,7 +781,8 @@ status_t AudioFlinger::setParameters(int ioHandle, const String8& keyValuePairs)
         }
 
 		// add for switch audio out mode
-		if (param.get(String8(AUDIO_PARAMETER_STREAM_ROUTING), value) == NO_ERROR) {
+		if (param.get(String8(AUDIO_PARAMETER_STREAM_ROUTING), value) == NO_ERROR
+			|| param.get(String8(AUDIO_PARAMETER_RAW_DATA_OUT), value) == NO_ERROR) {
 			for (uint32_t i = 0; i < mPlaybackThreads.size(); i++) {
 				mPlaybackThreads.valueAt(i)->setParameters(keyValuePairs);
 			}

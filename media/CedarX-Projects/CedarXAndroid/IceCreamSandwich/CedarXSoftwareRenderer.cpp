@@ -37,7 +37,7 @@ CedarXSoftwareRenderer::CedarXSoftwareRenderer(
       mNativeWindow(nativeWindow) {
     int32_t tmp;
     CHECK(meta->findInt32(kKeyColorFormat, &tmp));
-    mColorFormat = (OMX_COLOR_FORMATTYPE)tmp;
+    //mColorFormat = (OMX_COLOR_FORMATTYPE)tmp;
 
     //CHECK(meta->findInt32(kKeyScreenID, &screenID));
     //CHECK(meta->findInt32(kKeyColorFormat, &halFormat));

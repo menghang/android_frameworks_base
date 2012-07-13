@@ -138,12 +138,12 @@ wp<IBinder> Layer::getSurfaceTextureBinder() const
     return mSurfaceTexture->asBinder();
 }
 
-void Layer::setTextureInfo(int w,int h,int format)
+void Layer::setTextureInfo(Rect Crop,int format)
 {
-    texture_srcw 	= w;
-    texture_srch 	= h;
+    texture_srcw 	= Crop.width();
+    texture_srch 	= Crop.height();
     texture_format 	= format;
-    mCurrentCrop    = Rect(w,h);
+    mCurrentCrop    = Crop;
 }
 
 status_t Layer::setBuffers( uint32_t w, uint32_t h,
@@ -429,7 +429,7 @@ void Layer::lockPageFlip(bool& recomputeVisibleRegions)
 
         // update the active buffer
         mActiveBuffer = mSurfaceTexture->getCurrentBuffer();
-
+        
         const Rect crop(mSurfaceTexture->getCurrentCrop());
         const uint32_t transform(mSurfaceTexture->getCurrentTransform());
         const uint32_t scalingMode(mSurfaceTexture->getCurrentScalingMode());

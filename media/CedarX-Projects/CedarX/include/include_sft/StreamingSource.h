@@ -32,11 +32,11 @@ struct StreamingSource : public Source {
 
     virtual void start();
 
-    virtual status_t feedMoreTSData();
+    virtual status_t feedMoreTSData() {return OK;};
 
-    virtual sp<MetaData> getFormat(bool audio);
-    virtual status_t dequeueAccessUnit(bool audio, sp<ABuffer> *accessUnit);
-
+    virtual sp<MetaData> getFormat(bool audio) { return NULL;};
+    virtual status_t dequeueAccessUnit(bool audio, sp<ABuffer> *accessUnit) {return OK;};
+    virtual int dequeueAccessData(char *accessData, int size);
 protected:
     virtual ~StreamingSource();
 

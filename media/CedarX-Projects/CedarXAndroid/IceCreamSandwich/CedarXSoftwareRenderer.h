@@ -18,7 +18,7 @@
 
 #define SOFTWARE_RENDERER_H_
 
-#include <media/stagefright/ColorConverter.h>
+//#include <media/stagefright/ColorConverter.h>
 #include <utils/RefBase.h>
 #include <ui/android_native_buffer.h>
 
@@ -41,7 +41,7 @@ private:
         None,
     };
 
-    OMX_COLOR_FORMATTYPE mColorFormat;
+    //OMX_COLOR_FORMATTYPE mColorFormat;
     YUVMode mYUVMode;
     sp<ANativeWindow> mNativeWindow;
     int32_t mWidth, mHeight;

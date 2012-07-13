@@ -22,10 +22,14 @@
 #include <utils/Log.h>
 
 #include <ui/GraphicBuffer.h>
+#include <cutils/properties.h>
+
 
 #include "LayerScreenshot.h"
 #include "SurfaceFlinger.h"
 #include "DisplayHardware/DisplayHardware.h"
+
+
 
 
 namespace android {
@@ -62,7 +66,7 @@ status_t LayerScreenshot::capture() {
     if (result != NO_ERROR) {
         return result;
     }
-    initTexture(u, v);
+    initTexture(v, u);
     return NO_ERROR;
 }
 
@@ -135,8 +139,38 @@ void LayerScreenshot::onDraw(const Region& clip) const
         glMatrixMode(GL_MODELVIEW);
 
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+		
         glTexCoordPointer(2, GL_FLOAT, 0, mTexCoords);
-        glVertexPointer(2, GL_FLOAT, 0, mVertices);
+
+		char property[PROPERTY_VALUE_MAX];
+		if (property_get("ro.sf.hwrotation", property, NULL) > 0) 
+		{
+			GLfloat mVerticesMy[4][2];
+			switch (atoi(property)) 
+			{
+				case 270:	
+					mVerticesMy[0][0] =  mVertices[3][0];
+					mVerticesMy[0][1] =  mVertices[3][1];
+					mVerticesMy[1][0] =  mVertices[0][0];
+					mVerticesMy[1][1] =  mVertices[0][1];
+					mVerticesMy[2][0] =  mVertices[1][0];
+					mVerticesMy[2][1] =  mVertices[1][1];
+					mVerticesMy[3][0] =  mVertices[2][0];
+					mVerticesMy[3][1] =  mVertices[2][1];
+
+					glVertexPointer(2, GL_FLOAT, 0, mVerticesMy);
+					break;
+				default:
+					glVertexPointer(2, GL_FLOAT, 0, mVertices);
+					break;
+					
+			}
+		}
+		else
+		{
+         	glVertexPointer(2, GL_FLOAT, 0, mVertices);
+		}
 
         while (it != end) {
             const Rect& r = *it++;

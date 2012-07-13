@@ -68,6 +68,7 @@ struct StagefrightRecorder : public MediaRecorderBase {
     virtual status_t dump(int fd, const Vector<String16>& args) const;
     // Querying a SurfaceMediaSourcer
     virtual sp<ISurfaceTexture> querySurfaceMediaSource() const;
+    virtual status_t queueBuffer(int index, int addr_y, int addr_c, int64_t timestamp);
 
 private:
     sp<ICamera> mCamera;

@@ -435,6 +435,8 @@ typedef enum OMX_EVENTTYPE
     OMX_EventAVSyncException,
     OMX_EventWholeBufferUpdate,
 
+    OMX_EventMoreBuffer,
+
     OMX_EventMax = 0x7FFFFFFF
 } OMX_EVENTTYPE;
 

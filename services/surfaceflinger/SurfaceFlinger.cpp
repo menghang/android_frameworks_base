@@ -1294,8 +1294,35 @@ int SurfaceFlinger::setOrientation(DisplayID dpy,
 
 int SurfaceFlinger::setDisplayProp(int cmd,int param0,int param1,int param2)
 {
+    int ret = 0;
     const DisplayHardware& hw(graphicPlane(0).displayHardware());
-    return hw.setDispProp(cmd,param0,param1,param2);
+    ret = hw.setDispProp(cmd,param0,param1,param2);
+    
+    if(cmd == DISPLAY_CMD_SETDISPMODE)
+    {
+         HWComposer& hwc(graphicPlane(0).displayHardware().getHwComposer());
+         int hwc_mode = 0;
+         
+         if((param0 == DISPLAY_MODE_SINGLE) || (param0 == DISPLAY_MODE_SINGLE_VAR) || (param0 == DISPLAY_MODE_SINGLE_FB_VAR))
+         {
+             hwc_mode = HWC_MODE_SCREEN0;
+         }
+         else if(param0 == DISPLAY_MODE_DUALSAME)
+         {
+             hwc_mode = HWC_MODE_SCREEN0_TO_SCREEN1;
+         }
+         else if(param0 == DISPLAY_MODE_DUALSAME_TWO_VIDEO)
+         {
+             hwc_mode = HWC_MODE_SCREEN0_AND_SCREEN1;
+         }
+         else if(param0 == DISPLAY_MODE_SINGLE_VAR_BE)
+         {
+            hwc_mode = HWC_MODE_SCREEN0_EX;
+         }
+         
+         hwc.setParameter(HWC_LAYER_SETMODE,hwc_mode);
+    }
+    return ret;
 }
 
 int SurfaceFlinger::getDisplayProp(int cmd,int param0,int param1)

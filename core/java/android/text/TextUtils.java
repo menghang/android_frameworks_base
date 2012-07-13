@@ -1329,7 +1329,8 @@ public class TextUtils {
                 // The named character reference &apos; (the apostrophe, U+0027) was introduced in
                 // XML 1.0 but does not appear in HTML. Authors should therefore use &#39; instead
                 // of &apos; to work as expected in HTML 4 user agents.
-                sb.append("&#39;"); //$NON-NLS-1$
+                //sb.append("&#39;"); //$NON-NLS-1$
+				sb.append("&apos;"); //$NON-NLS-1$
                 break;
             case '"':
                 sb.append("&quot;"); //$NON-NLS-1$

@@ -335,7 +335,7 @@ static int wav_probe(media_probe_data_t *p)
             {
                 unsigned int tempWavTag = ptr[i+8]|((unsigned int)(ptr[i+9])<<8);
                 LOGV("WAV FOR tag =%d\n",tempWavTag);
-                if((tempWavTag != 1)&&(tempWavTag != 6)&&(tempWavTag != 7))
+                if(tempWavTag != 1)//if((tempWavTag != 1)&&(tempWavTag != 6)&&(tempWavTag != 7))
                 {
                     return AVPROBE_SCORE_MAX -3;
                 }
@@ -557,12 +557,14 @@ int audio_format_detect(unsigned char *buf, int buf_size)
 	}
 
 	if((ret = mp4_probe(&prob)) > 0) {
-		if(ret == 77) {
-			return MEDIA_FORMAT_3GP;
-		}
-		else {
-			return MEDIA_FORMAT_M4A;
-		}
+//		if(ret == 77) {
+//			return MEDIA_FORMAT_3GP;
+//		}
+//		else {
+//			return MEDIA_FORMAT_M4A;
+//		}
+
+		return MEDIA_FORMAT_3GP;
 	}
 
 	if(wma_probe(&prob) > 0){

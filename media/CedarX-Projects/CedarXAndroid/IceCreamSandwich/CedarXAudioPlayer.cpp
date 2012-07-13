@@ -39,6 +39,7 @@ CedarXAudioPlayer::CedarXAudioPlayer(
       mSampleRate(0),
       mLatencyUs(0),
       mFrameSize(0),
+      mNumFramesPlayed(0),
       mSeeking(false),
       mReachedEOS(false),
       mFinalStatus(OK),
@@ -112,6 +113,7 @@ status_t CedarXAudioPlayer::start(bool sourceAlreadyStarted)
     }
 
     mStarted = true;
+    mNumFramesPlayed = 0;
     LOGV("AudioPlayer::start 0.8 ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]");
 
     return OK;
@@ -243,7 +245,20 @@ size_t CedarXAudioPlayer::fillBuffer(void *data, size_t size)
 
 int CedarXAudioPlayer::getLatency()
 {
-    return (int)mLatencyUs;
+#if 1
+	unsigned int cache;
+	int cache_time;
+
+	mAudioSink->getPosition(&cache);
+	if(mFrameSize != 0)
+		cache_time = (mNumFramesPlayed/mFrameSize - cache)*1000000/mSampleRate;
+	else
+		cache_time = 0;
+	LOGV("mLatencyUs = %d", cache_time);
+	return cache_time;
+#else
+	return (int)mLatencyUs;
+#endif
 }
 
 int CedarXAudioPlayer::getSpace()
@@ -261,21 +276,30 @@ int CedarXAudioPlayer::render(void* data, int len)
 	memcpy(mAudioBufferPtr, data, tobe_fill_size);
 	mAudioBufferSize -= tobe_fill_size;
 	mAudioBufferPtr += tobe_fill_size;
-	LOGV("++++fillBuffer size:%d",tobe_fill_size);
+//	LOGV("++++fillBuffer size:%d",tobe_fill_size);
+	mNumFramesPlayed += tobe_fill_size;
 	return tobe_fill_size;
 }
 
 status_t CedarXAudioPlayer::seekTo(int64_t time_us)
 {
+	unsigned int cache;
     Mutex::Autolock autoLock(mLock);
 
 //    mSeeking = true;
 //    mReachedEOS = false;
+    mNumFramesPlayed = 0;
 
     if (mAudioSink != NULL) {
         mAudioSink->flush();
+
+    	mAudioSink->getPosition(&cache);
+    	mNumFramesPlayed = cache*mFrameSize;
     } else {
         mAudioTrack->flush();
+
+        mAudioTrack->getPosition(&cache);
+    	mNumFramesPlayed = cache*mFrameSize;
     }
 
     return OK;

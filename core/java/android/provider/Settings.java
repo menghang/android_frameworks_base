@@ -1932,6 +1932,13 @@ public final class Settings {
          * @hide 
          */
          public static final String SMART_BRIGHTNESS_PREVIEW_ENABLE = "smart_brightness_enable";
+
+		/**
+         * save the default output mode of hdmi.
+         * add by huanglong
+         * @hide 
+         */
+         public static final String HDMI_OUTPUT_MODE = "hdmi_output_mode";
 		
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
@@ -2006,6 +2013,7 @@ public final class Settings {
             DISPLAY_ADAPTION_MODE,
             DISPLAY_ADAPTION_ENABLE,
             SMART_BRIGHTNESS_ENABLE,
+            HDMI_OUTPUT_MODE,
         };
 
         // Settings moved to Settings.Secure

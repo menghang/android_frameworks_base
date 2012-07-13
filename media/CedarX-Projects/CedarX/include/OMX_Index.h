@@ -269,6 +269,7 @@ typedef enum OMX_INDEXTYPE {
 
     OMX_IndexVendorSetSoftChipVersion,
     OMX_IndexVendorSetCedarvContext,
+    OMX_IndexVendorSetOrgDemuxType,
 
     OMX_IndexVendorSwitchSubtilte = 0xFF001000,
     OMX_IndexVendorDisableSubtilte,
@@ -279,6 +280,7 @@ typedef enum OMX_INDEXTYPE {
     OMX_IndexVendorSwitchSeamlessAudio,
     OMX_IndexVendorDisableMediaType,
     OMX_IndexVendorPlayBDFile,
+    OMX_IndexVendorInitSubrender,
 
 	// star add for recorder
 	OMX_IndexVendorSetFP = 0xFF100000,
@@ -290,11 +292,15 @@ typedef enum OMX_INDEXTYPE {
 	OMX_IndexVendorSetRecMode,
 	OMX_IndexVendorSetTimeLapse,
 	OMX_IndexVendorSetAvsCounter,
-	
+	OMX_IndexVendorSetMuxerMode,
+	OMX_IndexVendorGetExtraData,
+	OMX_IndexVendorSetExtraData,
     /* Vendor specific structures should be in the range of 0xFF000000 
        to 0xFFFFFFFF.  This range is not broken out by vendor, so
        private indexes are not guaranteed unique and therefore should
        only be sent to the appropriate component. */
+
+	OMX_IndexVendorProbe,		//* for the user demux module to probe.
 
     OMX_IndexMax = 0x7FFFFFFF
 

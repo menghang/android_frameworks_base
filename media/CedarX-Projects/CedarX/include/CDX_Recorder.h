@@ -41,6 +41,7 @@ typedef struct CedarXRecorderContext{
 
 	OMX_PTR pAppData;
 	RECORDER_MODE mode;
+	int muxer_mode;
 	CEDARV_REQUEST_CONTEXT cedarv_req_ctx;
 	CedarxAvscounterContext *avs_counter;
 

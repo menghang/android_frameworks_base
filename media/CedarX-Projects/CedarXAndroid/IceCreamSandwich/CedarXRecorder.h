@@ -8,6 +8,8 @@
 #include <binder/MemoryHeapBase.h>
 #include <media/AudioRecord.h>
 #include <camera/ICameraRecordingProxyListener.h>
+#include <media/stagefright/MediaSource.h>
+#include <media/stagefright/MediaBuffer.h>
 
 namespace android {
 
@@ -16,7 +18,12 @@ class AudioRecord;
 
 #define AUDIO_LATENCY_TIME	700000		// US
 #define VIDEO_LATENCY_TIME	700000		// US
-#define MAX_FILE_SIZE		(2*1024*1024*1024 - 64*1024)
+#define MAX_FILE_SIZE		(2*1024*1024*1024LL - 64*1024)
+
+typedef enum CDX_RECORDER_MEDIATYPE {
+	CDX_RECORDER_MEDIATYPE_VIDEO = 0,
+	CDX_RECORDER_MEDIATYPE_AUDIO
+}CDX_RECORDER_MEDIATYPE;
 
 class CedarXRecorder{
 public:
@@ -24,9 +31,11 @@ public:
     ~CedarXRecorder();
 	
     status_t setCamera(const sp<ICamera>& camera, const sp<ICameraRecordingProxy>& proxy);
-	status_t setParamVideoCameraId(int32_t cameraId);
+    status_t setMediaSource(const sp<MediaSource>& mediasource, int type);
+    status_t setParamVideoCameraId(int32_t cameraId);
     status_t setListener(const sp<IMediaRecorderClient>& listener);
     status_t setPreviewSurface(const sp<Surface>& surface);
+    status_t queueBuffer(int index, int addr_y, int addr_c, int64_t timestamp);
     status_t prepare();
     status_t start();
     status_t pause();
@@ -69,6 +78,7 @@ public:
 
 	status_t setParamTimeLapseEnable(int32_t timeLapseEnable);
     status_t setParamTimeBetweenTimeLapseFrameCapture(int64_t timeUs);
+    status_t readMediaBufferCallback(void *buf_header);
 
 	int CedarXRecorderCallback(int event, void *info);
 
@@ -164,9 +174,12 @@ private:
 
 	bool				mStarted;
 	uint 				mRecModeFlag;
-	AudioRecord 		* mRecord;
+	AudioRecord 		*mRecord;
 
 	int64_t				mLatencyStartUs;
+
+	sp<MediaSource> 	mMediaSourceVideo;
+	MediaBuffer         *mInputBuffer;
 
 	sp<DeathNotifier> mDeathNotifier;
 	

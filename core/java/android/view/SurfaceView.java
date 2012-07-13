@@ -43,6 +43,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.provider.Settings;
 import android.view.Display;
+import android.os.SystemProperties;
 
 /**
  * Provides a dedicated drawing surface embedded inside of a view hierarchy.
@@ -281,6 +282,7 @@ public class SurfaceView extends View {
 	        {
 	        	mAdapterMode = GLSurfaceView.RENDERPOS_HCENTER|GLSurfaceView.RENDERPOS_VCENTER;
 	        }
+
 		}
 		if(mSupportXLarge == false && mAdapterMode != 0)
 		{
@@ -324,9 +326,18 @@ public class SurfaceView extends View {
             	
             	WindowManager wm = (WindowManager)getContext().getSystemService(Context.WINDOW_SERVICE);
 		        Display mDisplay = wm.getDefaultDisplay();
-		        mScreenOrientation = mDisplay.getOrientation();
-		        mScreenWidth	   = mDisplay.getWidth();
-		        mScreenHeight	   = mDisplay.getHeight();
+				if(SystemProperties.getInt("ro.sf.hwrotation",0)==270)
+				{	
+					 mScreenOrientation = (mDisplay.getOrientation()+3)%4;
+
+				}
+				else
+				{
+					 mScreenOrientation = mDisplay.getOrientation();
+				}		
+				mScreenWidth	   = mDisplay.getWidth();
+			    mScreenHeight	   = mDisplay.getHeight();
+
             	if((appInfo.flags & ApplicationInfo.FLAG_SUPPORTS_LARGE_SCREENS) != 0)
             	{
             		GLSurfaceView.setGLAdpaterSize(800,480);

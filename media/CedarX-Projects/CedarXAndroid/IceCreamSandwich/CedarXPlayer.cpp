@@ -24,6 +24,7 @@
 #include "CedarXNativeRenderer.h"
 #include "CedarXSoftwareRenderer.h"
 
+#include <CDX_ErrorType.h>
 #include <CDX_Config.h>
 #include <libcedarv.h>
 #include <CDX_Fileformat.h>
@@ -38,15 +39,15 @@
 #include <media/stagefright/MediaDebug.h>
 #include <media/stagefright/MediaSource.h>
 #include <media/stagefright/MetaData.h>
+#include <media/stagefright/foundation/ALooper.h>
 
+#include <AwesomePlayer.h>
 #include <surfaceflinger/Surface.h>
 #include <gui/ISurfaceTexture.h>
 #include <gui/SurfaceTextureClient.h>
 #include <surfaceflinger/ISurfaceComposer.h>
 
-#include <media/stagefright/foundation/ALooper.h>
-
-#include <OMX_IVCommon.h>
+#include <include_sft/StreamingSource.h>
 
 #include <hardware/hwcomposer.h>
 #include <cutils/properties.h>
@@ -119,10 +120,12 @@ private:
 };
 
 CedarXPlayer::CedarXPlayer() :
-	mQueueStarted(false), mVideoRendererIsPreview(false),
+	mQueueStarted(false), mVideoRendererIsPreview(false), mSftSource(NULL),
 	mAudioPlayer(NULL), mFlags(0), mExtractorFlags(0), mCanSeek(0){
 
 	LOGV("Construction");
+	mAudioSink = NULL;
+	mAwesomePlayer = NULL;
 
 	mExtendMember = (CedarXPlayerExtendMember *)malloc(sizeof(CedarXPlayerExtendMember));
 	memset(mExtendMember, 0, sizeof(CedarXPlayerExtendMember));
@@ -145,6 +148,11 @@ CedarXPlayer::CedarXPlayer() :
 }
 
 CedarXPlayer::~CedarXPlayer() {
+	LOGV("~CedarXPlayer()");
+	if(mAwesomePlayer) {
+		delete mAwesomePlayer;
+		mAwesomePlayer = NULL;
+	}
 
 	if(isCedarXInitialized){
 		mPlayer->control(mPlayer, CDX_CMD_STOP_ASYNC, 0, 0);
@@ -163,7 +171,7 @@ CedarXPlayer::~CedarXPlayer() {
 		free(mExtendMember);
 		mExtendMember = NULL;
 	}
-	LOGV("Deconstruction %x",mFlags);
+	//LOGV("Deconstruction %x",mFlags);
 }
 
 void CedarXPlayer::setUID(uid_t uid) {
@@ -188,10 +196,12 @@ status_t CedarXPlayer::setDataSource(const char *uri, const KeyedVector<
 	    mUriHeaders = *headers;
 	}
 #if 0
-	//const char* dbg_url = "http://192.168.0.100/m3u-test0/v.m3u8";
-	const char* dbg_url = "http://192.168.0.100/jack.mp4";
-	//const char* dbg_url = "http://127.0.0.1:5656/play?url='cdn.voole.com:3528/play?fid=ece227876f8944978b119cbd52c02ba6'&time='0'";
-	//const char* dbg_url = "/mnt/extsd/hb.mp4";
+	//const char* dbg_url = "http://d327.v.iask.com/f/1/299eda0224f7747440e34e1e439e9a2c75353208.hlv";
+	//const char* dbg_url = "http://vhoth.dnion.videocdn.qq.com/flv/160/146/S0010wy4NWU.mp4?vkey=C03808A2DEA6F52F81DC0D0D0A0BBA1DFE3A59910FA7E34F9DCBD269E85A3F8B91946094DB16D5FB&level=1";
+	const char *dbg_url = "http://meta.video.qiyi.com/308/e6b3cd5d18f5378ebb14b93982297fd6.m3u8";
+	//const char* dbg_url = "http://192.168.0.101/9.mp4";
+	//const char* dbg_url = "http://tu.video.qiyi.com/tvx/mplay3u8/YzM5ZjIwZGMxMzg3YWIwNTE4ZWQ4MjJkMmE2YjIxZGEvZTU1YmI0NzVhNWYyNDljYmJiMzg4N2ZiYTJhNWZmZDI/NTk1ODAy.m3u8";
+	//const char* dbg_url = "rtsp://live.android.maxlab.cn/maxtv-ln.sdp";
 	mPlayer->control(mPlayer, CDX_SET_DATASOURCE_URL, (unsigned int)dbg_url, 0);
 #else
 	mPlayer->control(mPlayer, CDX_SET_DATASOURCE_URL, (unsigned int)uri, 0);
@@ -217,7 +227,6 @@ status_t CedarXPlayer::setDataSource(const sp<IStreamSource> &source) {
 	LOGV("CedarXPlayer::setDataSource stream");
 
 	mSftSource = new StreamingSource(source);
-	mSftSource->incStrong(this);
 	refValue = mSftSource.get();
 
 	mSourceType = SOURCETYPE_SFT_STREAM;
@@ -239,9 +248,22 @@ void CedarXPlayer::reset() {
 	//Mutex::Autolock autoLock(mLock);
 	LOGV("RESET????, context: %p",this);
 
-	if(mPlayer != NULL){
+	if(mAwesomePlayer) {
+		mAwesomePlayer->reset();
+	}
+
+	if (mPlayer != NULL) {
+		if (mVideoRenderer != NULL)
+		{
+			if(mDisplayFormat != HAL_PIXEL_FORMAT_YV12)
+			{
+				mVideoRenderer->control(VIDEORENDER_CMD_SHOW, 0);
+			}
+		}
+
 		mPlayer->control(mPlayer, CDX_CMD_RESET, 0, 0);
-		if(isCedarXInitialized){
+
+		if (isCedarXInitialized) {
 			mPlayer->control(mPlayer, CDX_CMD_STOP_ASYNC, 0, 0);
 			CDXPlayer_Destroy(mPlayer);
 			mPlayer = NULL;
@@ -292,6 +314,11 @@ void CedarXPlayer::reset_l() {
 	mUri.setTo("");
 	mUriHeaders.clear();
 
+	if (mSftSource != NULL) {
+		mSftSource.clear();
+		mSftSource = NULL;
+	}
+
 	memset(&mSubtitleParameter, 0, sizeof(struct SubtitleParameter));
 	mSubtitleParameter.mSubtitleGate = 0;
 }
@@ -315,7 +342,12 @@ void CedarXPlayer::notifyListener_l(int msg, int ext1, int ext2) {
 }
 
 status_t CedarXPlayer::play() {
+	LOGV("CedarXPlayer::play()");
 	SuspensionState *state = &mSuspensionState;
+
+	if(mAwesomePlayer) {
+		return mAwesomePlayer->play();
+	}
 
 	if(mFlags & NATIVE_SUSPENDING) {
 		LOGW("you has been suspend by other's");
@@ -325,7 +357,6 @@ status_t CedarXPlayer::play() {
 	}
 
 	Mutex::Autolock autoLock(mLock);
-	LOGV("CedarXPlayer::play()");
 
 	mFlags &= ~CACHE_UNDERRUN;
 
@@ -423,6 +454,10 @@ status_t CedarXPlayer::play_l(int command) {
 status_t CedarXPlayer::stop() {
 	LOGV("CedarXPlayer::stop");
 
+	if(mAwesomePlayer) {
+		return mAwesomePlayer->pause();
+	}
+
 	if(mPlayer != NULL){
 		mPlayer->control(mPlayer, CDX_CMD_STOP_ASYNC, 0, 0);
 	}
@@ -478,7 +513,12 @@ status_t CedarXPlayer::stop_l() {
 
 status_t CedarXPlayer::pause() {
 	//Mutex::Autolock autoLock(mLock);
-	LOGV("pause cmd");
+	LOGV("pause()");
+
+	if(mAwesomePlayer) {
+		return mAwesomePlayer->pause();
+	}
+
 #if 0
 	mFlags &= ~CACHE_UNDERRUN;
 	mPlayer->control(mPlayer, CDX_CMD_PAUSE, 0, 0);
@@ -522,6 +562,9 @@ status_t CedarXPlayer::pause_l(bool at_eos) {
 }
 
 bool CedarXPlayer::isPlaying() const {
+	if(mAwesomePlayer) {
+		return mAwesomePlayer->isPlaying();
+	}
 	//LOGV("isPlaying cmd mFlags=0x%x",mFlags);
 	return (mFlags & PLAYING) || (mFlags & CACHE_UNDERRUN);
 }
@@ -581,6 +624,9 @@ void CedarXPlayer::setAudioSink(const sp<MediaPlayerBase::AudioSink> &audioSink)
 
 status_t CedarXPlayer::setLooping(bool shouldLoop) {
 	//Mutex::Autolock autoLock(mLock);
+	if (mAwesomePlayer) {
+		mAwesomePlayer->setLooping(shouldLoop);
+	}
 
 	mFlags = mFlags & ~LOOPING;
 
@@ -593,6 +639,20 @@ status_t CedarXPlayer::setLooping(bool shouldLoop) {
 
 status_t CedarXPlayer::getDuration(int64_t *durationUs) {
 
+	if (mAwesomePlayer) {
+	    int64_t tmp;
+	    status_t err = mAwesomePlayer->getDuration(&tmp);
+
+	    if (err != OK) {
+	        *durationUs = 0;
+	        return OK;
+	    }
+
+	    *durationUs = (tmp + 500) / 1000;
+
+	    return OK;
+	}
+
 	mPlayer->control(mPlayer, CDX_CMD_GET_DURATION, (unsigned int)durationUs, 0);
 	*durationUs *= 1000;
 	mDurationUs = *durationUs;
@@ -601,6 +661,19 @@ status_t CedarXPlayer::getDuration(int64_t *durationUs) {
 }
 
 status_t CedarXPlayer::getPosition(int64_t *positionUs) {
+
+	if (mAwesomePlayer) {
+		int64_t tmp;
+		status_t err = mAwesomePlayer->getPosition(&tmp);
+
+		if (err != OK) {
+			return err;
+		}
+
+		*positionUs = (tmp + 500) / 1000;
+		LOGV("getPosition:%lld",*positionUs);
+		return OK;
+	}
 
 	if(mFlags & AT_EOS){
 		*positionUs = mDurationUs;
@@ -675,8 +748,24 @@ status_t CedarXPlayer::seekTo(int64_t timeUs) {
 void CedarXPlayer::finishAsyncPrepare_l(int err){
 
 	LOGV("finishAsyncPrepare_l");
-	if(err == -1){
-		LOGE("CedarXPlayer:prepare error!");
+
+	if(err == CDX_ERROR_UNSUPPORT_USESFT) {
+		//current http+mp3 etc goes here
+		mAwesomePlayer = new AwesomePlayer;
+		mAwesomePlayer->setListener(mListener);
+		if(mAudioSink != NULL) {
+			mAwesomePlayer->setAudioSink(mAudioSink);
+		}
+
+		if(mFlags & LOOPING) {
+			mAwesomePlayer->setLooping(!!(mFlags & LOOPING));
+		}
+		mAwesomePlayer->setDataSource(mUri.string(), &mUriHeaders);
+		mAwesomePlayer->prepareAsync();
+		return;
+	}
+	if(err < 0){
+		LOGE("CedarXPlayer:prepare error! %d", err);
 		abortPrepare(UNKNOWN_ERROR);
 		return;
 	}
@@ -949,45 +1038,43 @@ status_t CedarXPlayer::set3DMode(int source3dMode, int displayMode)
 	_3d_info.width 	 			= mDisplayWidth;
 	_3d_info.height	 			= mDisplayHeight;
 	_3d_info.format	 			= mDisplayFormat;
-	_3d_info.is_mode_changed 	= 1;
 
 	//* set source 3d mode.
-	if(_3d_mode == CEDARV_3D_MODE_DOUBLE_STREAM)
-		_3d_info._3d_mode = 1;		//* OVERLAY_3D_OUT_MODE_FP
-	else if(_3d_mode == CEDARV_3D_MODE_SIDE_BY_SIDE)
-		_3d_info._3d_mode = 3;		//* OVERLAY_3D_OUT_MODE_SSH
-	else if(_3d_mode == CEDARV_3D_MODE_TOP_TO_BOTTOM)
-		_3d_info._3d_mode = 0;		//* OVERLAY_3D_OUT_MODE_TB
-	else if(_3d_mode == CEDARV_3D_MODE_LINE_INTERLEAVE)
-		_3d_info._3d_mode = 4;		//* OVERLAY_3D_OUT_MODE_LI
-	else if(_3d_mode == CEDARV_3D_MODE_COLUME_INTERLEAVE)
-		_3d_info._3d_mode = 5;		//* OVERLAY_3D_OUT_MODE_CI_1
+	if(source3dMode == CEDARV_3D_MODE_DOUBLE_STREAM)
+		_3d_info.src_mode = HWC_3D_SRC_MODE_FP;
+	else if(source3dMode == CEDARV_3D_MODE_SIDE_BY_SIDE)
+		_3d_info.src_mode = HWC_3D_SRC_MODE_SSH;
+	else if(source3dMode == CEDARV_3D_MODE_TOP_TO_BOTTOM)
+		_3d_info.src_mode = HWC_3D_SRC_MODE_TB;
+	else if(source3dMode == CEDARV_3D_MODE_LINE_INTERLEAVE)
+		_3d_info.src_mode = HWC_3D_SRC_MODE_LI;
 	else
-		_3d_info._3d_mode = 0xff;	//* OVERLAY_3D_OUT_MODE_NORMAL
+		_3d_info.src_mode = HWC_3D_SRC_MODE_NORMAL;
 
 	//* set display 3d mode.
-	if(display_3d_mode == CEDARX_DISPLAY_3D_MODE_ANAGLAGH)
-	{
-		if(_3d_mode == CEDARV_3D_MODE_SIDE_BY_SIDE)
+	if(displayMode == CEDARX_DISPLAY_3D_MODE_ANAGLAGH) {
+		if(source3dMode == CEDARV_3D_MODE_SIDE_BY_SIDE) {
 			_3d_info.width = mDisplayWidth/2;//frm_inf->width /=2;
-		else if(_3d_mode == CEDARV_3D_MODE_TOP_TO_BOTTOM)
+			_3d_info.width = (_3d_info.width + 0xF) & 0xFFFFFFF0;
+		}
+		else if(source3dMode == CEDARV_3D_MODE_TOP_TO_BOTTOM) {
 			_3d_info.height = mDisplayHeight/2;//frm_inf->height /=2;
+			_3d_info.height = (_3d_info.height + 0xF) & 0xFFFFFFF0;
+		}
 
 		if(_3d_info.format != HWC_FORMAT_RGBA_8888)
 			_3d_info.format = HWC_FORMAT_RGBA_8888;		//* force pixel format to be RGBA8888.
 
-		_3d_info.display_mode = 2;
+		_3d_info.display_mode = HWC_3D_OUT_MODE_ANAGLAGH;
 	}
-	else if(display_3d_mode == CEDARX_DISPLAY_3D_MODE_3D)
-		_3d_info.display_mode = 1;
-	else if(display_3d_mode == CEDARX_DISPLAY_3D_MODE_2D)
-		_3d_info.display_mode = 3;
+	else if(displayMode == CEDARX_DISPLAY_3D_MODE_3D)
+		_3d_info.display_mode = HWC_3D_OUT_MODE_HDMI_3D_1080P24_FP;
+	else if(displayMode == CEDARX_DISPLAY_3D_MODE_2D)
+		_3d_info.display_mode = HWC_3D_OUT_MODE_ORIGINAL;
 	else
-		_3d_info.display_mode = 0;
-
-	if(mVideoRenderer != NULL)
-	{
-		LOGV("set hdmi, src_mode = %d, dst_mode = %d", _3d_info._3d_mode, _3d_info.display_mode);
+		_3d_info.display_mode = HWC_3D_OUT_MODE_2D;
+	if(mVideoRenderer != NULL) {
+		LOGV("set hdmi, src_mode = %d, dst_mode = %d", _3d_info.src_mode, _3d_info.display_mode);
 		return mVideoRenderer->control(VIDEORENDER_CMD_SET3DMODE, (int)&_3d_info);
 	}
 
@@ -1271,7 +1358,7 @@ int CedarXPlayer::getInputDimensionType()
 		return -1;
 
 	pre_3d_mode = _3d_mode;
-	mPlayer->control(mPlayer, CDX_CMD_GET_PICTURE_3D_MODE, (unsigned int)&tmp, 0);
+	mPlayer->control(mPlayer, CDX_CMD_GET_SOURCE_3D_MODE, (unsigned int)&tmp, 0);
 
 	if((unsigned int)tmp != _3d_mode)
 	{
@@ -1473,7 +1560,6 @@ status_t CedarXPlayer::extensionControl(int command, int para0, int para1)
 
 status_t CedarXPlayer::generalInterface(int cmd, int int1, int int2, int int3, void *p)
 {
-//#ifdef __TEMP_DEF_0001
 	if (mPlayer == NULL) {
 		return -1;
 	}
@@ -1488,10 +1574,18 @@ status_t CedarXPlayer::generalInterface(int cmd, int int1, int int2, int int3, v
 		mPlayer->control(mPlayer, CDX_CMD_IS_PLAY_BD_FILE, (unsigned int)p, 0);
 		break;
 
+	case MEDIAPLAYER_CMD_SET_STREAMING_TYPE:
+		mPlayer->control(mPlayer, CDX_CMD_SET_STREAMING_TYPE, int1, 0);
+		break;
+
+	case MEDIAPLAYER_CMD_QUERY_HWLAYER_RENDER:
+		*((int*)p) = mExtendMember->mUseHardwareLayer;
+		break;
+
 	default:
 		break;
 	}
-//#endif
+
 	return OK;
 }
 

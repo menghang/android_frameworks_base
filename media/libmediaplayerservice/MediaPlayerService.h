@@ -393,6 +393,8 @@ private:
 
         virtual status_t        setDataSource(const sp<IStreamSource> &source);
 
+        virtual status_t        setDataSource(const sp<IStreamSource> &source, int type);
+
         static  void            notify(void* cookie, int msg,
                                        int ext1, int ext2, const Parcel *obj);
 

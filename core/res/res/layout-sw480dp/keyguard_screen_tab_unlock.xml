@@ -103,6 +103,8 @@
             android:verticalOffset="0dip"
             android:feedbackCount="3"
             android:vibrationDuration="20"
+	    android:maxAppIconNum="8"
+	    android:iconSize="50"
             />
 
         <!-- emergency call button shown when sim is PUKd and tab_selector is hidden -->

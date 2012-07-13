@@ -196,11 +196,6 @@ public class DisplayManagerService extends IDisplayManager.Stub
 		
         intent.putExtra(DisplayManager.EXTRA_HDMISTATUS, mHdmiPlugin);
 
-        if (true) 
-		{
-            Slog.d(TAG, "mHdmiPlugin:" + mHdmiPlugin);
-        }
-
         ActivityManagerNative.broadcastStickyIntent(intent, null);
     }
 
@@ -212,11 +207,6 @@ public class DisplayManagerService extends IDisplayManager.Stub
                 | Intent.FLAG_RECEIVER_REPLACE_PENDING);
 		
         intent.putExtra(DisplayManager.EXTRA_TVSTATUS, mTvDacPlugin);
-
-        if (true) 
-		{
-            Slog.d(TAG, "mTvDacPlugin:" + mTvDacPlugin);
-        }
 
         ActivityManagerNative.broadcastStickyIntent(intent, null);
     }
@@ -301,7 +291,7 @@ public class DisplayManagerService extends IDisplayManager.Stub
                 //Log.d(TAG,"HDMI2 System.currentTimeMillis() = " + System.currentTimeMillis());
 				if(hdmiStatusChange())
 				{
-					Log.d(TAG,"changed hdmihotplug = " + hdmihotplug);
+					//Log.d(TAG,"changed hdmihotplug = " + hdmihotplug);
 					mService.setDisplayHdmiHotPlug(hdmihotplug);
 
 					sendHdmiIntent();
@@ -320,7 +310,7 @@ public class DisplayManagerService extends IDisplayManager.Stub
 				//Log.d(TAG,"TV2 System.currentTimeMillis() = " + System.currentTimeMillis());
 				if(tvStatusChange())
 				{
-					Log.d(TAG,"changed tvdachotplug = " + tvdachotplug);
+					//Log.d(TAG,"changed tvdachotplug = " + tvdachotplug);
 					mService.setDisplayTvDacHotPlug(tvdachotplug);
 //
 					sendTvDacIntent();
@@ -371,7 +361,6 @@ public class DisplayManagerService extends IDisplayManager.Stub
 		mWindowManager	= IWindowManager.Stub.asInterface(ServiceManager.getService(Context.WINDOW_SERVICE));
 		boolean enable = Settings.System.getInt(mContext.getContentResolver(),Settings.System.SMART_BRIGHTNESS_ENABLE,0) != 0 ? true : false;
 		setDisplayBacklightMode(enable?1:0);
-		Log.d(TAG,"getWindowManager Starting.......!");
     }
     
     public void systemReady()
@@ -416,52 +405,39 @@ public class DisplayManagerService extends IDisplayManager.Stub
 	
 	public int setDisplayMode(int mode)
 	{
-		int    ret;
-		int    wmret;
-		
-		Log.d(TAG,"setDisplayMode!");
-		ret = nativeSetDisplayMode(mode);
-		if(ret == 0)
-		{
-			try 
-			{
-	            //mWindowManager.displayModeChanged(true);
-	            Log.d(TAG,"thread setDisplayMode failed!");
-	        } 
-	        catch (Exception e) 
-	        {
-	        	ret  = -1;
-	            Log.d(TAG,"thread displayModeChanged failed!");
-	        } 
-		}
-		
-		Log.d(TAG,"thread setDisplayMode2 failed!");
+        try
+        {
+            if(mode == 3 || mode == 4)
+            {
+                int hwrotation = 0;
 
-		return ret;
+                hwrotation = SystemProperties.getInt("ro.sf.hwrotation",0);
+                if((hwrotation==90) || (hwrotation==270)) 
+                {
+                    mWindowManager.freezeRotation(1);
+                }
+                else
+                {
+	                mWindowManager.freezeRotation(0);
+	            }
+	        }
+	        else
+	        {
+	            mWindowManager.thawRotation();
+	        }
+        }             
+        catch (Exception e)
+        {
+	        Log.d(TAG,"freezeRotation or thawRotation failed!");
+	        return -1;
+        } 
+        
+		return nativeSetDisplayMode(mode);
 	}
 	
 	public int setDisplayOutputType(int mDisplay,int type,int format)
 	{
-		int    ret;
-		int    wmret;
-		
-		ret = nativeSetDisplayOutputType(mDisplay,type,format);
-		Log.d(TAG,"thread displayModeChanged ret = " + ret);
-		if(ret == 0)
-		{
-			try 
-			{
-				Log.d(TAG,"thread displayModeChanged Starting!");
-	            //mWindowManager.displayModeChanged(true);
-	        } 
-	        catch (Exception e) 
-	        {
-	        	ret  = -1;
-	            Log.d(TAG,"thread displayModeChanged failed!");
-	        } 
-		}
-
-		return ret;
+		return nativeSetDisplayOutputType(mDisplay,type,format);
 	}
 
 	public int getDisplayHdmiHotPlug()
@@ -535,24 +511,7 @@ public class DisplayManagerService extends IDisplayManager.Stub
 	
 	public int setDisplayMaster(int mDisplay)
 	{
-		int    ret;
-		int    wmret;
-		
-		ret = setDisplayMaster(mDisplay);
-		if(ret == 0)
-		{
-			try 
-			{
-	            //mWindowManager.displayModeChanged(true);
-	        } 
-	        catch (Exception e) 
-	        {
-	        	ret  = -1;
-	            Log.d(TAG,"thread displayModeChanged failed!");
-	        } 
-		}
-
-		return ret;
+		return setDisplayMaster(mDisplay);
 	}
 
 	public int getDisplayMaster()

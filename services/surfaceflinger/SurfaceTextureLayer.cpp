@@ -56,7 +56,6 @@ status_t SurfaceTextureLayer::setBufferCount(int bufferCount) {
 
 status_t SurfaceTextureLayer::queueBuffer(int buf, int64_t timestamp,
         uint32_t* outWidth, uint32_t* outHeight, uint32_t* outTransform) {
-
     status_t res = SurfaceTexture::queueBuffer(buf, timestamp,
             outWidth, outHeight, outTransform);
     sp<Layer> layer(mLayer.promote());
@@ -68,7 +67,6 @@ status_t SurfaceTextureLayer::queueBuffer(int buf, int64_t timestamp,
 
 status_t SurfaceTextureLayer::dequeueBuffer(int *buf,
         uint32_t w, uint32_t h, uint32_t format, uint32_t usage) {
-
     status_t res(NO_INIT);
     sp<Layer> layer(mLayer.promote());
     if (layer != NULL) {
@@ -138,7 +136,8 @@ status_t SurfaceTextureLayer::disconnect(int api)
             usehwinit     = false;
             if (layer != NULL) 
             {
-                layer->setTextureInfo(0,0,0);
+                Rect Crop(0,0,0,0);
+                layer->setTextureInfo(Crop, 0);
             }
         }
         default:
@@ -150,7 +149,6 @@ status_t SurfaceTextureLayer::disconnect(int api)
 int SurfaceTextureLayer::setParameter(uint32_t cmd,uint32_t value) 
 {
     int res = 0;
-
 	SurfaceTexture::setParameter(cmd,value);
 	
     sp<Layer> layer(mLayer.promote());
@@ -166,7 +164,9 @@ int SurfaceTextureLayer::setParameter(uint32_t cmd,uint32_t value)
 
                 if(IsHardwareRenderSupport())
                 {
-	    		    layer->setTextureInfo(layer_info->w,layer_info->h,layer_info->format);
+                    Rect Crop(SurfaceTexture::getCurrentCrop());
+                    
+	    		    layer->setTextureInfo(Crop,layer_info->format);
 
                     usehwinit = true;
                 }

@@ -2838,6 +2838,7 @@ package android.app {
     field public static final long INTERVAL_HALF_HOUR = 1800000L; // 0x1b7740L
     field public static final long INTERVAL_HOUR = 3600000L; // 0x36ee80L
     field public static final int RTC = 1; // 0x1
+    field public static final int RTC_SHUTDOWN_WAKEUP = 4; // 0x4
     field public static final int RTC_WAKEUP = 0; // 0x0
   }
 
@@ -22207,7 +22208,11 @@ package android.view {
     field public static final int DISPLAY_MODE_DUALDIFF = 2; // 0x2
     field public static final int DISPLAY_MODE_DUALLCD = 1; // 0x1
     field public static final int DISPLAY_MODE_DUALSAME = 3; // 0x3
+    field public static final int DISPLAY_MODE_DUALSAME_TWO_VIDEO = 4; // 0x4
     field public static final int DISPLAY_MODE_SINGLE = 0; // 0x0
+    field public static final int DISPLAY_MODE_SINGLE_FB_VAR = 7; // 0x7
+    field public static final int DISPLAY_MODE_SINGLE_VAR = 5; // 0x5
+    field public static final int DISPLAY_MODE_SINGLE_VAR_BE = 6; // 0x6
     field public static final int DISPLAY_OUTPUT_TYPE_HDMI = 3; // 0x3
     field public static final int DISPLAY_OUTPUT_TYPE_LCD = 1; // 0x1
     field public static final int DISPLAY_OUTPUT_TYPE_NONE = 0; // 0x0
@@ -22220,6 +22225,9 @@ package android.view {
     field public static final int DISPLAY_TVFORMAT_1080I_50HZ = 6; // 0x6
     field public static final int DISPLAY_TVFORMAT_1080I_60HZ = 7; // 0x7
     field public static final int DISPLAY_TVFORMAT_1080P_24HZ = 8; // 0x8
+    field public static final int DISPLAY_TVFORMAT_1080P_24HZ_3D_FP = 37; // 0x25
+    field public static final int DISPLAY_TVFORMAT_1080P_25HZ = 35; // 0x23
+    field public static final int DISPLAY_TVFORMAT_1080P_30HZ = 36; // 0x24
     field public static final int DISPLAY_TVFORMAT_1080P_50HZ = 9; // 0x9
     field public static final int DISPLAY_TVFORMAT_1080P_60HZ = 10; // 0xa
     field public static final int DISPLAY_TVFORMAT_480I = 0; // 0x0
@@ -22227,7 +22235,9 @@ package android.view {
     field public static final int DISPLAY_TVFORMAT_576I = 1; // 0x1
     field public static final int DISPLAY_TVFORMAT_576P = 3; // 0x3
     field public static final int DISPLAY_TVFORMAT_720P_50HZ = 4; // 0x4
+    field public static final int DISPLAY_TVFORMAT_720P_50HZ_3D_FP = 38; // 0x26
     field public static final int DISPLAY_TVFORMAT_720P_60HZ = 5; // 0x5
+    field public static final int DISPLAY_TVFORMAT_720P_60HZ_3D_FP = 39; // 0x27
     field public static final int DISPLAY_TVFORMAT_NTSC = 14; // 0xe
     field public static final int DISPLAY_TVFORMAT_NTSC_CVBS_SVIDEO = 16; // 0x10
     field public static final int DISPLAY_TVFORMAT_NTSC_SVIDEO = 15; // 0xf
