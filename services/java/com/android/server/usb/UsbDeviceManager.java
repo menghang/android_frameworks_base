@@ -40,6 +40,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Parcelable;
 import android.os.ParcelFileDescriptor;
+import android.os.PowerManager;
 import android.os.Process;
 import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
@@ -119,6 +120,9 @@ public class UsbDeviceManager {
     private PowerManager.WakeLock wl;
     private int wlref = 0;
 
+    private PowerManager.WakeLock wl;
+    private int wlref = 0;
+
     private class AdbSettingsObserver extends ContentObserver {
         public AdbSettingsObserver() {
             super(null);
@@ -170,6 +174,9 @@ public class UsbDeviceManager {
         
         PowerManager power = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
         wl = power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+
+	PowerManager power = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
+	wl = power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
 
         // create a thread for our Handler
         HandlerThread thread = new HandlerThread("UsbDeviceManager",
@@ -235,6 +242,23 @@ public class UsbDeviceManager {
         }
     }
     
+    /* In usb device connected to pc host, we should create a partial wakelock to prevent go to standby*/
+    private void enableWakeLock(boolean enable){
+        if(enable){
+            Slog.d(TAG, "enable "+ TAG +" wakelock"+" wlref = "+ wlref);            
+            if(wlref==0){
+                wlref++;
+                wl.acquire();
+            }            
+        }else{
+            Slog.d(TAG, "disable "+ TAG +" wakelock"+" wlref = "+ wlref);              
+            if(wlref==1){
+                wl.release();
+                wlref--;
+            }
+        }
+    }
+
     /* In usb device connected to pc host, we should create a partial wakelock to prevent go to standby*/
     private void enableWakeLock(boolean enable){
         if(enable){
