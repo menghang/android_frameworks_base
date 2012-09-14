@@ -53,6 +53,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.os.ParcelUuid;
+import android.os.PowerManager;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.provider.Settings;
@@ -177,6 +178,10 @@ public class BluetoothService extends IBluetooth.Stub {
     private HashMap<String, Pair<Integer, String>> mIncomingConnections;
     private HashMap<Integer, Pair<Integer, Integer>> mProfileConnectionState;
 
+    private boolean mScreenOff;
+    private Handler mDelayedHandler;
+    private PowerManager.WakeLock mScreenOffWakeLock = null;
+
     private static class RemoteService {
         public String address;
         public ParcelUuid uuid;
@@ -242,6 +247,10 @@ public class BluetoothService extends IBluetooth.Stub {
         registerForAirplaneMode(filter);
 
         filter.addAction(Intent.ACTION_DOCK_EVENT);
+        // Bluetooth suspend/wakeup
+        mDelayedHandler = new Handler();
+        filter.addAction(Intent.ACTION_SCREEN_ON);
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
         mContext.registerReceiver(mReceiver, filter);
         mBluetoothInputProfileHandler = BluetoothInputProfileHandler.getInstance(mContext, this);
         mBluetoothPanProfileHandler = BluetoothPanProfileHandler.getInstance(mContext, this);
@@ -451,6 +460,15 @@ public class BluetoothService extends IBluetooth.Stub {
         }
     }
 
+    private final Runnable mBTShutDown = new Runnable() {
+        public void run() {
+            if (mScreenOffWakeLock != null && mScreenOffWakeLock.isHeld()) {
+                mScreenOffWakeLock.release();
+                mScreenOffWakeLock = null;
+            }
+        }
+    };
+
     /**
      * power off Bluetooth
      */
@@ -459,6 +477,7 @@ public class BluetoothService extends IBluetooth.Stub {
         setBluetoothTetheringNative(false, BluetoothPanProfileHandler.NAP_ROLE,
                 BluetoothPanProfileHandler.NAP_BRIDGE);
         tearDownNativeDataNative();
+	mDelayedHandler.postDelayed(mBTShutDown, 1*1000);
     }
 
     /**
@@ -1702,20 +1721,50 @@ public class BluetoothService extends IBluetooth.Stub {
         return mStateChangeTracker.size();
     }
 
+    boolean getmScreenOff(){
+        return mScreenOff;
+    }
+
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent == null) return;
 
             String action = intent.getAction();
+	    ContentResolver resolver = context.getContentResolver();
             if (action.equals(Intent.ACTION_AIRPLANE_MODE_CHANGED)) {
-                ContentResolver resolver = context.getContentResolver();
+                //ContentResolver resolver = context.getContentResolver();
                 // Query the airplane mode from Settings.System just to make sure that
                 // some random app is not sending this intent and disabling bluetooth
                 if (isAirplaneModeOn()) {
                     mBluetoothState.sendMessage(BluetoothAdapterStateMachine.AIRPLANE_MODE_ON);
                 } else {
                     mBluetoothState.sendMessage(BluetoothAdapterStateMachine.AIRPLANE_MODE_OFF);
+                }
+            } else if (action.equals(Intent.ACTION_SCREEN_ON)) {
+                Log.v(TAG, "bt mScreenOn");
+                mScreenOff = false;
+                if (Settings.Secure.getInt(resolver, Settings.Secure.BLUETOOTH_ON, 0) > 0) {
+                    
+                    if (mScreenOffWakeLock != null && mScreenOffWakeLock.isHeld()) {
+                        mScreenOffWakeLock.release();
+                        mScreenOffWakeLock = null;                    
+                    }
+                    //enable(false);
+                }
+            } else if (action.equals(Intent.ACTION_SCREEN_OFF)) {
+                Log.v(TAG, "bt mScreenOff");
+                mScreenOff = true;
+                if (Settings.Secure.getInt(resolver, Settings.Secure.BLUETOOTH_ON, 0) > 0) {    
+                    if (mScreenOffWakeLock == null) {
+                        mScreenOffWakeLock = ((PowerManager)
+                            mContext.getSystemService(Context.POWER_SERVICE))
+                            .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);    				
+                        if (mScreenOffWakeLock != null && !mScreenOffWakeLock.isHeld()) {
+                            mScreenOffWakeLock.acquire();
+                        }
+                    }
+                    //disable(false);
                 }
             } else if (Intent.ACTION_DOCK_EVENT.equals(action)) {
                 int state = intent.getIntExtra(Intent.EXTRA_DOCK_STATE,
