@@ -6430,7 +6430,11 @@ public class WindowManagerService extends IWindowManager.Stub
         sl = reduceConfigLayout(sl, Surface.ROTATION_90, density, unrotDh, unrotDw);
         sl = reduceConfigLayout(sl, Surface.ROTATION_180, density, unrotDw, unrotDh);
         sl = reduceConfigLayout(sl, Surface.ROTATION_270, density, unrotDh, unrotDw);
-        outConfig.smallestScreenWidthDp = (int)(mSmallestDisplayWidth / density);
+	if (Settings.System.getInt(mContext.getContentResolver(),Settings.System.TABLET_UI, 1) == 1) {
+	    outConfig.smallestScreenWidthDp=721;
+	} else {
+	    outConfig.smallestScreenWidthDp = (int)(mSmallestDisplayWidth / density);
+	}
         outConfig.screenLayout = sl;
     }
 
