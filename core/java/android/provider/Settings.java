@@ -2844,6 +2844,11 @@ public final class Settings {
           */
          public static final String VOLUME_KEY_CURSOR_CONTROL = "volume_key_cursor_control";
 
+	 /**
+          * Tablet UI settings.
+          */
+        public static final String TABLET_UI = "tablet_ui";
+
         /**
          * Show the pending notification counts as overlays on the status bar
 
