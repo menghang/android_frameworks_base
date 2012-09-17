@@ -972,6 +972,7 @@ public class WifiService extends IWifiManager.Stub {
                     Slog.d(TAG, "ACTION_SCREEN_ON");
                 }
                 mAlarmManager.cancel(mIdleIntent);
+		mWifiStateMachine.releaseShutdownLock();
                 mScreenOff = false;
                 evaluateTrafficStatsPolling();
                 setDeviceIdleAndUpdateWifi(false);
@@ -988,14 +989,18 @@ public class WifiService extends IWifiManager.Stub {
                  * or plugged in to AC).
                  */
                 if (!shouldWifiStayAwake(stayAwakeConditions, mPluggedType)) {
+		    mWifiStateMachine.acquireShutdownLock();
                     //Delayed shutdown if wifi is connected
-                    if (mNetworkInfo.getDetailedState() == DetailedState.CONNECTED) {
+                    //if (mNetworkInfo.getDetailedState() == DetailedState.CONNECTED) {
+		    if (true) {
                         if (DBG) Slog.d(TAG, "setting ACTION_DEVICE_IDLE: " + idleMillis + " ms");
                         mAlarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()
                                 + idleMillis, mIdleIntent);
                     } else {
                         setDeviceIdleAndUpdateWifi(true);
                     }
+		} else {
+		    mWifiStateMachine.acquireShutdownLock();
                 }
             } else if (action.equals(ACTION_DEVICE_IDLE)) {
                 setDeviceIdleAndUpdateWifi(true);
