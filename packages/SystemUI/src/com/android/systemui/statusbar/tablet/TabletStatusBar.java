@@ -74,6 +74,7 @@ import com.android.systemui.statusbar.NotificationData.Entry;
 import com.android.systemui.statusbar.SignalClusterView;
 import com.android.systemui.statusbar.StatusBarIconView;
 import com.android.systemui.statusbar.policy.BatteryController;
+import com.android.systemui.statusbar.policy.DisplayController;
 import com.android.systemui.statusbar.policy.BluetoothController;
 import com.android.systemui.statusbar.policy.CompatModeButton;
 import com.android.systemui.statusbar.policy.LocationController;
@@ -159,6 +160,7 @@ public class TabletStatusBar extends BaseStatusBar implements
     LocationController mLocationController;
     NetworkController mNetworkController;
     DoNotDisturb mDoNotDisturb;
+    DisplayController mDisplayController;
 
     ViewGroup mBarContents;
 
@@ -249,7 +251,6 @@ public class TabletStatusBar extends BaseStatusBar implements
     // to some other configuration change).
     CustomTheme mCurrentTheme;
     private boolean mRecreating = false;
-
 
     protected void addPanelWindows() {
         final Context context = mContext;
@@ -548,6 +549,7 @@ public class TabletStatusBar extends BaseStatusBar implements
         mDoNotDisturb = new DoNotDisturb(mContext);
 
         mBatteryController = new BatteryController(mContext);
+        mDisplayController = new DisplayController(mContext);
         mBatteryController.addIconView((ImageView)sb.findViewById(R.id.battery));
         mBluetoothController = new BluetoothController(mContext);
         mBluetoothController.addIconView((ImageView)sb.findViewById(R.id.bluetooth));
