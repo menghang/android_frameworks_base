@@ -52,6 +52,7 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.INetworkManagementService;
 import android.os.Message;
+import android.os.PowerManager;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemProperties;
@@ -90,6 +91,7 @@ public class WifiService extends IWifiManager.Stub {
     private static final boolean DBG = false;
 
     private final WifiStateMachine mWifiStateMachine;
+    private PowerManager mPowerManager;
 
     private Context mContext;
 
@@ -367,6 +369,7 @@ public class WifiService extends IWifiManager.Stub {
         mWifiStateMachine.enableRssiPolling(true);
         mBatteryStats = BatteryStatsService.getService();
 
+	mPowerManager = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
         mAlarmManager = (AlarmManager)mContext.getSystemService(Context.ALARM_SERVICE);
         Intent idleIntent = new Intent(ACTION_DEVICE_IDLE, null);
         mIdleIntent = PendingIntent.getBroadcast(mContext, IDLE_REQUEST, idleIntent, 0);
@@ -999,8 +1002,6 @@ public class WifiService extends IWifiManager.Stub {
                     } else {
                         setDeviceIdleAndUpdateWifi(true);
                     }
-		} else {
-		    mWifiStateMachine.acquireShutdownLock();
                 }
             } else if (action.equals(ACTION_DEVICE_IDLE)) {
                 setDeviceIdleAndUpdateWifi(true);
@@ -1103,6 +1104,13 @@ public class WifiService extends IWifiManager.Stub {
         mWifiStateMachine.updateBatteryWorkSource(mTmpWorkSource);
     }
 
+    private boolean isScreenOn() {
+		if (mPowerManager != null) {
+		    return mPowerManager.isScreenOn();
+		}
+		return true;
+    }
+
     private void updateWifiState() {
         boolean lockHeld = mLocks.hasLocks();
         int strongestLockMode = WifiManager.WIFI_MODE_FULL;
@@ -1128,7 +1136,7 @@ public class WifiService extends IWifiManager.Stub {
         }
 
         if (shouldWifiBeEnabled()) {
-            if (wifiShouldBeStarted) {
+            if (wifiShouldBeStarted && isScreenOn()) {
                 reportStartWorkSource();
                 mWifiStateMachine.setWifiEnabled(true);
                 mWifiStateMachine.setScanOnlyMode(

@@ -1961,12 +1961,12 @@ public class WifiStateMachine extends StateMachine {
                     mSuspendWakeLock.release();
                     break;
                 case WifiMonitor.DRIVER_HUNG_EVENT:
-                    //if (isScreenOn()) {
+                    if (isScreenOn()) {
                         acquireHungLock();
                         setWifiEnabled(false);
                         setWifiEnabled(true);
                         releaseHungLock();
-                    //}
+                    }
                     break;
                 case WifiManager.CONNECT_NETWORK:
                     replyToMessage(message, WifiManager.CONNECT_NETWORK_FAILED,
@@ -2057,9 +2057,6 @@ public class WifiStateMachine extends StateMachine {
             new Thread(new Runnable() {
                 public void run() {
                     mWakeLock.acquire();
-		    if (!isScreenOn()) {
-			acquireShutdownLock();
-		    }
                     //enabling state
                     switch(message.arg1) {
                         case WIFI_STATE_ENABLING:
@@ -2417,10 +2414,10 @@ public class WifiStateMachine extends StateMachine {
                     acquireHungLock();
                     mWifiNative.killSupplicant();
                     mWifiNative.closeSupplicantConnection();
-                    //if (isScreenOn()) {
+                    if (isScreenOn()) {
                         setWifiEnabled(false);
                         setWifiEnabled(true);
-                    //}  
+                    }  
                     mNetworkInfo.setIsAvailable(false);
                     handleNetworkDisconnect();
                     sendSupplicantConnectionChangedBroadcast(false);
