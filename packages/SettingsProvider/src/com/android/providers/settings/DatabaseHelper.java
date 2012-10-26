@@ -1545,6 +1545,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             loadIntegerSetting(stmt, Settings.System.WIFI_SLEEP_POLICY,
                     R.integer.def_wifi_sleep_policy);
+
+            loadStringSetting(stmt, Settings.System.HDMI_RESOLUTION,
+                    R.string.def_hdmi_resolution);
+
         } finally {
             if (stmt != null) stmt.close();
         }

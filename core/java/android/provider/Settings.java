@@ -2263,6 +2263,13 @@ public final class Settings {
          */
         public static final String POINTER_SPEED = "pointer_speed";
 
+		/**
+        * Select your preferred hdmi display resolution
+        * @hide
+        */
+
+        public static final String HDMI_RESOLUTION = "hdmi_resolution";
+
         /**
          * Whether national data roaming should be used.
          * @hide
