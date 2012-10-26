@@ -24,6 +24,8 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.util.SparseBooleanArray;
 import android.util.SparseIntArray;
+import android.content.Context;
+import android.provider.Settings;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +55,8 @@ public class SystemSensorManager extends SensorManager {
 
     // Looper associated with the context in which this instance was created.
     final Looper mMainLooper;
+
+    final Context mContext;
 
     /*-----------------------------------------------------------------------*/
 
@@ -231,9 +235,24 @@ public class SystemSensorManager extends SensorManager {
         void onSensorChangedLocked(Sensor sensor, float[] values, long[] timestamp, int accuracy) {
             SensorEvent t = sPool.getFromPool();
             final float[] v = t.values;
-            v[0] = values[0];
-            v[1] = values[1];
-            v[2] = values[2];
+            //v[0] = values[0];
+            //v[1] = values[1];
+            //v[2] = values[2];
+	    String str = Settings.System.getString(mContext.getContentResolver(), Settings.System.ACCELEROMETER_COORDINATE);
+            int stype = sensor.getType();
+            t.originalValue[0]	= values[0];
+            t.originalValue[1]	= values[1];
+            t.originalValue[2]	= values[2];
+            if(str!=null && str.equals("special")&&((stype == sensor.TYPE_ACCELEROMETER)||(stype == sensor.TYPE_GRAVITY))) {
+                 v[0] = values[1];
+                 v[1] = -values[0];
+                 v[2] = values[2];
+            } else {
+                 v[0] = values[0];
+                 v[1] = values[1];
+                 v[2] = values[2];
+            }
+
             t.timestamp = timestamp[0];
             t.accuracy = accuracy;
             t.sensor = sensor;
@@ -248,8 +267,9 @@ public class SystemSensorManager extends SensorManager {
     /**
      * {@hide}
      */
-    public SystemSensorManager(Looper mainLooper) {
+    public SystemSensorManager(Context context,Looper mainLooper) {
         mMainLooper = mainLooper;
+	mContext = context;
 
         synchronized(sListeners) {
             if (!sSensorModuleInitialized) {

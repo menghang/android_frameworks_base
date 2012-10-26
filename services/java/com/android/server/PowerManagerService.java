@@ -3486,7 +3486,7 @@ public class PowerManagerService extends IPowerManager.Stub
     }
 
     void systemReady() {
-        mSensorManager = new SystemSensorManager(mHandlerThread.getLooper());
+        mSensorManager = new SystemSensorManager(mContext, mHandlerThread.getLooper());
         mProximitySensor = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
         // don't bother with the light sensor if auto brightness is handled in hardware
         if (mUseSoftwareAutoBrightness) {

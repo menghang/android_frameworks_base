@@ -378,9 +378,9 @@ public abstract class WindowOrientationListener {
         public void onSensorChanged(SensorEvent event) {
             // The vector given in the SensorEvent points straight up (towards the sky) under ideal
             // conditions (the phone is not accelerating).  I'll call this up vector elsewhere.
-            float x = event.values[ACCELEROMETER_DATA_X];
-            float y = event.values[ACCELEROMETER_DATA_Y];
-            float z = event.values[ACCELEROMETER_DATA_Z];
+            float x = event.originalValue[ACCELEROMETER_DATA_X];
+            float y = event.originalValue[ACCELEROMETER_DATA_Y];
+            float z = event.originalValue[ACCELEROMETER_DATA_Z];
 
             if (LOG) {
                 Slog.v(TAG, "Raw acceleration vector: "
