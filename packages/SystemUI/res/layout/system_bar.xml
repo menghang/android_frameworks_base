@@ -75,7 +75,7 @@
                     android:src="@drawable/ic_sysbar_recent"
                     android:contentDescription="@string/accessibility_recent"
                     systemui:glowBackground="@drawable/ic_sysbar_highlight"
-                    />
+                    />		
                 <com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/menu"
                     android:layout_width="@dimen/navigation_menu_key_width"
                     android:layout_height="match_parent"
@@ -83,6 +83,20 @@
                     systemui:keyCode="82"
                     android:visibility="invisible"
                     android:contentDescription="@string/accessibility_menu"
+                    systemui:glowBackground="@drawable/ic_sysbar_highlight"
+                    />
+				<com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/volume_down"
+                    android:layout_width="@dimen/navigation_key_width"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_sysbar_my_volume_down"
+                    systemui:keyCode="25"
+                    systemui:glowBackground="@drawable/ic_sysbar_highlight"
+                    />
+				<com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/volume_up"
+                    android:layout_width="@dimen/navigation_key_width"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_sysbar_my_volume_up"
+                    systemui:keyCode="24"
                     systemui:glowBackground="@drawable/ic_sysbar_highlight"
                     />
             </LinearLayout>
