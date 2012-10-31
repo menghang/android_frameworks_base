@@ -30,8 +30,6 @@
 #include <camera/Camera.h>
 #include <binder/IMemory.h>
 
-#include <cutils/properties.h>
-
 using namespace android;
 
 struct fields_t {
@@ -453,15 +451,8 @@ static void android_hardware_Camera_getCameraInfo(JNIEnv *env, jobject thiz,
         jniThrowRuntimeException(env, "Fail to get camera info");
         return;
     }
-    char value[PROPERTY_VALUE_MAX];
-    property_get("hw.cameras", value, "2");
-    if (strcmp(value, "1") == 0) {
-       env->SetIntField(info_obj, fields.facing, 1);
-       env->SetIntField(info_obj, fields.orientation, 270);
-    } else {
-       env->SetIntField(info_obj, fields.facing, cameraInfo.facing);
-       env->SetIntField(info_obj, fields.orientation, cameraInfo.orientation);
-    }
+    env->SetIntField(info_obj, fields.facing, cameraInfo.facing);
+    env->SetIntField(info_obj, fields.orientation, cameraInfo.orientation);
 }
 
 // connect to camera service
