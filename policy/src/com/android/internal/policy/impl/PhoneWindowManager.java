@@ -372,7 +372,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     boolean mEnableShiftMenuBugReports = false;
 
     boolean mHeadless;
-    boolean mDisablePhabletUi;
     boolean mSafeMode;
     WindowState mStatusBar = null;
     boolean mHasSystemNavBar;
@@ -1140,7 +1139,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         mWindowManager = windowManager;
         mWindowManagerFuncs = windowManagerFuncs;
         mPowerManager = powerManager;
-	mDisablePhabletUi = "1".equals(SystemProperties.get("ro.disable_phablet_ui", "0"));
         mHeadless = "1".equals(SystemProperties.get("ro.config.headless", "0"));
         if (!mHeadless) {
             // don't create KeyguardViewMediator if headless
@@ -1334,21 +1332,12 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 / DisplayMetrics.DENSITY_DEVICE;
 
         if (shortSizeDp < 600) {
-	    // 0-599dp: "phone" UI with a separate status & navigation bar
-	    if (mDisablePhabletUi) {
-		mHasSystemNavBar = true;
-		mNavigationBarCanMove = false;
-	    } else {
-		mHasSystemNavBar = false;
-		mNavigationBarCanMove = true;
-	    }
+            // 0-599dp: "phone" UI with a separate status & navigation bar
+            mHasSystemNavBar = false;
+            mNavigationBarCanMove = true;
         } else if (shortSizeDp < 720) {
             // 600-719dp: "phone" UI with modifications for larger screens
-	    if (mDisablePhabletUi) {
-		mHasSystemNavBar = true;
-	    } else {
-		mHasSystemNavBar = false;
-	    }
+            mHasSystemNavBar = false;
             mNavigationBarCanMove = false;
         } else {
             // 720dp: "tablet" UI with a single combined status & navigation bar
