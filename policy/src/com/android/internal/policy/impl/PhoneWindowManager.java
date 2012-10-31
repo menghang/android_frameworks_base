@@ -1383,7 +1383,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             // out to be 16:aspect.  If this is less than 9, then hiding
             // the navigation bar will provide more useful space for wide
             // screen movies.
-            mCanHideNavigationBar = aspect < 9;
+            mCanHideNavigationBar = (aspect < 9) || (Settings.System.getInt(mContext.getContentResolver(),Settings.System.COMBINED_BAR_AUTO_HIDE, 0) == 1);
         } else if (mHasNavigationBar) {
             // The navigation bar is at the right in landscape; it seems always
             // useful to hide it for showing a video.
