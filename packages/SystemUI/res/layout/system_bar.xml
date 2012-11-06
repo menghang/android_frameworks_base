@@ -90,6 +90,7 @@
                     android:layout_height="match_parent"
                     android:src="@drawable/ic_sysbar_my_volume_down"
                     systemui:keyCode="25"
+					android:visibility="visible"
                     systemui:glowBackground="@drawable/ic_sysbar_highlight"
                     />
 				<com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/volume_up"
@@ -97,6 +98,7 @@
                     android:layout_height="match_parent"
                     android:src="@drawable/ic_sysbar_my_volume_up"
                     systemui:keyCode="24"
+					android:visibility="visible"
                     systemui:glowBackground="@drawable/ic_sysbar_highlight"
                     />
             </LinearLayout>
