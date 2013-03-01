@@ -51,6 +51,19 @@
 #define   DISPLAY_CMD_GETDISPCOUNT      12
 #define   DISPLAY_CMD_SETDISPMODE       13
 #define   DISPLAY_CMD_SETBACKLIGHTMODE  14
+#define   DISPLAY_CMD_SETAREAPERCENT    15
+#define   DISPLAY_CMD_GETAREAPERCENT    16
+#define   DISPLAY_CMD_SETBRIGHT         17
+#define   DISPLAY_CMD_GETBRIGHT         18
+#define   DISPLAY_CMD_SETCONTRAST       19
+#define   DISPLAY_CMD_GETCONTRAST       20
+#define   DISPLAY_CMD_SETSATURATION     21
+#define   DISPLAY_CMD_GETSATURATION     22
+#define   DISPLAY_CMD_SETHUE            23
+#define   DISPLAY_CMD_GETHUE            24
+#define   DISPLAY_CMD_ISSUPPORTHDMIMODE 25
+#define   DISPLAY_CMD_SETORIENTATION    26
+
 namespace android 
 {
     /* 同显时的帧管理线程 */
@@ -102,6 +115,7 @@ namespace android
 			int		getMaxWidthDisplay();
 			int     getMaxHdmiMode();
 			int     setDisplayBacklightMode(int mode);
+			int     setDisplayOrientation(int orientation);
 			
 			bool 	mDisplayOpen0;
 	        bool 	mDisplayOpen1;

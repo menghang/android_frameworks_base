@@ -809,8 +809,12 @@ player_type getPlayerType(const char* url)
 
     if (!strncasecmp("http://", url, 7) || !strncasecmp("https://", url, 8)) {
 		if((strpos = strrchr(url,'?')) != NULL) {
-			if(!strncasecmp(".mp3", strpos-4, 4) || !strncasecmp(".ogg", strpos-4, 4))
-				return STAGEFRIGHT_PLAYER;
+			for (int i = 0; i < NELEM(FILE_EXTS); ++i) {
+					int len = strlen(FILE_EXTS[i].extension);
+						if (!strncasecmp(strpos -len, FILE_EXTS[i].extension, len)) {
+							return FILE_EXTS[i].playertype;
+						}
+				}
 		}
 	}
 

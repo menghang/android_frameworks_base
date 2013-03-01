@@ -33,7 +33,6 @@ interface IDisplayManager
 	int getDisplayCount();
 	boolean getDisplayOpenStatus(int mDisplay);
 	int getDisplayHotPlugStatus(int mDisplay);
-	int getDisplayTvDacPlugStatus(int mDisplay);
 	int getDisplayOutputType(int mDisplay);
 	int getDisplayOutputFormat(int mDisplay);
 	int getDisplayWidth(int mDisplay);
@@ -51,4 +50,19 @@ interface IDisplayManager
 	int getMaxHdmiMode();
 	int setDisplayBacklightMode(int mode);
 	int getDisplayBacklightMode();
+    int isSupportHdmiMode(int mode);
+    int isSupport3DMode();
+    int getHdmiHotPlugStatus();
+    int getTvHotPlugStatus();
+    int setDisplayAreaPercent(int displayno,int percent);
+    int getDisplayAreaPercent(int displayno);
+    int setDisplayBright(int displayno,int bright);
+    int getDisplayBright(int displayno);
+    int setDisplayContrast(int displayno,int contrast);
+    int getDisplayContrast(int displayno);
+    int setDisplaySaturation(int displayno,int saturation);
+    int getDisplaySaturation(int displayno);
+    int setDisplayHue(int displayno,int hue);
+    int getDisplayHue(int displayno);
 }
+

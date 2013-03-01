@@ -78,6 +78,55 @@ void LayerScreenshot::initTexture(GLfloat u, GLfloat v) {
     mTexCoords[2] = 0;         mTexCoords[3] = 0;
     mTexCoords[4] = u;         mTexCoords[5] = 0;
     mTexCoords[6] = u;         mTexCoords[7] = v;
+
+    const DisplayHardware& hw(graphicPlane(0).displayHardware());
+    if(hw.setDispProp(DISPLAY_CMD_GETDISPLAYMODE,0,0,0) == DISPLAY_MODE_SINGLE_VAR_GPU)
+    {
+        mDispWidth = hw.setDispProp(DISPLAY_CMD_GETDISPPARA,0,DISPLAY_VALID_WIDTH,0);
+        mDispHeight = hw.setDispProp(DISPLAY_CMD_GETDISPPARA,0,DISPLAY_VALID_HEIGHT,0);
+
+        if(graphicPlane(0).getOrientation() == 0)
+        {
+            GLfloat x = GLfloat(mDispWidth) / 1920;
+            GLfloat y = GLfloat(1080 - mDispHeight) / 1080;
+            
+            mTexCoords[0] = 0;      mTexCoords[1] = 1;
+            mTexCoords[2] = 0;      mTexCoords[3] = y;
+            mTexCoords[4] = x;      mTexCoords[5] = y;
+            mTexCoords[6] = x;      mTexCoords[7] = 1;
+        }
+        else if(graphicPlane(0).getOrientation() == 1)
+        {
+            GLfloat x = GLfloat(1920 - mDispWidth) / 1920;
+            GLfloat y = GLfloat(1080 - mDispHeight) / 1080;
+            
+            mTexCoords[0] = x;      mTexCoords[1] = 1;
+            mTexCoords[2] = x;      mTexCoords[3] = y;
+            mTexCoords[4] = 1;      mTexCoords[5] = y;
+            mTexCoords[6] = 1;      mTexCoords[7] = 1;
+        }
+        else if(graphicPlane(0).getOrientation() == 2)
+        {
+            GLfloat x = GLfloat(1920 - mDispWidth) / 1920;
+            GLfloat y = GLfloat(mDispHeight) / 1080;
+            
+            mTexCoords[0] = x;      mTexCoords[1] = y;
+            mTexCoords[2] = x;      mTexCoords[3] = 0;
+            mTexCoords[4] = 1;      mTexCoords[5] = 0;
+            mTexCoords[6] = 1;      mTexCoords[7] = y;
+        }
+        else if(graphicPlane(0).getOrientation() == 3)
+        {
+            GLfloat x = GLfloat(mDispWidth) / 1920;
+            GLfloat y = GLfloat(mDispHeight) / 1080;
+            
+            mTexCoords[0] = 0;      mTexCoords[1] = y;
+            mTexCoords[2] = 0;      mTexCoords[3] = 0;
+            mTexCoords[4] = x;      mTexCoords[5] = 0;
+            mTexCoords[6] = x;      mTexCoords[7] = y;
+        }
+    }
+
 }
 
 void LayerScreenshot::initStates(uint32_t w, uint32_t h, uint32_t flags) {

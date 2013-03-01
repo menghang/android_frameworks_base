@@ -76,10 +76,11 @@ status_t NuPlayer::StreamingSource::feedMoreTSData() {
 
                 type = mask;
             }
-
+#if 0 //temp fix youku adobe flash can't play
             mTSParser->signalDiscontinuity(
                     (ATSParser::DiscontinuityType)type, extra);
-        } else if (n < 0) {
+#endif
+		} else if (n < 0) {
             CHECK_EQ(n, -EWOULDBLOCK);
             break;
         } else {

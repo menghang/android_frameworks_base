@@ -22182,25 +22182,39 @@ package android.view {
   public class DisplayManager {
     ctor public DisplayManager();
     method public int closeDisplay(int);
+    method public int getDisplayAreaPercent(int);
     method public int getDisplayBacklightMode();
+    method public int getDisplayBright(int);
+    method public int getDisplayContrast(int);
     method public int getDisplayCount();
     method public int getDisplayHeight(int);
     method public int getDisplayHotPlugStatus(int);
+    method public int getDisplayHue(int);
     method public int getDisplayMaster();
     method public int getDisplayMode();
     method public boolean getDisplayOpenStatus(int);
     method public int getDisplayOutputFormat(int);
     method public int getDisplayOutputType(int);
     method public int getDisplayPixelFormat(int);
+    method public int getDisplaySaturation(int);
     method public int getDisplayWidth(int);
+    method public int getHdmiHotPlugStatus();
     method public int getMaxHdmiMode();
     method public int getMaxWidthDisplay();
+    method public int getTvHotPlugStatus();
+    method public int isSupport3DMode();
+    method public int isSupportHdmiMode(int);
     method public int openDisplay(int);
+    method public int setDisplayAreaPercent(int, int);
     method public int setDisplayBacklightMode(int);
+    method public int setDisplayBright(int, int);
+    method public int setDisplayContrast(int, int);
+    method public int setDisplayHue(int, int);
     method public int setDisplayMaster(int);
     method public int setDisplayMode(int);
     method public int setDisplayOutputType(int, int, int);
     method public int setDisplayParameter(int, int, int);
+    method public int setDisplaySaturation(int, int);
     field public static final int DISPLAY_DEVICE_OFF = 1; // 0x1
     field public static final int DISPLAY_DEVICE_ON = 0; // 0x0
     field public static final int DISPLAY_DEVICE_PLUGIN = 0; // 0x0
@@ -22210,6 +22224,7 @@ package android.view {
     field public static final int DISPLAY_MODE_DUALSAME = 3; // 0x3
     field public static final int DISPLAY_MODE_DUALSAME_TWO_VIDEO = 4; // 0x4
     field public static final int DISPLAY_MODE_SINGLE = 0; // 0x0
+    field public static final int DISPLAY_MODE_SINGLE_FB_GPU = 8; // 0x8
     field public static final int DISPLAY_MODE_SINGLE_FB_VAR = 7; // 0x7
     field public static final int DISPLAY_MODE_SINGLE_VAR = 5; // 0x5
     field public static final int DISPLAY_MODE_SINGLE_VAR_BE = 6; // 0x6

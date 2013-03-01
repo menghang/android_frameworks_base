@@ -249,14 +249,20 @@ status_t SurfaceFlinger::readyToRun()
     mServerCblk->connected |= 1<<dpy;
     display_cblk_t* dcblk = mServerCblk->displays + dpy;
     memset(dcblk, 0, sizeof(display_cblk_t));
-    dcblk->w            = plane.getWidth();
-    dcblk->h            = plane.getHeight();
+
+    dcblk->w            = hw.setDispProp(DISPLAY_CMD_GETDISPPARA,0,DISPLAY_APP_WIDTH,0);
+    dcblk->h            = hw.setDispProp(DISPLAY_CMD_GETDISPPARA,0,DISPLAY_APP_HEIGHT,0);
+
     dcblk->format       = f;
     dcblk->orientation  = ISurfaceComposer::eOrientationDefault;
     dcblk->xdpi         = hw.getDpiX();
     dcblk->ydpi         = hw.getDpiY();
     dcblk->fps          = hw.getRefreshRate();
     dcblk->density      = hw.getDensity();
+
+    mDispWidth = dcblk->w;
+    mDispHeight = dcblk->h;
+    mSetDispSize = 0;
 
     // Initialize OpenGL|ES
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
@@ -437,6 +443,12 @@ bool SurfaceFlinger::threadLoop()
         // inform the h/w that we're done compositing
         logger.log(GraphicLog::SF_COMPOSITION_COMPLETE, index);
         hw.compositionComplete();
+
+        if (UNLIKELY(mSetDispSize == 1))
+        {
+            hw.setDispProp(DISPLAY_CMD_SETORIENTATION,mCurrentState.orientation,0,0);
+            mSetDispSize = 0;
+        }
 
         logger.log(GraphicLog::SF_SWAP_BUFFERS, index);
         postFramebuffer();
@@ -973,7 +985,15 @@ void SurfaceFlinger::setupHardwareComposer(Region& dirtyInOut)
             while (it != end) {
                 const Rect& r(*it++);
                 const GLint sy = height - (r.top + r.height());
-                glScissor(r.left, sy, r.width(), r.height());
+                
+                if(hw.setDispProp(DISPLAY_CMD_GETDISPLAYMODE,0,0,0) == DISPLAY_MODE_SINGLE_VAR_GPU)
+                {
+                    glScissor(0, 0, 1920, 1080);
+                }
+                else
+                {
+                    glScissor(r.left, sy, r.width(), r.height());
+                }
                 glClear(GL_COLOR_BUFFER_BIT);
             }
         }
@@ -1005,6 +1025,12 @@ void SurfaceFlinger::composeSurfaces(const Region& dirty)
         const sp<LayerBase>& layer(layers[i]);
         const Region clip(dirty.intersect(layer->visibleRegionScreen));
         if (!clip.isEmpty()) {
+            if(hw.setDispProp(DISPLAY_CMD_GETDISPLAYMODE,0,0,0) == DISPLAY_MODE_SINGLE_VAR_GPU)
+            {
+                mDispWidth = hw.setDispProp(DISPLAY_CMD_GETDISPPARA,0,DISPLAY_VALID_WIDTH,0);
+                mDispHeight = hw.setDispProp(DISPLAY_CMD_GETDISPPARA,0,DISPLAY_VALID_HEIGHT,0);
+                layer->setDispSize(mDispWidth,mDispHeight);
+            }
             layer->draw(clip);
         }
     }
@@ -1062,7 +1088,7 @@ void SurfaceFlinger::debugFlashRegions()
 }
 
 void SurfaceFlinger::drawWormhole() const
-{
+{    
     const Region region(mWormholeRegion.intersect(mDirtyRegion));
     if (region.isEmpty())
         return;
@@ -1078,7 +1104,14 @@ void SurfaceFlinger::drawWormhole() const
         while (it != end) {
             const Rect& r = *it++;
             const GLint sy = height - (r.top + r.height());
-            glScissor(r.left, sy, r.width(), r.height());
+            if(hw.setDispProp(DISPLAY_CMD_GETDISPLAYMODE,0,0,0) == DISPLAY_MODE_SINGLE_VAR_GPU)
+            {
+                glScissor(0, 0, 1920, 1080);
+            }
+            else
+            {
+                glScissor(r.left, sy, r.width(), r.height());
+            }
             glClear(GL_COLOR_BUFFER_BIT);
         }
     } else {
@@ -1105,7 +1138,14 @@ void SurfaceFlinger::drawWormhole() const
         while (it != end) {
             const Rect& r = *it++;
             const GLint sy = height - (r.top + r.height());
-            glScissor(r.left, sy, r.width(), r.height());
+            if(hw.setDispProp(DISPLAY_CMD_GETDISPLAYMODE,0,0,0) == DISPLAY_MODE_SINGLE_VAR_GPU)
+            {
+                glScissor(0, 0, 1920, 1080);
+            }
+            else
+            {
+                glScissor(r.left, sy, r.width(), r.height());
+            }
             glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
         }
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -1270,6 +1310,12 @@ void SurfaceFlinger::setTransactionState(const Vector<ComposerState>& state,
             }
         }
     }
+
+    const DisplayHardware& hw(graphicPlane(0).displayHardware());
+    if ((hw.setDispProp(DISPLAY_CMD_GETDISPLAYMODE,0,0,0) == DISPLAY_MODE_SINGLE_VAR_GPU) && (orientation != 4 ))
+    {
+        mSetDispSize = 1;
+    }
 }
 
 int SurfaceFlinger::setOrientation(DisplayID dpy,
@@ -1300,27 +1346,40 @@ int SurfaceFlinger::setDisplayProp(int cmd,int param0,int param1,int param2)
     
     if(cmd == DISPLAY_CMD_SETDISPMODE)
     {
-         HWComposer& hwc(graphicPlane(0).displayHardware().getHwComposer());
-         int hwc_mode = 0;
-         
-         if((param0 == DISPLAY_MODE_SINGLE) || (param0 == DISPLAY_MODE_SINGLE_VAR) || (param0 == DISPLAY_MODE_SINGLE_FB_VAR))
-         {
-             hwc_mode = HWC_MODE_SCREEN0;
+        if(ret >= 0)
+        {
+             HWComposer& hwc(graphicPlane(0).displayHardware().getHwComposer());
+             int hwc_mode = 0;
+             
+             if((param0 == DISPLAY_MODE_SINGLE) || (param0 == DISPLAY_MODE_SINGLE_VAR_FE) || (param0 == DISPLAY_MODE_SINGLE_FB_VAR))
+             {
+                 hwc_mode = HWC_MODE_SCREEN0;
+             }
+             else if(param0 == DISPLAY_MODE_DUALSAME)
+             {
+                 hwc_mode = HWC_MODE_SCREEN0_TO_SCREEN1;
+             }
+             else if(param0 == DISPLAY_MODE_DUALSAME_TWO_VIDEO)
+             {
+                 hwc_mode = HWC_MODE_SCREEN0_AND_SCREEN1;
+             }
+             else if(param0 == DISPLAY_MODE_SINGLE_VAR_BE)
+             {
+                hwc_mode = HWC_MODE_SCREEN0_BE;
+             }
+             else if(param0 == DISPLAY_MODE_SINGLE_VAR_GPU)
+             {
+                hwc_mode = HWC_MODE_SCREEN0_GPU;
+             }
+             
+             hwc.setParameter(HWC_LAYER_SETMODE,hwc_mode);
+             repaintEverything();
+             //signalEvent();
          }
-         else if(param0 == DISPLAY_MODE_DUALSAME)
+         else
          {
-             hwc_mode = HWC_MODE_SCREEN0_TO_SCREEN1;
+            return 0;
          }
-         else if(param0 == DISPLAY_MODE_DUALSAME_TWO_VIDEO)
-         {
-             hwc_mode = HWC_MODE_SCREEN0_AND_SCREEN1;
-         }
-         else if(param0 == DISPLAY_MODE_SINGLE_VAR_BE)
-         {
-            hwc_mode = HWC_MODE_SCREEN0_EX;
-         }
-         
-         hwc.setParameter(HWC_LAYER_SETMODE,hwc_mode);
     }
     return ret;
 }
@@ -2749,6 +2808,9 @@ status_t GraphicPlane::setOrientation(int orientation)
 
     mOrientation = orientation;
     mGlobalTransform = mDisplayTransform * orientationTransform;
+
+    //hw.setDispProp(DISPLAY_CMD_SETORIENTATION,mOrientation,0,0);
+        
     return NO_ERROR;
 }
 

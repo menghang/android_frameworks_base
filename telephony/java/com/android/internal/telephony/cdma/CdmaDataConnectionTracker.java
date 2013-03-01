@@ -47,6 +47,9 @@ import com.android.internal.util.AsyncChannel;
 
 import java.util.ArrayList;
 
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
+
 /**
  * {@hide}
  */
@@ -54,6 +57,7 @@ public final class CdmaDataConnectionTracker extends DataConnectionTracker {
     protected final String LOG_TAG = "CDMA";
 
     private CDMAPhone mCdmaPhone;
+    WakeLock voiceWakeLock;
 
     /** The DataConnection being setup */
     private CdmaDataConnection mPendingDataConnection;
@@ -752,6 +756,28 @@ public final class CdmaDataConnectionTracker extends DataConnectionTracker {
       }
     }
 
+	void acquireVoiceWakeLock() {
+	    Log.d(LOG_TAG, "acquiring voice lock");
+	    if(voiceWakeLock != null)
+	        return;
+
+	    PowerManager pm = (PowerManager)mPhone.getContext().getSystemService(Context.POWER_SERVICE);
+	    voiceWakeLock = pm.newWakeLock(
+	                    PowerManager.PARTIAL_WAKE_LOCK |
+	                    PowerManager.ACQUIRE_CAUSES_WAKEUP |
+	                    PowerManager.ON_AFTER_RELEASE, LOG_TAG);
+	    voiceWakeLock.acquire();
+
+	}
+
+	void releaseVoiceWakeLock() {
+        Log.d(LOG_TAG, "release voice lock " + voiceWakeLock);
+        if(voiceWakeLock != null) {
+            voiceWakeLock.release();
+            voiceWakeLock = null;
+        }
+    }
+
     /**
      * @override com.android.internal.telephony.DataConnectionTracker
      */
@@ -762,6 +788,8 @@ public final class CdmaDataConnectionTracker extends DataConnectionTracker {
             notifyDataConnection(Phone.REASON_VOICE_CALL_STARTED);
             notifyOffApnsOfAvailability(Phone.REASON_VOICE_CALL_STARTED);
         }
+
+        acquireVoiceWakeLock();
     }
 
     /**
@@ -783,6 +811,8 @@ public final class CdmaDataConnectionTracker extends DataConnectionTracker {
             // in case data setup was attempted when we were on a voice call
             trySetupData(Phone.REASON_VOICE_CALL_ENDED);
         }
+
+        releaseVoiceWakeLock();
     }
 
     @Override

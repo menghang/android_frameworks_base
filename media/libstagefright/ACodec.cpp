@@ -1917,7 +1917,8 @@ void ACodec::UninitializedState::onSetup(
 			int32_t width, height;
 			CHECK(msg->findInt32("width", &width));
 			CHECK(msg->findInt32("height", &height));
-
+			
+			height = ((height + 7)>>3)<<3;
 			mCodec->mVideoWidth = width;
 			mCodec->mVideoHeight = height;
 

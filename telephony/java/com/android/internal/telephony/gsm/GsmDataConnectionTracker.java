@@ -50,6 +50,10 @@ import android.text.TextUtils;
 import android.util.EventLog;
 import android.util.Log;
 
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
+
+
 import com.android.internal.telephony.ApnContext;
 import com.android.internal.telephony.ApnSetting;
 import com.android.internal.telephony.DataCallState;
@@ -77,7 +81,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class GsmDataConnectionTracker extends DataConnectionTracker {
     protected final String LOG_TAG = "GSM";
     private static final boolean RADIO_TESTS = false;
-
+    WakeLock voiceWakeLock;
     /**
      * Handles changes to the APN db.
      */
@@ -2110,6 +2114,28 @@ public final class GsmDataConnectionTracker extends DataConnectionTracker {
         }
     }
 
+	void acquireVoiceWakeLock() {
+	    Log.d(LOG_TAG, "acquiring voice lock");
+	    if(voiceWakeLock != null)
+	        return;
+
+	    PowerManager pm = (PowerManager)mPhone.getContext().getSystemService(Context.POWER_SERVICE);
+	    voiceWakeLock = pm.newWakeLock(
+	                    PowerManager.PARTIAL_WAKE_LOCK |
+	                    PowerManager.ACQUIRE_CAUSES_WAKEUP |
+	                    PowerManager.ON_AFTER_RELEASE, LOG_TAG);
+	    voiceWakeLock.acquire();
+
+	}
+
+	void releaseVoiceWakeLock() {
+        Log.d(LOG_TAG, "release voice lock " + voiceWakeLock);
+        if(voiceWakeLock != null) {
+            voiceWakeLock.release();
+            voiceWakeLock = null;
+        }
+    }
+
     @Override
     protected void onVoiceCallStarted() {
         if (DBG) log("onVoiceCallStarted");
@@ -2119,6 +2145,8 @@ public final class GsmDataConnectionTracker extends DataConnectionTracker {
             stopDataStallAlarm();
             notifyDataConnection(Phone.REASON_VOICE_CALL_STARTED);
         }
+
+        acquireVoiceWakeLock();
     }
 
     @Override
@@ -2137,6 +2165,8 @@ public final class GsmDataConnectionTracker extends DataConnectionTracker {
             // reset reconnect timer
             setupDataOnReadyApns(Phone.REASON_VOICE_CALL_ENDED);
         }
+
+        releaseVoiceWakeLock();
     }
 
     @Override

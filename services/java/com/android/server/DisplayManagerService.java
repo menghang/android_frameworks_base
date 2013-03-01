@@ -150,16 +150,6 @@ public class DisplayManagerService extends IDisplayManager.Stub
 	private IWindowManager 	mWindowManager;
     private int 			mHdmiPlugin;
     private int 			mTvDacPlugin;
-	private boolean			mDisplayOpen0;
-	private boolean 		mDisplayOpen1;
-	private int				mDisplayMaster;
-	private int     		mDisplayMode;
-	private int				mDisplayPixelFormat0;
-	private int 			mDisplayPixelFormat1;
-    private int 			mDisplayType0;
-    private int 			mDisplayType1;
-	private int 			mDisplayFormat0;
-	private int 			mDisplayFormat1;
 	private static 			DisplayThread sThread;
     private static 			boolean sThreadStarted = false;
 	private int             mBacklightMode;
@@ -186,7 +176,19 @@ public class DisplayManagerService extends IDisplayManager.Stub
 	private native int  nativeGetMaxHdmiMode();
 	private native int  nativeSetDisplayParameter(int mDisplay,int para0,int para1);
 	private native int nativeSetDisplayBacklihgtMode(int mode);
-
+	private native int  nativeSetDisplayAreaPercent(int mDisplay,int percent);
+	private native int  nativeGetDisplayAreaPercent(int mDisplay);
+	private native int  nativeSetDisplayBright(int mDisplay,int bright);
+	private native int  nativeGetDisplayBright(int mDisplay);
+	private native int  nativeSetDisplayContrast(int mDisplay,int contrast);
+	private native int  nativeGetDisplayContrast(int mDisplay);
+	private native int  nativeSetDisplaySaturation(int mDisplay,int saturation);
+	private native int  nativeGetDisplaySaturation(int mDisplay);
+	private native int  nativeSetDisplayHue(int mDisplay,int saturation);
+	private native int  nativeGetDisplayHue(int mDisplay);
+	private native int  nativeIsSupportHdmiMode(int mode);
+	private native int  nativeIsSupport3DMode();
+    
 	private final void sendHdmiIntent() 
 	{
         //  Pack up the values and broadcast them to everyone
@@ -210,29 +212,14 @@ public class DisplayManagerService extends IDisplayManager.Stub
 
         ActivityManagerNative.broadcastStickyIntent(intent, null);
     }
-
-	private final void update_hotplug()
-	{
-		mHdmiPlugin 	= nativeGetHdmiHotPlug();
-		if(mHdmiPlugin != 0)
-		{
-			sendHdmiIntent();
-		}	
-		mTvDacPlugin 	= nativeGetTvDacHotPlug();
-		if(mTvDacPlugin != 0)
-		{
-			sendTvDacIntent();
-		}
-	}
 	
 	public class DisplayThread extends Thread 
 	{
         private final DisplayManagerService mService;
         private final Context mContext;
         private final PowerManagerService mPM;
-        boolean mRunning = false;
-		private	int hdmihotplug;
-		private int tvdachotplug;
+		private	int hdmihotplug = 0;
+		private int tvdachotplug = 0;
 
         public DisplayThread(Context context,DisplayManagerService service,
                 PowerManagerService pm) 
@@ -242,26 +229,6 @@ public class DisplayManagerService extends IDisplayManager.Stub
             mContext = context;
             mPM = pm;
         }
-
-		public boolean hdmiStatusChange()
-		{
-			if(hdmihotplug == mService.getDisplayHdmiHotPlug())
-			{
-				return  false;
-			}
-
-			return  true;
-		}
-
-		public boolean tvStatusChange()
-		{
-			if(tvdachotplug == mService.getDisplayTvDacHotPlug())
-			{
-				return  false;
-			}
-
-			return  true;
-		}
 
         public void run() 
 		{
@@ -273,7 +240,6 @@ public class DisplayManagerService extends IDisplayManager.Stub
 
             synchronized (this) 
 			{
-                mRunning = true;
                 notifyAll();
             }
 
@@ -281,43 +247,22 @@ public class DisplayManagerService extends IDisplayManager.Stub
 			{
 				int  hotplug;
 				
-				//Log.d(TAG,"HDMI System.currentTimeMillis() = " + System.currentTimeMillis());
                 hotplug = nativeGetHdmiHotPlug();
-				if(hotplug >= 0)
+				if(hotplug != hdmihotplug)
 				{
-					hdmihotplug = hotplug;
-				}
-				
-                //Log.d(TAG,"HDMI2 System.currentTimeMillis() = " + System.currentTimeMillis());
-				if(hdmiStatusChange())
-				{
-					//Log.d(TAG,"changed hdmihotplug = " + hdmihotplug);
-					mService.setDisplayHdmiHotPlug(hdmihotplug);
+				    hdmihotplug = hotplug;
+				    mService.setHdmiHotplugStatus(hdmihotplug);
 
 					sendHdmiIntent();
 				}
-				else
-				{
-					//Log.d(TAG,"nochanged hdmihotplug = " + hdmihotplug);
-				}
 
-				//Log.d(TAG,"TV1 System.currentTimeMillis() = " + System.currentTimeMillis());
 				hotplug = nativeGetTvDacHotPlug();
-				if(hotplug >= 0)
+				if(hotplug != tvdachotplug)
 				{
 					tvdachotplug = hotplug;
-				}
-				//Log.d(TAG,"TV2 System.currentTimeMillis() = " + System.currentTimeMillis());
-				if(tvStatusChange())
-				{
-					//Log.d(TAG,"changed tvdachotplug = " + tvdachotplug);
-					mService.setDisplayTvDacHotPlug(tvdachotplug);
-//
+					mService.settvHotplugStatus(tvdachotplug);
+					
 					sendTvDacIntent();
-				}
-				else
-				{
-					//Log.d(TAG,"nochanged tvdachotplug = " + tvdachotplug);
 				}
 
 				try 
@@ -330,8 +275,6 @@ public class DisplayManagerService extends IDisplayManager.Stub
 		        } 
 				
             }
-
-            //Looper.loop();
         }
     }
 
@@ -349,8 +292,6 @@ public class DisplayManagerService extends IDisplayManager.Stub
         // set initial hotplug status
  		if(SystemProperties.get("ro.display.switch").equals("1"))
 		{
-	        update_hotplug();
-
 			if (sThreadStarted == false) 
 			{
 	            sThread = new DisplayThread(mContext,this,mPM);
@@ -439,31 +380,6 @@ public class DisplayManagerService extends IDisplayManager.Stub
 	{
 		return nativeSetDisplayOutputType(mDisplay,type,format);
 	}
-
-	public int getDisplayHdmiHotPlug()
-	{
-		return mHdmiPlugin;
-	}
-
-	public int getDisplayTvDacPlugStatus(int mDisplay)
-	{
-		return mTvDacPlugin;
-	}
-
-	public void setDisplayHdmiHotPlug(int hotplug)
-	{
-		mHdmiPlugin = hotplug;
-	}
-
-	public int getDisplayTvDacHotPlug()
-	{
-		return mTvDacPlugin;
-	}
-
-	public void setDisplayTvDacHotPlug(int hotplug)
-	{
-		mTvDacPlugin = hotplug;
-	}
 	
 	public int getDisplayHotPlugStatus(int mDisplay)
 	{
@@ -527,6 +443,88 @@ public class DisplayManagerService extends IDisplayManager.Stub
 	public int getMaxHdmiMode()
 	{
 		return nativeGetMaxHdmiMode();
+	}
+
+    public int isSupportHdmiMode(int mode)
+	{
+        return nativeIsSupportHdmiMode(mode);
+    }
+    
+    public int isSupport3DMode()
+    {
+        return nativeIsSupport3DMode();
+    }
+    
+    public int getHdmiHotPlugStatus()
+    {
+        return nativeGetHdmiHotPlug();
+    }
+    
+    public int getTvHotPlugStatus()
+    {
+        return nativeGetTvDacHotPlug();
+    }
+    
+    public int setDisplayAreaPercent(int displayno,int percent)
+    {
+        return nativeSetDisplayAreaPercent(displayno,percent);
+    }
+    
+    public int getDisplayAreaPercent(int displayno)
+    {
+        return nativeGetDisplayAreaPercent(displayno);
+    }
+    
+    public int setDisplayBright(int displayno,int bright)
+    {
+        return nativeSetDisplayBright(displayno,bright);
+    }
+    
+    public int getDisplayBright(int displayno)
+    {
+        return nativeGetDisplayBright(displayno);
+    }
+    
+    public int setDisplayContrast(int displayno,int contrast)
+    {
+        return nativeSetDisplayContrast(displayno,contrast);
+    }
+    
+    public int getDisplayContrast(int displayno)
+    {
+        return nativeGetDisplayContrast(displayno);
+    }
+    
+    public int setDisplaySaturation(int displayno,int saturation)
+    {
+        return nativeSetDisplaySaturation(displayno,saturation);
+    }
+    
+    public int getDisplaySaturation(int displayno)
+    {
+        return nativeGetDisplaySaturation(displayno);
+    }
+
+    public int setDisplayHue(int displayno,int hue)
+    {
+        return nativeSetDisplayHue(displayno,hue);
+    }
+    
+    public int getDisplayHue(int displayno)
+    {
+        return nativeGetDisplayHue(displayno);
+    }
+
+	public int setHdmiHotplugStatus(int status)
+	{
+	    mHdmiPlugin = status;
+	    return 0;
+	}
+
+	public int settvHotplugStatus(int status)
+	{
+	    mTvDacPlugin = status;
+	    return 0;
 	}
 }
 

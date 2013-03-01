@@ -106,6 +106,9 @@ typedef struct JPEG_ENC_t
 	long        	gps_timestamp;
 	char			gps_processing_method[100];
 	int 			whitebalance;
+	char  			CameraMake[11];//for the cameraMake name
+	char  			CameraModel[21];//for the cameraMode
+	char  			DateTime[21];//for the data and time
 }JPEG_ENC_t;
 
 #endif // __LIB__CAMERA__TYPE__H__

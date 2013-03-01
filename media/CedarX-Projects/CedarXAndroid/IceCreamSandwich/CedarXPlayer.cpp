@@ -1776,7 +1776,7 @@ void CedarXPlayer::StagefrightVideoRenderData(void *frame_info, int frame_id)
 			mVideoRenderer->render(&overlay_para, 0);
 			//LOGV("render frame id:%d",frame_id);
 			if(mFirstFrame) {
-				//mVideoRenderer->control(VIDEORENDER_CMD_SHOW, 1);
+				mVideoRenderer->control(VIDEORENDER_CMD_SHOW, 1);
 				mFirstFrame = 0;
 			}
 		}

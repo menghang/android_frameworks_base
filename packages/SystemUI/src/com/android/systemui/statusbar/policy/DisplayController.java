@@ -71,12 +71,12 @@ public class DisplayController extends BroadcastReceiver {
     private class StatusBarPadHotPlug implements DisplayHotPlugPolicy
     {
         //0:screen0 fix;
-        //1:dual same lcd
         //3:screen0 fix,screen1 auto,(same ui,one video on screen1);
         //4:screen0 fix,screen1 auto,(same ui,two video);
         //5:screen0 auto(ui use fe)
         //6:screen0 auto(ui use be)
         //7:screen0 auto(fb var)
+        //8:screen0 auto(ui use be ,use gpu scaler)
         public int mDisplay_mode = 3;
 
     	StatusBarPadHotPlug()
@@ -96,14 +96,20 @@ public class DisplayController extends BroadcastReceiver {
 			{
 	          	Slog.d(TAG,"onHdmiPlugIn Starting!\n");
 
-	            customhdmimode = Settings.System.getInt(mContext.getContentResolver(), Settings.System.HDMI_OUTPUT_MODE, AUTO_HDMI_MODE);
-				maxhdmimode	= mDisplayManager.getMaxHdmiMode();
-				
-	            if (customhdmimode < AUTO_HDMI_MODE) {
-					hdmi_mode = customhdmimode;
-	            } else {
-	                hdmi_mode = maxhdmimode;
+	            if(mDisplay_mode == 4)
+	            {
+	                hdmi_mode = DisplayManager.DISPLAY_TVFORMAT_720P_50HZ;
 	            }
+	            else
+	            {
+	                customhdmimode = Settings.System.getInt(mContext.getContentResolver(), Settings.System.HDMI_OUTPUT_MODE, AUTO_HDMI_MODE);
+				    maxhdmimode	= mDisplayManager.getMaxHdmiMode();
+                    if (customhdmimode < AUTO_HDMI_MODE) {
+                        hdmi_mode = customhdmimode;
+                    } else {
+                        hdmi_mode = maxhdmimode;
+                    }
+				}
 
 				if(mDisplay_mode == 3)
 				{
@@ -137,6 +143,13 @@ public class DisplayController extends BroadcastReceiver {
 				{
 					mDisplayManager.setDisplayParameter(0,DisplayManager.DISPLAY_OUTPUT_TYPE_HDMI,hdmi_mode);
 					mDisplayManager.setDisplayMode(DisplayManager.DISPLAY_MODE_SINGLE_FB_VAR);
+                    SystemProperties.set("audio.routing", Integer.toString(AudioSystem.DEVICE_OUT_AUX_DIGITAL));
+                    AudioSystem.setParameters("routing="+AudioSystem.DEVICE_OUT_AUX_DIGITAL);
+				}
+				else if(mDisplay_mode == 8)
+				{
+					mDisplayManager.setDisplayParameter(0,DisplayManager.DISPLAY_OUTPUT_TYPE_HDMI,hdmi_mode);
+					mDisplayManager.setDisplayMode(DisplayManager.DISPLAY_MODE_SINGLE_FB_GPU);
                     SystemProperties.set("audio.routing", Integer.toString(AudioSystem.DEVICE_OUT_AUX_DIGITAL));
                     AudioSystem.setParameters("routing="+AudioSystem.DEVICE_OUT_AUX_DIGITAL);
 				}
@@ -222,6 +235,13 @@ public class DisplayController extends BroadcastReceiver {
 			{
     	      	mDisplayManager.setDisplayParameter(0,DisplayManager.DISPLAY_OUTPUT_TYPE_LCD,0);
     	        mDisplayManager.setDisplayMode(DisplayManager.DISPLAY_MODE_SINGLE_FB_VAR);
+                SystemProperties.set("audio.routing", Integer.toString(AudioSystem.DEVICE_OUT_SPEAKER));
+                AudioSystem.setParameters("routing="+AudioSystem.DEVICE_OUT_SPEAKER);
+	        }
+	        else if(mDisplay_mode == 8)
+			{
+    	      	mDisplayManager.setDisplayParameter(0,DisplayManager.DISPLAY_OUTPUT_TYPE_LCD,0);
+    	        mDisplayManager.setDisplayMode(DisplayManager.DISPLAY_MODE_SINGLE_FB_GPU);
                 SystemProperties.set("audio.routing", Integer.toString(AudioSystem.DEVICE_OUT_SPEAKER));
                 AudioSystem.setParameters("routing="+AudioSystem.DEVICE_OUT_SPEAKER);
 	        }

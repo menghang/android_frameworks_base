@@ -74,6 +74,7 @@ public class DisplayManager
     public static final int DISPLAY_MODE_SINGLE_VAR              = 5;
     public static final int DISPLAY_MODE_SINGLE_VAR_BE           = 6;
     public static final int DISPLAY_MODE_SINGLE_FB_VAR           = 7;
+    public static final int DISPLAY_MODE_SINGLE_FB_GPU           = 8;
 
 	public static final int DISPLAY_TVDAC_NONE					 = 0;
 	public static final int DISPLAY_TVDAC_YPBPR					 = 1;
@@ -140,7 +141,6 @@ public class DisplayManager
         } 
         catch (RemoteException ex) 
         {
-            // system process is dead anyway.
             return -1;
         }
 	}
@@ -153,7 +153,6 @@ public class DisplayManager
         } 
         catch (RemoteException ex) 
         {
-            // system process is dead anyway.
             return false;
         }
 	}
@@ -166,7 +165,6 @@ public class DisplayManager
         } 
         catch (RemoteException ex) 
         {
-            // system process is dead anyway.
             return -1;
         }
 	}
@@ -179,7 +177,6 @@ public class DisplayManager
         } 
         catch (RemoteException ex) 
         {
-            // system process is dead anyway.
             return -1;
         }
 	}
@@ -192,7 +189,6 @@ public class DisplayManager
         } 
         catch (RemoteException ex) 
         {
-            // system process is dead anyway.
             return -1;
         }
 	}
@@ -205,7 +201,6 @@ public class DisplayManager
         } 
         catch (RemoteException ex) 
         {
-            // system process is dead anyway.
             return -1;
         }
 	}
@@ -218,7 +213,6 @@ public class DisplayManager
         } 
         catch (RemoteException ex) 
         {
-            // system process is dead anyway.
             return -1;
         }
 	}
@@ -227,12 +221,10 @@ public class DisplayManager
 	{
 		try 
 		{
-			//Log.d(TAG,"setDisplayParameter");
             return  mService.getDisplayPixelFormat(mDisplay);
         } 
         catch (RemoteException ex) 
         {
-            // system process is dead anyway.
             return -1;
         }
 	}
@@ -241,12 +233,10 @@ public class DisplayManager
 	{
 		try 
 		{
-			//Log.d(TAG,"setDisplayParameter");
             return  mService.setDisplayParameter(mDisplay,param0,param1);
         } 
         catch (RemoteException ex) 
         {
-            // system process is dead anyway.
             return -1;
         }
 	}
@@ -255,13 +245,11 @@ public class DisplayManager
 	{
 		try 
 		{
-			//Log.d(TAG,"setDisplayMode");
 			setDisplayBacklightMode(1);
             return  mService.setDisplayMode(mode);
         } 
         catch (RemoteException ex) 
         {
-            // system process is dead anyway.
             return -1;
         }
 	}
@@ -270,12 +258,10 @@ public class DisplayManager
 	{
 		try 
 		{
-			//Log.d(TAG,"setDisplayParameter");
             return  mService.getDisplayMode();
         } 
         catch (RemoteException ex) 
         {
-            // system process is dead anyway.
             return -1;
         }
 	}
@@ -284,12 +270,10 @@ public class DisplayManager
 	{
 		try 
 		{
-			//Log.d(TAG,"setDisplayParameter");
             return  mService.setDisplayOutputType(mDisplay,type,format);
         } 
         catch (RemoteException ex) 
         {
-            // system process is dead anyway.
             return -1;
         }
 	}
@@ -298,12 +282,10 @@ public class DisplayManager
 	{
 		try 
 		{
-			//Log.d(TAG,"setDisplayParameter");
             return  mService.openDisplay(mDisplay);
         } 
         catch (RemoteException ex) 
         {
-            // system process is dead anyway.
             return -1;
         }
 	}
@@ -312,12 +294,10 @@ public class DisplayManager
 	{
 		try 
 		{
-			//Log.d(TAG,"setDisplayParameter");
             return  mService.closeDisplay(mDisplay);
         } 
         catch (RemoteException ex) 
         {
-            // system process is dead anyway.
             return -1;
         }
 	}
@@ -326,7 +306,6 @@ public class DisplayManager
 	{
 		try
 		{
-			//Log.d(TAG,"11111111111111111111111111111111111111111111111111111111111111111111111111111111111");
 			return mService.setDisplayBacklightMode(mode);
 		}
 		catch (RemoteException ex)
@@ -339,12 +318,10 @@ public class DisplayManager
 	{
 		try 
 		{
-			//Log.d(TAG,"setDisplayParameter");
             return  mService.setDisplayMaster(mDisplay);
         } 
         catch (RemoteException ex) 
         {
-            // system process is dead anyway.
             return -1;
         }
 	}
@@ -353,12 +330,10 @@ public class DisplayManager
 	{
 		try 
 		{
-			//Log.d(TAG,"setDisplayParameter");
             return  mService.getDisplayMaster();
         } 
         catch (RemoteException ex) 
         {
-            // system process is dead anyway.
             return -1;
         }
 	}
@@ -366,14 +341,11 @@ public class DisplayManager
 	public int getMaxWidthDisplay()
 	{
 		try 
-		{
-			//Log.d(TAG,"getMaxWidthDisplay");
-			
+		{			
             return  mService.getMaxWidthDisplay();
         } 
         catch (RemoteException ex) 
         {
-            // system process is dead anyway.
             return -1;
         }
 	}
@@ -381,22 +353,19 @@ public class DisplayManager
 	public int getMaxHdmiMode()
 	{
 		try 
-		{
-			//Log.d(TAG,"getMaxHdmiMode");
-			
+		{			
             return  mService.getMaxHdmiMode();
         } 
         catch (RemoteException ex) 
         {
-            // system process is dead anyway.
             return -1;
         }
 	}
+	
 	public int getDisplayBacklightMode()
 	{
 		try
 		{
-			// get display backlight mode
 			return mService.getDisplayBacklightMode();
 		}
 		catch (RemoteException ex)
@@ -404,5 +373,174 @@ public class DisplayManager
 			return -1;
 		}
 	}
+
+    public int isSupportHdmiMode(int mode)
+    {
+        try 
+        {
+            return  mService.isSupportHdmiMode(mode);
+        } 
+        catch (RemoteException ex) 
+        {
+            return -1;
+        }
+    }
+     
+    public int isSupport3DMode()
+    {
+        try 
+        {
+            return  mService.isSupport3DMode();
+        } 
+        catch (RemoteException ex) 
+        {
+            return -1;
+        }
+    }
+     
+    public int getHdmiHotPlugStatus()
+    {
+        try 
+        {
+            return  mService.getHdmiHotPlugStatus();
+        } 
+        catch (RemoteException ex) 
+        {
+            return -1;
+        }
+    }
+     
+    public int getTvHotPlugStatus()
+    {
+        try 
+        {
+            return  mService.getTvHotPlugStatus();
+        } 
+        catch (RemoteException ex) 
+        {
+            return -1;
+        }
+    }
+     
+    public int setDisplayAreaPercent(int displayno,int percent)
+    {
+        try 
+        {
+            return  mService.setDisplayAreaPercent(displayno,percent);
+        } 
+        catch (RemoteException ex) 
+        {
+            return -1;
+        }
+    }
+     
+    public int getDisplayAreaPercent(int displayno)
+    {
+        try 
+        {
+            return  mService.getDisplayAreaPercent(displayno);
+        } 
+        catch (RemoteException ex) 
+        {
+            return -1;
+        }
+    }
+     
+    public int setDisplayBright(int displayno,int bright)
+    {
+        try 
+        {
+            return  mService.setDisplayBright(displayno,bright);
+        } 
+        catch (RemoteException ex) 
+        {
+            return -1;
+        }
+    }
+     
+     public int getDisplayBright(int displayno)
+     {
+        try 
+        {
+            return  mService.getDisplayBright(displayno);
+        } 
+        catch (RemoteException ex) 
+        {
+            return -1;
+        }
+     }
+     
+     public int setDisplayContrast(int displayno,int contrast)
+     {
+        try 
+        {
+            return  mService.setDisplayContrast(displayno,contrast);
+        } 
+        catch (RemoteException ex) 
+        {
+            return -1;
+        }
+     }
+     
+     public int getDisplayContrast(int displayno)
+     {
+        try 
+        {
+            return  mService.getDisplayContrast(displayno);
+        } 
+        catch (RemoteException ex) 
+        {
+            return -1;
+        }
+     }
+     
+     public int setDisplaySaturation(int displayno,int saturation)
+     {
+        try 
+        {
+            return  mService.setDisplaySaturation(displayno,saturation);
+        } 
+        catch (RemoteException ex) 
+        {
+            return -1;
+        }
+     }
+     
+     public int getDisplaySaturation(int displayno)
+     {
+        try 
+        {
+            return  mService.getDisplaySaturation(displayno);
+        } 
+        catch (RemoteException ex) 
+        {
+            return -1;
+        }
+     }
+
+     
+     public int setDisplayHue(int displayno,int hue)
+     {
+        try 
+        {
+            return  mService.setDisplayHue(displayno,hue);
+        } 
+        catch (RemoteException ex) 
+        {
+            return -1;
+        }
+     }
+     
+     public int getDisplayHue(int displayno)
+     {
+        try 
+        {
+            return  mService.getDisplayHue(displayno);
+        } 
+        catch (RemoteException ex) 
+        {
+            return -1;
+        }
+     }
 }
 
