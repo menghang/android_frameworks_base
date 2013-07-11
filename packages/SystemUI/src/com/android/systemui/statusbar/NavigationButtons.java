@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2013 The CyanogenMod Project
- * This code is loosely based on portions of the ParanoidAndroid Project source, Copyright (C) 2012.
+ * Copyright (C) 2013 MoKee OpenSource Project
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package com.android.systemui.statusbar;
 
 import android.content.Context;
@@ -110,6 +110,7 @@ public class NavigationButtons {
     private static final String BACK_STRING = "back";
     private static final String SEARCH_STRING = "search";
     private static final String RECENT_STRING = "recent";
+    private static final String POWER_STRING = "power";
     private static final String CONDITIONAL_MENU_STRING = "menu0";
     private static final String ALWAYS_MENU_STRING = "menu1";
     private static final String MENU_BIG_STRING = "menu2";
@@ -145,6 +146,10 @@ public class NavigationButtons {
             R.string.navbar_recent_button,
             R.string.accessibility_recent, 0, R.drawable.ic_sysbar_recent,
             R.drawable.ic_sysbar_recent_land, R.drawable.ic_sysbar_recent_side, RECENT_STRING);
+    public static final ButtonInfo POWER =  new ButtonInfo(
+            R.string.navbar_power_button,
+            R.string.accessibility_power, 0, R.drawable.ic_sysbar_power,
+            R.drawable.ic_sysbar_power_land, R.drawable.ic_sysbar_power, POWER_STRING);
     public static final ButtonInfo EMPTY = new ButtonInfo(
             R.string.navbar_empty_button,
             R.string.accessibility_clear_all, 0, R.drawable.ic_sysbar_add,
@@ -165,6 +170,7 @@ public class NavigationButtons {
         temp.put(BACK_STRING, BACK);
         temp.put(SEARCH_STRING, SEARCH);
         temp.put(RECENT_STRING, RECENT);
+        temp.put(POWER_STRING, POWER);
         temp.put(EMPTY_STRING, EMPTY);
         BUTTON_MAP = Collections.unmodifiableMap(temp);
     }
@@ -175,7 +181,7 @@ public class NavigationButtons {
      */
     public static ButtonInfo[] loadButtonMap(Context context) {
         String saved = Settings.System.getStringForUser(context.getContentResolver(),
-                Settings.System.NAV_BUTTONS, UserHandle.USER_CURRENT);
+                Settings.System.NAVIGATION_BUTTONS, UserHandle.USER_CURRENT);
         if (saved == null) {
             saved = NavigationButtons.DEFAULT_SETTING_STRING;
         }
@@ -205,6 +211,6 @@ public class NavigationButtons {
             sb.append(map[i].key);
         }
         Settings.System.putStringForUser(context.getContentResolver(),
-                Settings.System.NAV_BUTTONS, sb.toString(), UserHandle.USER_CURRENT);
+                Settings.System.NAVIGATION_BUTTONS, sb.toString(), UserHandle.USER_CURRENT);
     }
 }

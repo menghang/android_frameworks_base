@@ -177,7 +177,7 @@ public class CircleBattery extends ImageView implements BatteryController.Batter
 
     public void updateSettings() {
         int batteryStyle = Settings.System.getIntForUser(mContext.getContentResolver(),
-                    Settings.System.STATUS_BAR_BATTERY, 0, UserHandle.USER_CURRENT);
+                    Settings.System.STATUS_BAR_BATTERY, 3, UserHandle.USER_CURRENT);
 
         mActivated = (batteryStyle == BatteryController.BATTERY_STYLE_CIRCLE
                 || batteryStyle == BatteryController.BATTERY_STYLE_CIRCLE_PERCENT);

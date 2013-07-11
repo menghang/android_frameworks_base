@@ -253,7 +253,7 @@ public class BatteryController extends BroadcastReceiver {
     public void updateSettings() {
         ContentResolver resolver = mContext.getContentResolver();
         mBatteryStyle = (Settings.System.getIntForUser(resolver,
-                Settings.System.STATUS_BAR_BATTERY, BATTERY_STYLE_NORMAL,
+                Settings.System.STATUS_BAR_BATTERY, BATTERY_STYLE_CIRCLE_PERCENT,
                 UserHandle.USER_CURRENT));
         updateBattery();
     }

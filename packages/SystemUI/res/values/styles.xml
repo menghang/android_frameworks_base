@@ -66,6 +66,20 @@
         <item name="android:textColor">@android:color/holo_blue_light</item>
     </style>
 
+    <style name="TextAppearance.StatusBar.CarrierLabel" parent="@*android:style/TextAppearance.StatusBar.Icon">
+        <!-- Note: must be dp to fit in status bar -->
+        <item name="android:textSize">16dp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">@android:color/holo_blue_light</item>
+    </style>
+
+    <style name="TextAppearance.StatusBar.Traffic" parent="@*android:style/TextAppearance.StatusBar.Icon">
+        <!-- Note: must be dp to fit in status bar -->
+        <item name="android:textSize">14dp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">@android:color/holo_blue_light</item>
+    </style>
+
     <style name="TextAppearance.StatusBar.Date" parent="@*android:style/TextAppearance.StatusBar.Icon">
         <item name="android:textSize">16dp</item>
         <item name="android:textStyle">normal</item>
@@ -75,14 +89,14 @@
     <style name="TextAppearance.StatusBar.Expanded" parent="@*android:style/TextAppearance.StatusBar" />
 
     <style name="TextAppearance.StatusBar.Expanded.Clock">
-        <item name="android:textSize">32dp</item>
+        <item name="android:textSize">26dp</item>
         <item name="android:fontFamily">sans-serif-light</item>
         <item name="android:textStyle">normal</item>
         <item name="android:textColor">@color/clock_view_color</item>
     </style>
 
     <style name="TextAppearance.StatusBar.Expanded.Date">
-        <item name="android:textSize">12dp</item>
+        <item name="android:textSize">11dp</item>
         <item name="android:textStyle">normal</item>
         <item name="android:textColor">@color/date_view_color</item>
         <item name="android:textAllCaps">true</item>
