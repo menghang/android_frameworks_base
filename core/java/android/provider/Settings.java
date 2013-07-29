@@ -2736,6 +2736,12 @@ public final class Settings {
         public static final String HALO_HIDE = "halo_hide";
 
         /**
+         * HALO size fraction, default is 1.0f (normal)
+         * @hide
+         */
+        public static final String HALO_SIZE = "halo_size";
+
+        /**
          * HALO pause activities?, defaults to 0 (no, do not pause) on devices which isLargeRAM() == true
          * otherwise it defaults to 1 (yes, do pause)
          * @hide
@@ -3015,6 +3021,19 @@ public final class Settings {
          * @hide
          */
         public static final String STATUS_BAR_IME_SWITCHER = "status_bar_ime_switcher";
+
+        /**
+         * Whether Status bar should be hiidden when there are no
+         * notifications
+         * @hide
+         */
+        public static final String AUTO_HIDE_STATUSBAR = "auto_hide_statusbar";
+
+        /**
+         * Whether Status Bar is currently hidden or not
+         * @hide
+         */
+        public static final String HIDE_STATUSBAR = "hide_statusbar";
 
          /**
          * Expanded desktop on/off state
