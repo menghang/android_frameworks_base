@@ -46,13 +46,28 @@
             android:clickable="true"
             />
 
-        <com.android.systemui.statusbar.policy.DateView android:id="@+id/date"
+        <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.StatusBar.Expanded.Date"
-            android:layout_toEndOf="@id/clock"
             android:layout_centerVertical="true"
-            />
+            android:layout_toEndOf="@id/clock"           
+            >	
+		<com.android.systemui.statusbar.policy.DateView 
+		    android:id="@+id/date"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:singleLine="true"
+		    android:textAppearance="@style/TextAppearance.StatusBar.Expanded.Date"
+		    />
+		<com.android.systemui.statusbar.policy.LunarDateView
+		    android:id="@+id/lunardate"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:singleLine="true"
+		    android:textAppearance="@style/TextAppearance.StatusBar.Expanded.Date"
+		    android:layout_below="@id/date"
+		    />
+        </RelativeLayout>
     </RelativeLayout>
 
     <Space
@@ -73,10 +88,20 @@
         android:textColor="#00A040"
         android:padding="2dp"
         />
+        
+    <ImageView android:id="@+id/halo_button"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="5dp"
+        android:scaleType="center"
+        android:src="@drawable/ic_notify_halo"
+        android:contentDescription="@string/accessibility_halo"
+        />
 
     <ImageView android:id="@+id/clear_all_button"
         android:layout_width="50dp"
         android:layout_height="50dp"
+        android:layout_marginStart="5dp"
         android:scaleType="center"
         android:src="@drawable/ic_notify_clear"
         android:contentDescription="@string/accessibility_clear_all"
@@ -85,7 +110,7 @@
     <FrameLayout android:id="@+id/settings_button_holder"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:layout_marginStart="12dp"
+        android:layout_marginStart="5dp"
         >
         <ImageView android:id="@+id/settings_button"
             android:layout_width="50dp"

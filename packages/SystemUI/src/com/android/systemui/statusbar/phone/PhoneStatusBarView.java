@@ -16,11 +16,29 @@
 
 package com.android.systemui.statusbar.phone;
 
+import java.util.List;
 import android.app.ActivityManager;
+import android.app.KeyguardManager;
 import android.app.StatusBarManager;
 import android.content.Context;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.ContentResolver;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
+import android.database.ContentObserver;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
+import android.os.Broadcaster;
+import android.os.Handler;
+import android.os.UserHandle;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.EventLog;
 import android.util.Slog;
@@ -28,9 +46,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.accessibility.AccessibilityEvent;
 
-import com.android.internal.util.pie.PiePosition;
 import com.android.systemui.EventLogTags;
 import com.android.systemui.R;
+import com.android.systemui.statusbar.BackgroundAlphaColorDrawable;
+import com.android.systemui.statusbar.phone.NavigationBarView;
 
 public class PhoneStatusBarView extends PanelBar {
     private static final String TAG = "PhoneStatusBarView";
@@ -60,6 +79,10 @@ public class PhoneStatusBarView extends PanelBar {
             mSettingsPanelDragzoneFrac = 0f;
         }
         mFullWidthNotifications = mSettingsPanelDragzoneFrac <= 0f;
+        Drawable bg = mContext.getResources().getDrawable(R.drawable.status_bar_background);
+        if(bg instanceof ColorDrawable) {
+            setBackground(new BackgroundAlphaColorDrawable(((ColorDrawable) bg).getColor()));
+        }
     }
 
     public void setBar(PhoneStatusBar bar) {
@@ -171,12 +194,6 @@ public class PhoneStatusBarView extends PanelBar {
         mBar.makeExpandedInvisibleSoon();
         mFadingPanel = null;
         mLastFullyOpenedPanel = null;
-
-        // show up you pie controls
-        mBar.updatePieTriggerMask(PiePosition.LEFT.FLAG
-                | PiePosition.TOP.FLAG
-                | PiePosition.RIGHT.FLAG
-                | PiePosition.BOTTOM.FLAG);
     }
 
     @Override
@@ -184,13 +201,6 @@ public class PhoneStatusBarView extends PanelBar {
         super.onPanelFullyOpened(openPanel);
         if (openPanel != mLastFullyOpenedPanel) {
             openPanel.sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED);
-        }
-
-        // back off you pie controls!
-        if (mShouldFade) {
-            mBar.updatePieTriggerMask(PiePosition.LEFT.FLAG
-                    | PiePosition.RIGHT.FLAG
-                    | PiePosition.TOP.FLAG);
         }
 
         mFadingPanel = openPanel;
@@ -226,7 +236,7 @@ public class PhoneStatusBarView extends PanelBar {
             Slog.v(TAG, "panelExpansionChanged: f=" + frac);
         }
 
-        if (panel == mFadingPanel && mScrimColor != 0 && ActivityManager.isHighEndGfx()) {
+        if (panel == mFadingPanel && mScrimColor != 0 && PhoneStatusBar.shouldNotificationShadeDim()) {
             if (mShouldFade) {
                 frac = mPanelExpandedFractionSum; // don't judge me
                 // let's start this 20% of the way down the screen
@@ -257,6 +267,16 @@ public class PhoneStatusBarView extends PanelBar {
             panel.setAlpha(alpha);
         }
 
+        updateBackgroundAlpha(frac);
         mBar.updateCarrierLabelVisibility(false);
+    }
+    
+    private void updateBackgroundAlpha(float ex) {
+        if(mFadingPanel != null || ex > 0) {
+            mBar.mTransparencyManager.setTempDisableStatusbarState(true);
+        } else {
+            mBar.mTransparencyManager.setTempDisableStatusbarState(false);
+        }
+        mBar.mTransparencyManager.update();
     }
 }

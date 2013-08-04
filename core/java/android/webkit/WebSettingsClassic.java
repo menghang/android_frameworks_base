@@ -439,16 +439,16 @@ public class WebSettingsClassic extends WebSettings {
         final String base = context.getResources().getText(
                 com.android.internal.R.string.web_user_agent).toString();
 
-        String cmtag = "";
-        final String cmversion = SystemProperties.get("ro.cm.version");
-        if (cmversion != null && cmversion.length() > 0) {
-            cmtag = " CyanogenMod/" + cmversion.replaceAll("([0-9\\.]+?)-.*","$1");
-            final String cmdevice = SystemProperties.get("ro.cm.device");
-            if (cmdevice != null && cmdevice.length() > 0)
-                cmtag = cmtag.concat("/" + cmdevice);
+        String mktag = "";
+        final String mkversion = SystemProperties.get("ro.mk.version");
+        if (mkversion != null && mkversion.length() > 0) {
+            mktag = " MoKee OpenSource/" + mkversion.replaceAll("([0-9\\.]+?)-.*","$1");
+            final String mkdevice = SystemProperties.get("ro.mk.device");
+            if (mkdevice != null && mkdevice.length() > 0)
+                mktag = mktag.concat("/" + mkdevice);
         }
 
-        return String.format(base, buffer, mobile).concat(cmtag);
+        return String.format(base, buffer, mobile).concat(mktag);
     }
 
     /**

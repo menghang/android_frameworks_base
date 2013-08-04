@@ -226,8 +226,13 @@ public class Clock extends TextView implements OnClickListener, OnLongClickListe
         } else {
             sdf = mClockFormat;
         }
-        String result = sdf.format(mCalendar.getTime());
-
+        String result="";
+        if(is24){
+            result= sdf.format(mCalendar.getTime());
+        }
+        else{
+            result = DateFormat.format(format, mCalendar.getTime()).toString();
+        }
         if (mAmPmStyle != AM_PM_STYLE_NORMAL) {
             int magic1 = result.indexOf(MAGIC1);
             int magic2 = result.indexOf(MAGIC2);
@@ -254,7 +259,7 @@ public class Clock extends TextView implements OnClickListener, OnLongClickListe
 
     public void updateSettings() {
         int amPmStyle = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.STATUS_BAR_AM_PM, 2, UserHandle.USER_CURRENT);
+                Settings.System.STATUS_BAR_AM_PM, 0, UserHandle.USER_CURRENT);
 
         if (mAmPmStyle != amPmStyle) {
             mAmPmStyle = amPmStyle;

@@ -42,26 +42,34 @@ public class RecentsActivity extends Activity {
     public static final String WINDOW_ANIMATION_START_INTENT = "com.android.systemui.recent.action.WINDOW_ANIMATION_START";
     public static final String PRELOAD_PERMISSION = "com.android.systemui.recent.permission.PRELOAD";
     public static final String WAITING_FOR_WINDOW_ANIMATION_PARAM = "com.android.systemui.recent.WAITING_FOR_WINDOW_ANIMATION";
+    public static final String PACKAGE_ADDED = "android.intent.action.PACKAGE_ADDED";
+    public static final String PACKAGE_REMOVED = "android.intent.action.PACKAGE_REMOVED";
     private static final String WAS_SHOWING = "was_showing";
 
     private RecentsPanelView mRecentsPanel;
     private IntentFilter mIntentFilter;
     private boolean mShowing;
     private boolean mForeground;
+    protected boolean mBackPressed;
 
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (CLOSE_RECENTS_INTENT.equals(intent.getAction())) {
+            String action = intent.getAction();
+            if (CLOSE_RECENTS_INTENT.equals(action)) {
                 if (mRecentsPanel != null && mRecentsPanel.isShowing()) {
                     if (mShowing && !mForeground) {
                         // Captures the case right before we transition to another activity
                         mRecentsPanel.show(false);
                     }
                 }
-            } else if (WINDOW_ANIMATION_START_INTENT.equals(intent.getAction())) {
+            } else if (WINDOW_ANIMATION_START_INTENT.equals(action)) {
                 if (mRecentsPanel != null) {
                     mRecentsPanel.onWindowAnimationStart();
+                }
+            } else if (PACKAGE_ADDED.equals(action) || PACKAGE_REMOVED.equals(action)) {
+                if (mRecentsPanel != null) {
+                    mRecentsPanel.refreshViews();
                 }
             }
         }
@@ -119,12 +127,9 @@ public class RecentsActivity extends Activity {
 
     @Override
     public void onStart() {
-        // Hide wallpaper if it's not a static image
-        if (forceOpaqueBackground(this)) {
-            updateWallpaperVisibility(false);
-        } else {
-            updateWallpaperVisibility(true);
-        }
+        // always show wallpaper
+        updateWallpaperVisibility(true);
+
         mShowing = true;
         if (mRecentsPanel != null) {
             // Call and refresh the recent tasks list in case we didn't preload tasks
@@ -143,7 +148,12 @@ public class RecentsActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        dismissAndGoBack();
+        mBackPressed = true;
+        try {
+            dismissAndGoBack();
+        } finally {
+            mBackPressed = false;
+        }
     }
 
     public void dismissAndGoHome() {
@@ -167,6 +177,7 @@ public class RecentsActivity extends Activity {
                             ActivityManager.RECENT_IGNORE_UNAVAILABLE);
             if (recentTasks.size() > 1 &&
                     mRecentsPanel.simulateClick(recentTasks.get(1).persistentId)) {
+                finish();
                 // recents panel will take care of calling show(false) through simulateClick
                 return;
             }
@@ -194,6 +205,8 @@ public class RecentsActivity extends Activity {
         mIntentFilter = new IntentFilter();
         mIntentFilter.addAction(CLOSE_RECENTS_INTENT);
         mIntentFilter.addAction(WINDOW_ANIMATION_START_INTENT);
+        mIntentFilter.addAction(PACKAGE_ADDED);
+        mIntentFilter.addAction(PACKAGE_REMOVED);
         registerReceiver(mIntentReceiver, mIntentFilter);
         super.onCreate(savedInstanceState);
     }

@@ -64,7 +64,6 @@ import com.android.server.input.InputManagerService;
 import com.android.server.net.NetworkPolicyManagerService;
 import com.android.server.net.NetworkStatsService;
 import com.android.server.os.SchedulingPolicyService;
-import com.android.server.pie.PieService;
 import com.android.server.pm.Installer;
 import com.android.server.pm.PackageManagerService;
 import com.android.server.pm.UserManagerService;
@@ -79,7 +78,10 @@ import dalvik.system.DexClassLoader;
 import dalvik.system.VMRuntime;
 import dalvik.system.Zygote;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 import com.stericsson.hardware.fm.FmReceiverService;
@@ -90,6 +92,9 @@ class ServerThread extends Thread {
     private static final String TAG = "SystemServer";
     private static final String ENCRYPTING_STATE = "trigger_restart_min_framework";
     private static final String ENCRYPTED_STATE = "1";
+
+    public static final String FAST_CHARGE_DIR = "/sys/kernel/fast_charge";
+    public static final String FAST_CHARGE_FILE = "force_fast_charge";
 
     ContentResolver mContentResolver;
 
@@ -391,7 +396,6 @@ class ServerThread extends Thread {
         TextServicesManagerService tsms = null;
         LockSettingsService lockSettings = null;
         DreamManagerService dreamy = null;
-        PieService pieService = null;
 
         // Bring up services needed for UI.
         if (factoryTest != SystemServer.FACTORY_TEST_LOW_LEVEL) {
@@ -855,17 +859,6 @@ class ServerThread extends Thread {
                 Slog.e(TAG, "Failure starting AssetRedirectionManager Service", e);
             }
 
-            if (context.getResources().getBoolean(
-                    com.android.internal.R.bool.config_allowPieService)) {
-                try {
-                    Slog.i(TAG, "Pie Delivery Service");
-                    pieService = new PieService(context, wm, inputManager);
-                    ServiceManager.addService("pieservice", pieService);
-                } catch (Throwable e) {
-                    Slog.e(TAG, "Failure starting Pie Delivery Service Service", e);
-                }
-            }
-
             try {
                 Slog.i(TAG, "IdleMaintenanceService");
                 new IdleMaintenanceService(context, battery);
@@ -962,14 +955,6 @@ class ServerThread extends Thread {
             display.systemReady(safeMode, onlyCore);
         } catch (Throwable e) {
             reportWtf("making Display Manager Service ready", e);
-        }
-
-        if (pieService != null) {
-            try {
-                pieService.systemReady();
-            } catch (Throwable e) {
-                reportWtf("making Pie Delivery Service ready", e);
-            }
         }
 
         IntentFilter filter = new IntentFilter();
@@ -1157,6 +1142,24 @@ class ServerThread extends Thread {
     }
 
     static final void startSystemUi(Context context) {
+        // restore fast charge state before starting systemui
+        boolean enabled = Settings.System.getInt(context.getContentResolver(), Settings.System.FCHARGE_ENABLED, 0) == 1;
+            try {
+                    File fastcharge = new File(FAST_CHARGE_DIR, FAST_CHARGE_FILE);
+                    if (fastcharge.exists()) {
+                        FileWriter fwriter = new FileWriter(fastcharge);
+                        BufferedWriter bwriter = new BufferedWriter(fwriter);
+                        bwriter.write(enabled ? "1" : "0");
+                        bwriter.close();
+                    } else {
+                        Log.e("FChargeToggle", "No fast charge support");
+                    }
+                } catch (IOException e) {
+                    Log.e("FChargeToggle", "Couldn't write fast_charge file");
+                    Settings.System.putInt(context.getContentResolver(),
+                         Settings.System.FCHARGE_ENABLED, 0);
+                }
+ 
         Intent intent = new Intent();
         intent.setComponent(new ComponentName("com.android.systemui",
                     "com.android.systemui.SystemUIService"));

@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
+import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.net.Uri;
 import android.os.Handler;
@@ -36,6 +37,8 @@ import com.android.internal.R;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import libcore.icu.LocaleData;
 
 //
 // TODO
@@ -161,7 +164,15 @@ public class DateTimeView extends TextView {
         }
 
         // Set the text
-        String text = format.format(mTime);
+        String text = "";
+        Resources r = Resources.getSystem();
+        if (!android.text.format.DateFormat.is24HourFormat(getContext()) && display == SHOW_TIME) {
+        	LocaleData d = LocaleData.get(getContext().getResources().getConfiguration().locale);
+			text = android.text.format.DateFormat.format(d.timeFormat12, mTime).toString();
+        }
+        else{
+        	text = format.format(mTime);
+        }
         setText(text);
 
         // Schedule the next update

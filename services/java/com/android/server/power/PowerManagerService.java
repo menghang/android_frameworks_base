@@ -305,6 +305,10 @@ public final class PowerManagerService extends IPowerManager.Stub
     // Default value for dreams activate-on-dock
     private boolean mDreamsActivatedOnDockByDefaultConfig;
 
+    // True if we should fade the screen while turning it off, false if we should play
+    // a stylish electron beam animation instead.
+    private boolean mElectronBeamFadesConfig;
+
     // True if dreams are enabled by the user.
     private boolean mDreamsEnabledSetting;
 
@@ -316,6 +320,12 @@ public final class PowerManagerService extends IPowerManager.Stub
 
     // The screen off timeout setting value in milliseconds.
     private int mScreenOffTimeoutSetting;
+
+    // override config for ElectronBeam on or off
+    // used here to send values to DispLayPowerController handler
+    // from SettingsObserver
+    private boolean mElectronBeamOnEnabled;
+    private boolean mElectronBeamOffEnabled;
 
     // The maximum allowable screen off timeout according to the device
     // administration policy.  Overrides other settings.
@@ -526,6 +536,12 @@ public final class PowerManagerService extends IPowerManager.Stub
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.AUTO_BRIGHTNESS_RESPONSIVENESS),
                     false, mSettingsObserver, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.SYSTEM_POWER_ENABLE_CRT_OFF),
+                    false, mSettingsObserver, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.SYSTEM_POWER_ENABLE_CRT_ON),
+                    false, mSettingsObserver, UserHandle.USER_ALL);
 
             // Go.
             readConfigurationLocked();
@@ -548,6 +564,8 @@ public final class PowerManagerService extends IPowerManager.Stub
                 com.android.internal.R.bool.config_dreamsActivatedOnSleepByDefault);
         mDreamsActivatedOnDockByDefaultConfig = resources.getBoolean(
                 com.android.internal.R.bool.config_dreamsActivatedOnDockByDefault);
+        mElectronBeamFadesConfig = resources.getBoolean(
+                com.android.internal.R.bool.config_animateScreenLights);
     }
 
     private void updateSettingsLocked() {
@@ -570,6 +588,14 @@ public final class PowerManagerService extends IPowerManager.Stub
                 UserHandle.USER_CURRENT);
         mStayOnWhilePluggedInSetting = Settings.Global.getInt(resolver,
                 Settings.Global.STAY_ON_WHILE_PLUGGED_IN, BatteryManager.BATTERY_PLUGGED_AC);
+
+        // respect default config values
+        mElectronBeamOnEnabled = Settings.System.getIntForUser(resolver,
+                Settings.System.SYSTEM_POWER_ENABLE_CRT_ON, 0,
+                UserHandle.USER_CURRENT) == 1;
+        mElectronBeamOffEnabled = Settings.System.getIntForUser(resolver,
+                Settings.System.SYSTEM_POWER_ENABLE_CRT_OFF, mElectronBeamFadesConfig ? 0 : 1,
+                UserHandle.USER_CURRENT) == 1;
 
         final int oldScreenBrightnessSetting = mScreenBrightnessSetting;
         mScreenBrightnessSetting = Settings.System.getIntForUser(resolver,
@@ -726,7 +752,9 @@ public final class PowerManagerService extends IPowerManager.Stub
             notifyWakeLockReleasedLocked(wakeLock);
             wakeLock.mLock.unlinkToDeath(wakeLock, 0);
 
-            if ((flags & PowerManager.WAIT_FOR_PROXIMITY_NEGATIVE) != 0) {
+            int buggyProximity = Settings.System.getIntForUser(mContext.getContentResolver(),
+                                                Settings.System.INACCURATE_PROXIMITY_WORKAROUND, 0, UserHandle.USER_CURRENT);
+            if ((flags & PowerManager.WAIT_FOR_PROXIMITY_NEGATIVE) != 0 && buggyProximity == 0) {
                 mRequestWaitForNegativeProximity = true;
             }
 
@@ -1748,8 +1776,9 @@ public final class PowerManagerService extends IPowerManager.Stub
             mDisplayPowerRequest.useProximitySensor = shouldUseProximitySensorLocked();
 
             mDisplayPowerRequest.blockScreenOn = mScreenOnBlocker.isHeld();
-
             mDisplayPowerRequest.responsitivityFactor = mAutoBrightnessResponsitivityFactor;
+            mDisplayPowerRequest.electronBeamOnEnabled = mElectronBeamOnEnabled;
+            mDisplayPowerRequest.electronBeamOffEnabled = mElectronBeamOffEnabled;
 
             mDisplayReady = mDisplayPowerController.requestPowerState(mDisplayPowerRequest,
                     mRequestWaitForNegativeProximity);

@@ -19,20 +19,27 @@ package com.android.systemui.statusbar.phone;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.LayoutTransition;
+import android.app.KeyguardManager;
 import android.app.StatusBarManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.database.ContentObserver;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.PorterDuff;
 import android.os.Handler;
 import android.os.Message;
 import android.os.ServiceManager;
 import android.os.UserHandle;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.Slog;
 import android.view.animation.AccelerateInterpolator;
@@ -50,6 +57,8 @@ import java.io.PrintWriter;
 
 import com.android.internal.statusbar.IStatusBarService;
 import com.android.systemui.R;
+import com.android.systemui.TransparencyManager;
+import com.android.systemui.statusbar.BackgroundAlphaColorDrawable;
 import com.android.systemui.statusbar.BaseStatusBar;
 import com.android.systemui.statusbar.DelegateViewHelper;
 import com.android.systemui.statusbar.NavigationButtons;
@@ -75,6 +84,7 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
     private OnClickListener mRecentsClickListener;
     private OnTouchListener mRecentsPreloadListener;
     private OnTouchListener mHomeSearchActionListener;
+    private OnTouchListener mPowerTouchListener;
 
     protected IStatusBarService mBarService;
     final Display mDisplay;
@@ -88,6 +98,9 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
     boolean mHidden, mLowProfile, mShowMenu;
     int mDisabledFlags = 0;
     int mNavigationIconHints = 0;
+    
+    int mNavigationBarColor = -1;
+    private TransparencyManager mTransparencyManager;
 
     private Drawable mBackIcon, mBackLandIcon, mBackAltIcon, mBackAltLandIcon;
     private Drawable mRecentIcon;
@@ -155,10 +168,11 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
     }
 
     /* package */ void setListeners(OnClickListener recentsClickListener,
-            OnTouchListener recentsPreloadListener, OnTouchListener homeSearchActionListener) {
+            OnTouchListener recentsPreloadListener, OnTouchListener homeSearchActionListener, OnTouchListener PowerTouchListener) {
         mRecentsClickListener = recentsClickListener;
         mRecentsPreloadListener = recentsPreloadListener;
         mHomeSearchActionListener = homeSearchActionListener;
+        mPowerTouchListener = PowerTouchListener;
     }
 
     private void removeButtonListeners() {
@@ -183,6 +197,10 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
         if (homeView != null) {
             homeView.setOnTouchListener(mHomeSearchActionListener);
         }
+        View powerView = mCurrentView.findViewWithTag(NavigationButtons.POWER);
+        if (powerView != null) {
+            powerView.setOnTouchListener(mPowerTouchListener);
+        }
     }
 
     private void setButtonWithTagVisibility(ButtonInfo type, int visibility) {
@@ -195,6 +213,22 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
     // for when home is disabled, but search isn't
     public View getSearchLight() {
         return mCurrentView.findViewById(R.id.search_light);
+    }
+    
+    public void setTransparencyManager(TransparencyManager tm) {
+        mTransparencyManager = tm;
+    }
+    
+    private void makeBar() {
+        Drawable bg = mContext.getResources().getDrawable(R.drawable.nav_bar_bg);
+        if(bg instanceof ColorDrawable) {
+            BackgroundAlphaColorDrawable bacd = new BackgroundAlphaColorDrawable(
+                    mNavigationBarColor > 0 ? mNavigationBarColor : ((ColorDrawable) bg).getColor());
+            setBackground(bacd);
+        }
+        if(mTransparencyManager != null) {
+            mTransparencyManager.update();
+        }
     }
 
     public NavigationBarView(Context context, AttributeSet attrs) {
@@ -322,8 +356,23 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
                     ? (mVertical ? mBackAltLandIcon : mBackAltIcon)
                             : (mVertical ? mBackLandIcon : mBackIcon));
         }
-
+        button = mCurrentView.findViewWithTag(NavigationButtons.POWER);
+        if (button != null) {
+            button.setAlpha(
+                    (0 != (hints & StatusBarManager.NAVIGATION_HINT_POWER_NOP)) ? 0.5f : 1.0f);
+        }
         setDisabledFlags(mDisabledFlags, true);
+    }
+
+    private boolean areKeyguardHintsEnabled() {
+        return ((mDisabledFlags & View.STATUS_BAR_DISABLE_HOME) != 0) && !((mDisabledFlags & View.STATUS_BAR_DISABLE_SEARCH) != 0);
+    }
+
+    private boolean isKeyguardEnabled() {
+        KeyguardManager km = (KeyguardManager)mContext.getSystemService(Context.KEYGUARD_SERVICE);
+        if(km == null) return false;
+
+        return km.isKeyguardLocked();
     }
 
     @Override
@@ -341,9 +390,11 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
         final boolean disableBack = ((disabledFlags & View.STATUS_BAR_DISABLE_BACK) != 0)
                 && ((mNavigationIconHints & StatusBarManager.NAVIGATION_HINT_BACK_ALT) == 0);
         final boolean disableSearch = ((disabledFlags & View.STATUS_BAR_DISABLE_SEARCH) != 0);
+        final boolean disablePower = ((disabledFlags & View.STATUS_BAR_DISABLE_POWER) != 0);
+        final boolean keygaurdProbablyEnabled = areKeyguardHintsEnabled();
 
         if (SLIPPERY_WHEN_DISABLED) {
-            setSlippery(disableHome && disableRecent && disableBack && disableSearch);
+            setSlippery(disableHome && disableRecent && disableBack && disableSearch && disablePower);
         }
 
         if (!mScreenOn && mCurrentView != null) {
@@ -363,7 +414,8 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
         setButtonWithTagVisibility(NavigationButtons.ALWAYS_MENU, disableRecent ? View.INVISIBLE : View.VISIBLE);
         setButtonWithTagVisibility(NavigationButtons.MENU_BIG, disableRecent ? View.INVISIBLE : View.VISIBLE);
         setButtonWithTagVisibility(NavigationButtons.SEARCH, disableRecent ? View.INVISIBLE : View.VISIBLE);
-        getSearchLight().setVisibility((disableHome && !disableSearch) ? View.VISIBLE : View.GONE);
+        setButtonWithTagVisibility(NavigationButtons.POWER, disablePower ? View.INVISIBLE : View.VISIBLE);
+        getSearchLight().setVisibility(keygaurdProbablyEnabled ? View.VISIBLE : View.GONE);
     }
 
     public void setSlippery(boolean newSlippery) {
@@ -489,6 +541,10 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
         }
 
         setNavigationIconHints(mNavigationIconHints, true);
+        
+        // this takes care of making the buttons
+         SettingsObserver settingsObserver = new SettingsObserver(new Handler());
+         settingsObserver.observe();
     }
 
     @Override
@@ -542,7 +598,54 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
         return super.onInterceptTouchEvent(ev);
     }
     */
+    
+    class SettingsObserver extends ContentObserver {
+        SettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        void observe() {
+            ContentResolver resolver = mContext.getContentResolver();
+            
+            resolver.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.NAVIGATION_BAR_COLOR), false, this);
+            updateNavSettings();
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            updateNavSettings();
+        }
+    }
+
+    /*
+     * ]0 < alpha < 1[
+     */
+    public void setBackgroundAlpha(float alpha) {
+        Drawable bg = getBackground();
+        if(bg == null) return;
+
+        if(bg instanceof BackgroundAlphaColorDrawable) {
+         // if there's a custom color while the lockscreen is on, clear it momentarily, otherwise it won't match.
+            if(mNavigationBarColor > 0) {
+                if(isKeyguardEnabled()) {
+                    ((BackgroundAlphaColorDrawable) bg).setBgColor(-1);
+                } else {
+                    ((BackgroundAlphaColorDrawable) bg).setBgColor(mNavigationBarColor);
+                }
+            }
+        }
+        int a = Math.round(alpha * 255);
+        bg.setAlpha(a);
+    }
+    
+    protected void updateNavSettings() {
+        ContentResolver resolver = mContext.getContentResolver();
         
+        mNavigationBarColor = Settings.System.getIntForUser(resolver,
+                Settings.System.NAVIGATION_BAR_COLOR, -1, UserHandle.USER_CURRENT);
+        makeBar();
+    }
 
     private String getResourceName(int resId) {
         if (resId != 0) {
@@ -603,14 +706,18 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
         final View back = mCurrentView.findViewWithTag(NavigationButtons.BACK);
         final View home = mCurrentView.findViewWithTag(NavigationButtons.HOME);
         final View recent = mCurrentView.findViewWithTag(NavigationButtons.RECENT);
+        final View power = mCurrentView.findViewWithTag(NavigationButtons.POWER);
 
         pw.println("      back: " + back != null ?
                 PhoneStatusBar.viewInfo(back) + " " + visibilityToString(back.getVisibility())
                 : "null" );
         pw.println("      home: " +
                 PhoneStatusBar.viewInfo(home) + " " + visibilityToString(home.getVisibility()));
-        pw.println("      rcnt: " + recent != null ?
+        pw.println("      recent: " + recent != null ?
                 PhoneStatusBar.viewInfo(recent) + " " + visibilityToString(recent.getVisibility())
+                : "null" );
+        pw.println("      power: " + power != null ?
+                PhoneStatusBar.viewInfo(power) + " " + visibilityToString(power.getVisibility())
                 : "null" );
         pw.println("    }");
     }
