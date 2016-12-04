@@ -60,6 +60,9 @@ import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.BufferedReader;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -937,6 +940,7 @@ public final class BatteryService extends SystemService {
 
         private final int mBatteryLedOn;
         private final int mBatteryLedOff;
+        private final int mHvdcpLedOn = 1000;
 
         public Led(Context context, LightsManager lights) {
             mBatteryLight = lights.getLight(LightsManager.LIGHT_ID_BATTERY);
@@ -962,6 +966,33 @@ public final class BatteryService extends SystemService {
             // in the alpha channel of the color and let the HAL sort it out.
             mUseSegmentedBatteryLed = nm.doLightsSupport(
                     NotificationManager.LIGHTS_SEGMENTED_BATTERY_LED);
+        }
+
+        private boolean isHvdcpPresent() {
+            File mChargerTypeFile = new File("/sys/class/power_supply/usb/type");
+            FileReader fileReader;
+            BufferedReader br;
+            String type;
+            boolean ret = false;
+
+            if (!mChargerTypeFile.exists()) {
+                // Device does not support HVDCP
+                return ret;
+            }
+
+            try {
+                fileReader = new FileReader(mChargerTypeFile);
+                br = new BufferedReader(fileReader);
+                type =  br.readLine();
+                if (type.regionMatches(true, 0, "USB_HVDCP", 0, 9))
+                    ret = true;
+                br.close();
+                fileReader.close();
+            } catch (IOException e) {
+                Slog.e(TAG, "Failure in reading charger type", e);
+            }
+
+            return ret;
         }
 
         /**
@@ -1000,12 +1031,28 @@ public final class BatteryService extends SystemService {
                     || status == BatteryManager.BATTERY_STATUS_FULL) {
                 mBatteryLight.setModes(mNotificationLedBrightnessLevel,
                         mMultipleLedsEnabled);
-                if (status == BatteryManager.BATTERY_STATUS_FULL || level >= 90) {
-                    // Battery is full or charging and nearly full
+                if (status == BatteryManager.BATTERY_STATUS_FULL) {
+                    // Battery is full
                     mBatteryLight.setColor(mBatteryFullARGB);
+                } else if (level >= 90) {
+                    if (isHvdcpPresent()) {
+                        // Blinking green if HVDCP charger
+                        mBatteryLight.setFlashing(mBatteryFullARGB, Light.LIGHT_FLASH_TIMED,
+                                mHvdcpLedOn, mHvdcpLedOn);
+                    } else {
+                        // Battery is charging and nearly full
+                        mBatteryLight.setColor(mBatteryFullARGB);
+                    }
+                
                 } else {
-                    // Battery is charging and halfway full
-                    mBatteryLight.setColor(mBatteryMediumARGB);
+                    if (isHvdcpPresent()) {
+                        // Blinking orange if HVDCP charger
+                        mBatteryLight.setFlashing(mBatteryMediumARGB, Light.LIGHT_FLASH_TIMED,
+                                mHvdcpLedOn, mHvdcpLedOn);
+                    } else {
+                        // Battery is charging and halfway full
+                        mBatteryLight.setColor(mBatteryMediumARGB);
+                    }
                 }
             } else {
                 // No lights if not charging and not low
